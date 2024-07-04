@@ -1,7 +1,7 @@
-rootProject.name = "kotlinx-benchmark-mu"
+rootProject.name = "kxb-modules"
 
 pluginManagement {
-  includeBuild("build-logic/build-plugins")
+  includeBuild("../build-logic/build-plugins")
   repositories {
     mavenCentral()
     gradlePluginPortal()
@@ -19,5 +19,6 @@ dependencyResolutionManagement {
   }
 }
 
-includeBuild("kxb-examples")
-includeBuild("kxb-modules")
+include(":kxb-runtime")
+include(":kxb-gradle-plugin")
+include(":kxb-generator")
