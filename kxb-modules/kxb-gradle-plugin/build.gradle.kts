@@ -49,7 +49,7 @@ dependencies {
   compileOnly(libs.kotlin.allOpen.gradlePlugin)
 
   compileOnly(projects.kxbGenerator)
-  compileOnly(projects.kxbRuntime)
+  compileOnly(projects.kxbRunner)
 
   compileOnly(libs.jmh.core) // TODO remove
 }

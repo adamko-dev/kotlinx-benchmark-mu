@@ -65,7 +65,7 @@ internal class KxbDependencies(
         addLater(
           benchmarksExtension.versions.benchmarksGenerator.map { version ->
             project.dependencies.create(
-              "dev.adamko.kotlinx-benchmark-mu:kxb-runtime:$version"
+              "dev.adamko.kotlinx-benchmark-mu:kxb-runner:$version"
             )
           }
         )

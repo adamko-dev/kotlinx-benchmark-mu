@@ -27,7 +27,7 @@ tasks.assemble {
   dependsOn(gradle.includedBuild("kxb-modules").task(":assemble"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-generator:assemble"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-gradle-plugin:assemble"))
-  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runtime:assemble"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runner:assemble"))
 }
 
 tasks.check {
@@ -35,7 +35,7 @@ tasks.check {
   dependsOn(gradle.includedBuild("kxb-modules").task(":check"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-generator:check"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-gradle-plugin:check"))
-  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runtime:check"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runner:check"))
 }
 
 //import kxb.build.tasks.CheckReadmeTask

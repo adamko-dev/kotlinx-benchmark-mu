@@ -66,7 +66,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runtime")
+                implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runner")
             }
         }
         jvmMain {

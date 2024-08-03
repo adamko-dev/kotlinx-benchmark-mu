@@ -37,6 +37,7 @@ constructor() : KxbBaseTask() {
 //  @get:Nested
 //  abstract val javaLauncher: Property<JavaLauncher>
 
+  // TODO add jmh.ignoreLock Boolean option
 
   init {
     // trick IntelliJ into thinking this is a test task,
@@ -71,41 +72,14 @@ constructor() : KxbBaseTask() {
 
     logger.lifecycle("[$path] runtimeClasspath: ${runtimeClasspath.asPath}")
     val workQueue =
-//    workers.noIsolation()
       workers.classLoaderIsolation {
-//      workers.processIsolation {
         classpath.from(runtimeClasspath)
-
-//        forkOptions {
-//          jvmArgs(
-//            "-Djmh.separateClasspathJAR=true",
-//            "-Djava.class.path=${classpath.asPath}",
-//          )
-//          systemProperty("java.class.path", classpath.asPath)
-//          debug = true
-//          debugOptions {
-//            enabled = true
-//            suspend = true
-//          }
-//        }
       }
-//      workers.processIsolation {
-//      classpath.from(runtimeClasspath)
-//      forkOptions {
-//      }
-//    }
 
     workQueue.submit(RunJvmBenchmarkWorker::class) {
       this.config = runnerConfig
       this.classpath = runtimeClasspath
     }
-
-//    exec.javaexec {
-//      mainClass = this@RunJvmBenchmarkTask.mainClass
-//      classpath(runtimeClasspath)
-////      javaLauncher = this@ExecJvmBenchmarkTask.javaLauncher
-//      args(parametersFile.invariantSeparatorsPath)
-//    }
   }
 }
 

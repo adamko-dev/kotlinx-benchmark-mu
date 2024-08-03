@@ -15,7 +15,7 @@ plugins {
 //}
 
 dependencies {
-  implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runtime")
+  implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runner")
 
   // TODO auto-add jmh-core dependency...
   implementation("org.openjdk.jmh:jmh-core:${benchmark.versions.jmh.get()}")

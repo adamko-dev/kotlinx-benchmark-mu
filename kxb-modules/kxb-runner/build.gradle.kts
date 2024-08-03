@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
@@ -62,6 +63,18 @@ kotlin {
     )
   }
 
+  targets.withType<KotlinNativeTarget>().configureEach {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+      optIn.addAll(
+//        "kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi",
+//        "kotlin.experimental.ExperimentalNativeApi",
+//      "kotlin.native.runtime.NativeRuntimeApi",
+//      "kotlinx.cinterop.ExperimentalForeignApi",
+      )
+    }
+  }
+
   sourceSets {
     commonTest {
       dependencies {
@@ -76,6 +89,12 @@ kotlin {
     jvmTest {
       dependencies {
         implementation(libs.jmh.core)
+      }
+    }
+    nativeMain {
+      languageSettings {
+//        optIn("kotlin.native.runtime.NativeRuntimeApi")
+//        optIn("kotlinx.cinterop.ExperimentalForeignApi")
       }
     }
   }

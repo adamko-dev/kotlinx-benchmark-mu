@@ -27,3 +27,33 @@ dependencies {
 //    )
 //  }
 //}
+
+
+////region disable 'Unsupported Kotlin plugin version' warning
+//val disableUnsupportedKotlinPluginVersionWarning by tasks.registering {
+//  description = "Workaround for https://github.com/gradle/gradle/issues/13020"
+//
+//  val embeddedKotlinVersion = embeddedKotlinVersion
+//  inputs.property("embeddedKotlinVersion", embeddedKotlinVersion)
+//
+//  outputs.dir(temporaryDir).withPropertyName("outputDir")
+//
+//  doLast {
+//    temporaryDir.resolve("project.properties").apply {
+//      parentFile.mkdirs()
+//      writeText(
+//        """
+//        project.version=$embeddedKotlinVersion
+//        kotlin.native.version=$embeddedKotlinVersion
+//        """.trimIndent()
+//      )
+//    }
+//  }
+//}
+//
+//sourceSets {
+//  main {
+//    resources.srcDir(disableUnsupportedKotlinPluginVersionWarning)
+//  }
+//}
+////endregion
