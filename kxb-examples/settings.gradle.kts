@@ -23,5 +23,5 @@ includeBuild("../kxb-modules")
 
 //include(":java")
 //include(":kotlin")
-//include(":kotlin-kts")
+include(":kotlin-kts")
 //include(":kotlin-multiplatform")

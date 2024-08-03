@@ -21,8 +21,17 @@ expect enum class Scope {
 @Target(AnnotationTarget.CLASS)
 expect annotation class BenchmarkMode(vararg val value: Mode)
 
-expect enum class Mode {
-    Throughput, AverageTime
+expect enum class Mode
+//  (
+//    internal val shortLabel: String,
+//    internal val longLabel: String,
+//)
+{
+    Throughput,//("thrpt", "Throughput, ops/time"),
+    AverageTime,//("avgt", "Average time, time/op"),
+    SampleTime,//("sample", "Sampling time"),
+    SingleShotTime,//("ss", "Single shot invocation time"),
+    All,//("all", "All benchmark modes"),
 }
 
 @Target(AnnotationTarget.CLASS)
@@ -33,7 +42,7 @@ expect enum class BenchmarkTimeUnit {
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
-@Suppress("REDUNDANT_ELSE_IN_WHEN")
+//@Suppress("REDUNDANT_ELSE_IN_WHEN")
 fun BenchmarkTimeUnit.toText() = when (this) {
     BenchmarkTimeUnit.NANOSECONDS -> "ns"
     BenchmarkTimeUnit.MICROSECONDS -> "us"
@@ -44,24 +53,33 @@ fun BenchmarkTimeUnit.toText() = when (this) {
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
-fun String.toMode() =
+fun String.toMode(): Mode =
+//    Mode.entries.firstOrNull { it.name == this || it.shortLabel == this }
+//        ?: throw UnsupportedOperationException("$this is not supported")
     when (this) {
         "thrpt", "Throughput" -> Mode.Throughput
         "avgt", "AverageTime" -> Mode.AverageTime
+        "sample", "SampleTime" -> Mode.SampleTime
+        "ss", "SingleShotTime" -> Mode.SingleShotTime
+        "all", "All" -> Mode.All
         else -> throw UnsupportedOperationException("$this is not supported")
     }
 
 
 @KotlinxBenchmarkRuntimeInternalApi
-@Suppress("REDUNDANT_ELSE_IN_WHEN")
-fun Mode.toText() = when (this) {
-    Mode.Throughput -> "thrpt"
-    Mode.AverageTime -> "avgt"
+//@Suppress("REDUNDANT_ELSE_IN_WHEN")
+fun Mode.toText(): String =
+    when (this) {
+      Mode.Throughput ->  "thrpt"
+      Mode.AverageTime ->  "avgt"
+      Mode.SampleTime ->  "sample"
+      Mode.SingleShotTime ->  "ss"
+      Mode.All ->  "all"
     else -> throw UnsupportedOperationException("$this is not supported")
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
-@Suppress("REDUNDANT_ELSE_IN_WHEN")
+//@Suppress("REDUNDANT_ELSE_IN_WHEN")
 fun BenchmarkTimeUnit.toMultiplier() = when (this) {
     BenchmarkTimeUnit.NANOSECONDS -> 1
     BenchmarkTimeUnit.MICROSECONDS -> 1_000
@@ -72,7 +90,7 @@ fun BenchmarkTimeUnit.toMultiplier() = when (this) {
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
-@Suppress("REDUNDANT_ELSE_IN_WHEN")
+//@Suppress("REDUNDANT_ELSE_IN_WHEN")
 fun BenchmarkTimeUnit.toSecondsMultiplier() = when (this) {
     BenchmarkTimeUnit.NANOSECONDS -> 1.0 / 1_000_000_000
     BenchmarkTimeUnit.MICROSECONDS -> 1.0 / 1_000_000

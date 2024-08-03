@@ -1,6 +1,8 @@
 package kotlinx.benchmark.gradle
 
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
+import kotlinx.benchmark.gradle.mu.config.JsBenchmarkTarget
+import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
 import org.gradle.api.*
 import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.ir.*
@@ -14,14 +16,14 @@ fun Project.processJsCompilation(target: JsBenchmarkTarget) {
 
     val benchmarkCompilation = createJsBenchmarkCompileTask(target)
 
-    target.extension.configurations.forEach {
-        createJsEngineBenchmarkExecTask(it, target, benchmarkCompilation)
-    }
+//    target.extension.configurations.forEach {
+//        createJsEngineBenchmarkExecTask(it, target, benchmarkCompilation)
+//    }
 }
 
 private fun Project.createJsBenchmarkCompileTask(target: JsBenchmarkTarget): KotlinJsIrCompilation {
     val compilation = target.compilation
-    val benchmarkBuildDir = benchmarkBuildDir(target)
+//    val benchmarkBuildDir = benchmarkBuildDir(target)
     val benchmarkCompilation =
         compilation.target.compilations.create(target.name + BenchmarksPlugin.BENCHMARK_COMPILATION_SUFFIX) as KotlinJsIrCompilation
 
@@ -33,7 +35,7 @@ private fun Project.createJsBenchmarkCompileTask(target: JsBenchmarkTarget): Kot
     benchmarkCompilation.apply {
         val sourceSet = kotlinSourceSets.single()
 
-        sourceSet.kotlin.setSrcDirs(files("$benchmarkBuildDir/sources"))
+//        sourceSet.kotlin.setSrcDirs(files("$benchmarkBuildDir/sources"))
         sourceSet.resources.setSrcDirs(files())
 
         sourceSet.dependencies {
@@ -48,7 +50,6 @@ private fun Project.createJsBenchmarkCompileTask(target: JsBenchmarkTarget): Kot
         }
 
         compileTaskProvider.configure {
-            it.apply {
                 group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
                 description = "Compile JS benchmark source files for '${target.name}'"
 
@@ -60,7 +61,6 @@ private fun Project.createJsBenchmarkCompileTask(target: JsBenchmarkTarget): Kot
                 kotlinOptions.apply {
                     sourceMap = true
                     moduleKind = "umd"
-                }
             }
         }
     }
@@ -71,15 +71,15 @@ private fun Project.createJsBenchmarkGenerateSourceTask(
     target: JsBenchmarkTarget,
     compilationOutput: KotlinJsIrCompilation
 ) {
-    val benchmarkBuildDir = benchmarkBuildDir(target)
+//    val benchmarkBuildDir = benchmarkBuildDir(target)
     task<JsSourceGeneratorTask>("${target.name}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}") {
         group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
         description = "Generate JS source files for '${target.name}'"
-        title = target.name
-        useBenchmarkJs = target.jsBenchmarksExecutor == JsBenchmarksExecutor.BenchmarkJs
-        inputClassesDirs = compilationOutput.output.allOutputs
-        inputDependencies = compilationOutput.compileDependencyFiles
-        outputResourcesDir = file("$benchmarkBuildDir/resources")
-        outputSourcesDir = file("$benchmarkBuildDir/sources")
+//        title = target.name
+//        useBenchmarkJs = target.jsBenchmarksExecutor == JsBenchmarksExecutor.BenchmarkJs
+//        inputClassesDirs = compilationOutput.output.allOutputs
+//        inputDependencies = compilationOutput.compileDependencyFiles
+//        outputResourcesDir = file("$benchmarkBuildDir/resources")
+//        outputSourcesDir = file("$benchmarkBuildDir/sources")
     }
 }

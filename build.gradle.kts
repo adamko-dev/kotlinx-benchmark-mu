@@ -1,4 +1,44 @@
-//import tasks.CheckReadmeTask
+plugins {
+  idea
+  base
+}
+
+idea {
+  module {
+    excludeDirs.plusAssign(
+      listOf(
+        ".idea",
+        ".kotlin",
+//        "build-logic/build-plugins/.kotlin",
+      ).map(::File)
+    )
+//    excludeDirs.plusAssign(
+//      listOf(
+//        "kotlin-dsl-accessors",
+//        "kotlin-dsl-external-plugin-spec-builders",
+//        "kotlin-dsl-plugins",
+//      ).map { File("build-logic/build-plugins/build/generated-sources/$it/kotlin/gradle/") }
+//    )
+  }
+}
+
+tasks.assemble {
+//  dependsOn(gradle.includedBuild("kxb-examples").task(":assemble"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":assemble"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-generator:assemble"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-gradle-plugin:assemble"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runtime:assemble"))
+}
+
+tasks.check {
+//  dependsOn(gradle.includedBuild("kxb-examples").task(":assemble"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":check"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-generator:check"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-gradle-plugin:check"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runtime:check"))
+}
+
+//import kxb.build.tasks.CheckReadmeTask
 //
 //buildscript {
 //    repositories {

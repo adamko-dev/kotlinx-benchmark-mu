@@ -7,33 +7,32 @@ plugins {
 }
 
 kotlin {
-  // Tier 1
   linuxX64()
   macosX64()
   macosArm64()
+  mingwX64()
+
+  linuxArm64()
+
+  iosArm64()
   iosSimulatorArm64()
   iosX64()
-
-  // Tier 2
-  linuxArm64()
-  watchosSimulatorArm64()
-  watchosX64()
-  watchosArm32()
-  watchosArm64()
+  tvosArm64()
   tvosSimulatorArm64()
   tvosX64()
-  tvosArm64()
-  iosArm64()
+  watchosArm32()
+  watchosArm64()
+  watchosDeviceArm64()
+  watchosSimulatorArm64()
+  watchosX64()
 
-  // Tier 3
   androidNativeArm32()
   androidNativeArm64()
   androidNativeX86()
   androidNativeX64()
-  mingwX64()
-  watchosDeviceArm64()
 
   jvm()
+
   js(IR) { nodejs() }
 
   @OptIn(ExperimentalWasmDsl::class)
@@ -44,24 +43,21 @@ kotlin {
     common {
       group("jsWasmJsShared") {
         withJs()
-        withWasm()
+        withWasmJs()
       }
     }
   }
 
-  targets.configureEach {
-    compilations.configureEach {
-      compilerOptions.configure {
-        allWarningsAsErrors = true
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-        optIn.addAll(
-          "kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi",
-          "kotlin.experimental.ExperimentalNativeApi",
-          "kotlin.native.runtime.NativeRuntimeApi",
-          "kotlinx.cinterop.ExperimentalForeignApi",
-        )
-      }
-    }
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  compilerOptions {
+    allWarningsAsErrors = false
+    freeCompilerArgs.add("-Xexpect-actual-classes")
+    optIn.addAll(
+      "kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi",
+      "kotlin.experimental.ExperimentalNativeApi",
+      "kotlin.native.runtime.NativeRuntimeApi",
+      "kotlinx.cinterop.ExperimentalForeignApi",
+    )
   }
 
   sourceSets {
@@ -79,9 +75,6 @@ kotlin {
       dependencies {
         implementation(libs.jmh.core)
       }
-    }
-    jsMain {
-      //jsIrMain.dependsOn(it)
     }
   }
 }

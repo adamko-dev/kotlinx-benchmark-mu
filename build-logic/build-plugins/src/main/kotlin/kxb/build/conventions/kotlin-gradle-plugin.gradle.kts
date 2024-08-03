@@ -5,3 +5,7 @@ plugins {
   id("org.gradle.kotlin.kotlin-dsl")
   id("kxb.build.conventions.publishing")
 }
+
+tasks.validatePlugins {
+  enableStricterValidation = true
+}

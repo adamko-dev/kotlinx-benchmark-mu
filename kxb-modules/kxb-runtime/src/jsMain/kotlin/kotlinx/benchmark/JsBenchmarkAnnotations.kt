@@ -21,7 +21,11 @@ actual annotation class Benchmark
 actual annotation class BenchmarkMode(actual vararg val value: Mode)
 
 actual enum class Mode {
-    Throughput, AverageTime
+    Throughput,
+    AverageTime,
+    SampleTime,
+    SingleShotTime,
+    All,
 }
 
 @Target(AnnotationTarget.CLASS)

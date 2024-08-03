@@ -23,6 +23,9 @@ dependencyResolutionManagement {
   }
 }
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+
 include(":kxb-runtime")
 include(":kxb-gradle-plugin")
 include(":kxb-generator")

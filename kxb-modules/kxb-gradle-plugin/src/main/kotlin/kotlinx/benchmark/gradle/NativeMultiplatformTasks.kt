@@ -11,6 +11,9 @@ import java.io.File
 import java.nio.file.Path
 import javax.inject.Inject
 import kotlin.io.path.*
+import kotlinx.benchmark.gradle.mu.config.NativeBenchmarkTarget
+import kotlinx.benchmark.gradle.mu.tasks.NativeSourceGeneratorTask
+import org.gradle.kotlin.dsl.assign
 
 @KotlinxBenchmarkPluginInternalApi
 fun Project.processNativeCompilation(target: NativeBenchmarkTarget) {
@@ -25,36 +28,36 @@ fun Project.processNativeCompilation(target: NativeBenchmarkTarget) {
     createNativeBenchmarkGenerateSourceTask(target)
 
     val benchmarkCompilation = createNativeBenchmarkCompileTask(target)
-    target.extension.configurations.forEach {
-        createNativeBenchmarkExecTask(it, target, benchmarkCompilation)
-    }
+//    target.extension.configurations.forEach {
+//        createNativeBenchmarkExecTask(it, target, benchmarkCompilation)
+//    }
 }
 
 private fun generateSourceTaskName(target: NativeBenchmarkTarget) =
     target.name + BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX
 
 private fun Project.createNativeBenchmarkGenerateSourceTask(target: NativeBenchmarkTarget) {
-    val benchmarkBuildDir = benchmarkBuildDir(target)
+//    val benchmarkBuildDir = benchmarkBuildDir(target)
     task<NativeSourceGeneratorTask>(generateSourceTaskName(target)) {
         group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
         description = "Generate Native source files for '${target.name}'"
         val compilation = target.compilation
         this.nativeTarget = compilation.target.konanTarget.name
-        title = target.name
-        inputClassesDirs = compilation.output.allOutputs
+//        title = target.name
+//        inputClassesDirs = compilation.output.allOutputs
 
         val nativeKlibDependencies = project.configurations.getByName(compilation.defaultSourceSet.implementationMetadataConfigurationName)
         inputDependencies = compilation.compileDependencyFiles + nativeKlibDependencies
 
-        outputResourcesDir = file("$benchmarkBuildDir/resources")
-        outputSourcesDir = file("$benchmarkBuildDir/sources")
+//        outputResourcesDir = file("$benchmarkBuildDir/resources")
+//        outputSourcesDir = file("$benchmarkBuildDir/sources")
     }
 }
 
 private fun Project.createNativeBenchmarkCompileTask(target: NativeBenchmarkTarget): KotlinNativeCompilation {
 
     val compilation = target.compilation
-    val benchmarkBuildDir = benchmarkBuildDir(target)
+//    val benchmarkBuildDir = benchmarkBuildDir(target)
     val compilationTarget = compilation.target
     val benchmarkCompilation =
         compilationTarget.compilations.create(target.name + BenchmarksPlugin.BENCHMARK_COMPILATION_SUFFIX) as KotlinNativeCompilation
@@ -64,13 +67,13 @@ private fun Project.createNativeBenchmarkCompileTask(target: NativeBenchmarkTarg
     // a link task. So we disable execution the klib compiling task to save time.
 //    benchmarkCompilation.compileKotlinTask.enabled = false
 
-    benchmarkCompilation.compileTaskProvider.configure { it.dependsOn(generateSourceTaskName(target)) }
+//    benchmarkCompilation.compileTaskProvider.configure { it.dependsOn(generateSourceTaskName(target)) }
 
     benchmarkCompilation.apply {
         val sourceSet = kotlinSourceSets.single()
 
         sourceSet.resources.setSrcDirs(files())
-        sourceSet.kotlin.setSrcDirs(files("$benchmarkBuildDir/sources"))
+//        sourceSet.kotlin.setSrcDirs(files("$benchmarkBuildDir/sources"))
 
         sourceSet.dependencies {
             implementation(compilation.output.allOutputs)
@@ -90,7 +93,7 @@ private fun Project.createNativeBenchmarkCompileTask(target: NativeBenchmarkTarg
             // The release build type is already optimized and non-debuggable.
             executable(benchmarkCompilation.name, listOf(target.buildType)) {
                 this.compilation = benchmarkCompilation
-                this.outputDirectory = file("$benchmarkBuildDir/classes")
+//                this.outputDirectory = file("$benchmarkBuildDir/classes")
                 // A link task's name is linkReleaseExecutable<Target>.
                 linkTask.apply {
                     group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
@@ -130,14 +133,14 @@ fun Project.createNativeBenchmarkExecTask(
 
         this.executable = executableFile
         this.nativeFork = config.advanced["nativeFork"] as? String
-        this.workingDir = target.workingDir
+//        this.workingDir = target.workingDir
         this.benchProgressPath = createTempFile("bench", ".txt").absolutePath
 
-        benchsDescriptionDir = project.layout.buildDirectory
-            .dir("${target.extension.benchsDescriptionDir}/${config.name}")
-            .get().asFile
+//        benchsDescriptionDir = project.layout.buildDirectory
+//            .dir("${target.extension.benchsDescriptionDir}/${config.name}")
+//            .get().asFile
 
-        reportFile = setupReporting(target, config)
+//        reportFile = setupReporting(target, config)
         configFile = writeParameters(target.name, reportFile, traceFormat(), config)
 
         doFirst {
@@ -182,13 +185,13 @@ constructor(
     lateinit var benchProgressPath: String
 
     private fun execute(args: Collection<String>) {
-        execOperations.exec {
-            it.executable = executable.absolutePath
-            it.args(args)
-            workingDir?.let { dir ->
-                it.workingDir = File(dir)
-            }
-        }
+//        execOperations.exec {
+//            it.executable = executable.absolutePath
+//            it.args(args)
+//            workingDir?.let { dir ->
+//                it.workingDir = File(dir)
+//            }
+//        }
     }
 
     @OptIn(ExperimentalPathApi::class)

@@ -16,6 +16,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
 
 @KotlinxBenchmarkPluginInternalApi
 fun cleanup(file: File) {
@@ -43,29 +45,29 @@ inline fun <reified T : Task> Project.task(
     return task
 }
 
-@KotlinxBenchmarkPluginInternalApi
-fun Project.benchmarkBuildDir(target: BenchmarkTarget): File =
-    layout.buildDirectory.dir("${target.extension.buildDir}/${target.name}")
-        .get()
-        .asFile
+//@KotlinxBenchmarkPluginInternalApi
+//fun Project.benchmarkBuildDir(target: BenchmarkTarget): File =
+//    layout.buildDirectory.dir("${target.extension.buildDir}/${target.name}")
+//        .get()
+//        .asFile
 
-@KotlinxBenchmarkPluginInternalApi
-fun Project.benchmarkReportsDir(config: BenchmarkConfiguration, target: BenchmarkTarget): File {
-    val ext = project.extensions.extraProperties
-    val time = if (ext.has("reportTime")) {
-        ext.get("reportTime") as LocalDateTime
-    } else {
-        LocalDateTime.now().also {
-            ext.set("reportTime", it)
-        }
-    }
-    val timestamp = time.format(DateTimeFormatter.ISO_DATE_TIME)
-    val compatibleTime = timestamp.replace(":", ".") // Windows doesn't allow ':' in path
-
-    return layout.buildDirectory.dir("${target.extension.reportsDir}/${config.name}/${compatibleTime}")
-        .get()
-        .asFile
-}
+//@KotlinxBenchmarkPluginInternalApi
+//fun Project.benchmarkReportsDir(config: BenchmarkConfiguration, target: BenchmarkTarget): File {
+//    val ext = project.extensions.extraProperties
+//    val time = if (ext.has("reportTime")) {
+//        ext.get("reportTime") as LocalDateTime
+//    } else {
+//        LocalDateTime.now().also {
+//            ext.set("reportTime", it)
+//        }
+//    }
+//    val timestamp = time.format(DateTimeFormatter.ISO_DATE_TIME)
+//    val compatibleTime = timestamp.replace(":", ".") // Windows doesn't allow ':' in path
+//
+//    return layout.buildDirectory.dir("${target.extension.reportsDir}/${config.name}/${compatibleTime}")
+//        .get()
+//        .asFile
+//}
 
 @KotlinxBenchmarkPluginInternalApi
 class KotlinClosure1<in T : Any?, V : Any>(
@@ -93,19 +95,19 @@ fun <T> Any.tryGetClass(className: String): Class<T>? {
     }
 }
 
-@KotlinxBenchmarkPluginInternalApi
-fun Task.setupReporting(target: BenchmarkTarget, config: BenchmarkConfiguration): File {
-    extensions.extraProperties.set("idea.internal.test", project.getSystemProperty("idea.active"))
-    val reportsDir = project.benchmarkReportsDir(config, target)
-    val reportFile = reportsDir.resolve("${target.name}.${config.reportFileExt()}")
-    val configName = config.name
-    val targetName = target.name
-    doFirst {
-        reportsDir.mkdirs()
-        logger.lifecycle("Running '${configName}' benchmarks for '${targetName}'")
-    }
-    return reportFile
-}
+//@KotlinxBenchmarkPluginInternalApi
+//fun Task.setupReporting(target: BenchmarkTarget, config: BenchmarkConfiguration): File {
+//    extensions.extraProperties.set("idea.internal.test", project.getSystemProperty("idea.active"))
+//    val reportsDir = project.benchmarkReportsDir(config, target)
+//    val reportFile = reportsDir.resolve("${target.name}.${config.reportFileExt()}")
+//    val configName = config.name
+//    val targetName = target.name
+//    doFirst {
+//        reportsDir.mkdirs()
+//        logger.lifecycle("Running '${configName}' benchmarks for '${targetName}'")
+//    }
+//    return reportFile
+//}
 
 @KotlinxBenchmarkPluginInternalApi
 fun Task.traceFormat(): String {
@@ -155,7 +157,7 @@ fun writeParameters(
 
 private fun validateConfig(config: BenchmarkConfiguration) {
     config.reportFormat?.let {
-        require(it.toLowerCase() in ValidOptions.format) {
+        require(it.lowercase() in ValidOptions.format) {
             "Invalid report format: '$it'. Accepted formats: ${ValidOptions.format.joinToString(", ")} (e.g., reportFormat = \"json\")."
         }
     }

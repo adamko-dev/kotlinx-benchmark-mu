@@ -11,6 +11,8 @@ import org.openjdk.jmh.runner.options.*
 import java.io.*
 import java.lang.management.*
 import java.util.concurrent.*
+import kotlinx.benchmark.Mode.*
+import org.openjdk.jmh.annotations.Mode as JmhMode
 
 @KotlinxBenchmarkRuntimeInternalApi
 fun main(args: Array<String>) {
