@@ -10,11 +10,6 @@ plugins {
   id("dev.adamko.kotlinx-benchmark")
 }
 
-sourceSets.configureEach {
-  java.setSrcDirs(listOf("$name/src"))
-  resources.setSrcDirs(listOf("$name/resources"))
-}
-
 //configure<AllOpenExtension> {
 //  annotation("org.openjdk.jmh.annotations.State")
 //}
@@ -22,7 +17,8 @@ sourceSets.configureEach {
 dependencies {
   implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runtime")
 
-  implementation("org.openjdk.jmh:jmh-core:${benchmarks.versions.jmh.get()}")
+  // TODO auto-add jmh-core dependency...
+  implementation("org.openjdk.jmh:jmh-core:${benchmark.versions.jmh.get()}")
 }
 
 //tasks.withType<JavaCompile> {
@@ -30,18 +26,18 @@ dependencies {
 //    targetCompatibility = "1.8"
 //}
 //
-//
 //tasks.withType<KotlinCompile> {
 //    kotlinOptions {
 //        jvmTarget = "1.8"
 //    }
 //}
 
-
-benchmarks {
+benchmark {
 
   benchmarkRuns {
     register("main") {
+      warmups = 0
+      iterations = 3
       iterationDuration = 5.seconds
     }
   }
@@ -50,7 +46,9 @@ benchmarks {
     jmh = "1.21"
   }
 
-  targets.kotlinJvm {
+  targets {
+    kotlinJvm {
+    }
   }
 }
 

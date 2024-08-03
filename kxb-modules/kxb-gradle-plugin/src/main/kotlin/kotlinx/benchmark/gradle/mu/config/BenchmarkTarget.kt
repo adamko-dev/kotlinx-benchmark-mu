@@ -5,7 +5,6 @@ import kotlin.collections.set
 import kotlinx.benchmark.gradle.BenchmarksPlugin
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
-import kotlinx.benchmark.gradle.mu.tasks.RunJvmBenchmarkTask
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -58,19 +57,16 @@ constructor(
       project: Project,
     ) : Kotlin("kotlin$targetName") {
       @get:Classpath
-      abstract val inputClasses: ConfigurableFileCollection
+      abstract val compiledTarget: ConfigurableFileCollection
 
       @get:Classpath
-      abstract val compileClasspath: ConfigurableFileCollection
+      abstract val targetRuntimeDependencies: ConfigurableFileCollection
+
+      @get:Classpath
+      abstract val targetCompilationDependencies: ConfigurableFileCollection
 
       @get:Classpath
       abstract val runtimeClasspath: ConfigurableFileCollection
-//      @get:OutputDirectory
-//      abstract val outputResourcesDir: DirectoryProperty
-//
-//      @get:OutputDirectory
-//      abstract val outputSourcesDir: DirectoryProperty
-
 
       val generateBenchmarkTask: TaskProvider<GenerateJvmBenchmarkTask> =
         project.tasks.register<GenerateJvmBenchmarkTask>("kxbGenerate${targetName}") {
@@ -86,27 +82,30 @@ constructor(
 //        }
         }
 
-      val prepareResourcesTask: TaskProvider<Sync> =
-        project.tasks.register<Sync>(
-          "kxbPrepareResources${targetName}",
-        ) {
-          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
-          from(generateBenchmarkTask.map { it.generatedResources })
-          into(temporaryDir)
-        }
+//      val prepareResourcesTask: TaskProvider<Sync> =
+//        project.tasks.register<Sync>(
+//          "kxbPrepareResources${targetName}",
+//        ) {
+//          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
+//          from(generateBenchmarkTask.map { it.generatedResources })
+//          into(temporaryDir)
+//        }
 
       val compileTask: TaskProvider<JavaCompile> =
         project.tasks.register<JavaCompile>(
           "kxbCompile${targetName}",
         ) {
+
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
           description = "Compile JMH source files for '${targetName}'"
           dependsOn(generateBenchmarkTask)
-          classpath = compileClasspath
-//          classpath = project.objects.fileCollection().apply {
-//            from(compileClasspath)
+//          classpath = compileClasspath
+          classpath = project.objects.fileCollection().apply {
+            from(compiledTarget)
+            from(targetCompilationDependencies)
+//            from(targetRuntimeDependencies)
 //            from()
-//          }
+          }
           source(generateBenchmarkTask.map { it.generatedSources })
 //        source = fileTree("$benchmarkBuildDir/sources")
 //        destinationDirectory.set(file("$benchmarkBuildDir/classes"))
@@ -130,18 +129,14 @@ constructor(
           duplicatesStrategy = DuplicatesStrategy.FAIL
 
           from(compileTask) {
-            exclude("**/*.bin")
+            include("**/*.class")
           }
-          from(prepareResourcesTask)
+          from(generateBenchmarkTask.map { it.generatedResources })
 
           destinationDirectory = temporaryDir
           archiveBaseName.set("${project.name}-${targetName}-jmh")
         }
 
-      val runBenchmarkTask: TaskProvider<RunJvmBenchmarkTask> =
-        project.tasks.register<RunJvmBenchmarkTask>("benchmark${targetName}") {
-          runtimeClasspath.from(jarTask)
-        }
     }
 
     abstract class JS

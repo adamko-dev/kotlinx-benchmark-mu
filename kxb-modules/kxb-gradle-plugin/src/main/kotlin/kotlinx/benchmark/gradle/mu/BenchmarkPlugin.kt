@@ -1,7 +1,6 @@
 package kotlinx.benchmark.gradle.mu
 
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.BENCHMARK_PLUGIN_VERSION
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.JMH_DEFAULT_VERSION
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
@@ -12,6 +11,7 @@ import kotlinx.benchmark.gradle.mu.config.ReportTimeUnit
 import kotlinx.benchmark.gradle.mu.internal.KxbDependencies
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbJavaAdapter
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbKotlinAdapter
+import kotlinx.benchmark.gradle.mu.internal.utils.uppercaseFirstChar
 import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.RunJvmBenchmarkTask
 import org.gradle.api.Plugin
@@ -31,7 +31,6 @@ constructor(
   private val layout: ProjectLayout,
 ) : Plugin<Project> {
 
-
   override fun apply(project: Project) {
     val kxbExtension = createKxbExtension(project)
 
@@ -40,22 +39,38 @@ constructor(
     project.pluginManager.apply(KxbKotlinAdapter::class)
     project.pluginManager.apply(KxbJavaAdapter::class)
 
-    configureAllOpenPlugins(project)
+    configureAllOpenPlugin(project)
 
     configureKxbTasks(project, kxbExtension, kxbDependencies)
 
-    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JVM>().all { handleKotlinJvmTarget(project, this) }
+    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JVM>().all {
+      handleKotlinJvmTarget(project, kxbExtension, kxbDependencies, this)
+    }
   }
 
-
   private fun createKxbExtension(project: Project): BenchmarkExtension {
-    return project.extensions.create("benchmarks", BenchmarkExtension::class).apply {
+    return project.extensions.create("benchmark", BenchmarkExtension::class).apply {
 
-//      versions.benchmarksGenerator.convention(...)
-//      versions.jmh.convention(...)
+      benchmarkRuns.configureEach {
+        enabled.convention(true)
+        iterations.convention(1)
+        warmups.convention(0)
+//        iterationDuration.convention(10.seconds)
+        mode.convention(BenchmarkMode.Throughput)
+        reportFormat.convention(ReportFormat.Text)
+        reportTimeUnit.convention(ReportTimeUnit.Seconds)
+
+        excludes.set(emptySet())
+        excludes.convention(emptySet())
+
+        params.set(emptyMap<String, List<String>>())
+        params.convention(emptyMap<String, List<String>>())
+
+        advanced.set(emptyMap<String, String>())
+        advanced.convention(emptyMap<String, String>())
+      }
 
       targets.apply {
-//        registerBinding(BenchmarkTarget.Kotlin.JVM::class, BenchmarkTarget.Kotlin.JVM::class)
         registerFactory(BenchmarkTarget.Kotlin.JVM::class.java) { name ->
           objects.newInstance(name, project)
         }
@@ -75,7 +90,7 @@ constructor(
     }
   }
 
-  private fun configureAllOpenPlugins(project: Project) {
+  private fun configureAllOpenPlugin(project: Project) {
     project.pluginManager.withPlugin("org.jetbrains.kotlin.plugin.allopen") {
       project.extensions.configure<AllOpenExtension> {
         annotation("org.openjdk.jmh.annotations.State")
@@ -101,30 +116,25 @@ constructor(
     project.tasks.withType<RunJvmBenchmarkTask>().configureEach {
       mainClass.convention("kotlinx.benchmark.jvm.JvmBenchmarkRunnerKt")
       ideaActive.convention(providers.systemProperty("idea.active").map { it.toBoolean() })
-      benchmarkParameters.apply {
-        enabled.convention(true)
-        iterations.convention(10)
-        iterationDuration.convention(10.seconds)
-        mode.convention(BenchmarkMode.AverageTime)
-        reportFormat.convention(ReportFormat.Text)
-        reportTimeUnit.convention(ReportTimeUnit.Milliseconds)
-
-        excludes.set(emptySet())
-        excludes.convention(emptySet())
-
-        params.set(emptyMap<String, List<String>>())
-        params.convention(emptyMap<String, List<String>>())
-
-        advanced.set(emptyMap<String, String>())
-        advanced.convention(emptyMap<String, String>())
-      }
     }
   }
 
   private fun handleKotlinJvmTarget(
     project: Project,
+    kxbExtension: BenchmarkExtension,
+    kxbDependencies: KxbDependencies,
     target: BenchmarkTarget.Kotlin.JVM,
   ) {
-
+    kxbExtension.benchmarkRuns.all {
+      val runSpec = this
+      project.tasks.register<RunJvmBenchmarkTask>("benchmark${target.name.uppercaseFirstChar()}${runSpec.name.uppercaseFirstChar()}") {
+        runtimeClasspath.from(target.jarTask)
+        runtimeClasspath.from(target.runtimeClasspath)
+        runtimeClasspath.from(target.targetRuntimeDependencies)
+        runtimeClasspath.from(target.compiledTarget)
+        runtimeClasspath.from(kxbDependencies.kxbBenchmarkRunnerJvmResolver)
+        benchmarkParameters.set(runSpec)
+      }
+    }
   }
 }

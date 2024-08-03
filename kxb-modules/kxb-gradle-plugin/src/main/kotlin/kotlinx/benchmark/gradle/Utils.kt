@@ -69,31 +69,31 @@ inline fun <reified T : Task> Project.task(
 //        .asFile
 //}
 
-@KotlinxBenchmarkPluginInternalApi
-class KotlinClosure1<in T : Any?, V : Any>(
-    val function: T.() -> V?,
-    owner: Any? = null,
-    thisObject: Any? = null
-) : Closure<V?>(owner, thisObject) {
+//@KotlinxBenchmarkPluginInternalApi
+//class KotlinClosure1<in T : Any?, V : Any>(
+//    val function: T.() -> V?,
+//    owner: Any? = null,
+//    thisObject: Any? = null
+//) : Closure<V?>(owner, thisObject) {
+//
+//    @Suppress("unused") // to be called dynamically by Groovy
+//    fun doCall(it: T): V? = it.function()
+//}
 
-    @Suppress("unused") // to be called dynamically by Groovy
-    fun doCall(it: T): V? = it.function()
-}
-
-@KotlinxBenchmarkPluginInternalApi
-fun <T> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
-    KotlinClosure1(action, this, this)
-
-@KotlinxBenchmarkPluginInternalApi
-fun <T> Any.tryGetClass(className: String): Class<T>? {
-    val classLoader = javaClass.classLoader
-    return try {
-        @Suppress("UNCHECKED_CAST")
-        Class.forName(className, false, classLoader) as Class<T>
-    } catch (e: ClassNotFoundException) {
-        null
-    }
-}
+//@KotlinxBenchmarkPluginInternalApi
+//fun <T> Any.closureOf(action: T.() -> Unit): Closure<Any?> =
+//    KotlinClosure1(action, this, this)
+//
+//@KotlinxBenchmarkPluginInternalApi
+//fun <T> Any.tryGetClass(className: String): Class<T>? {
+//    val classLoader = javaClass.classLoader
+//    return try {
+//        @Suppress("UNCHECKED_CAST")
+//        Class.forName(className, false, classLoader) as Class<T>
+//    } catch (e: ClassNotFoundException) {
+//        null
+//    }
+//}
 
 //@KotlinxBenchmarkPluginInternalApi
 //fun Task.setupReporting(target: BenchmarkTarget, config: BenchmarkConfiguration): File {

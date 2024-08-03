@@ -20,6 +20,7 @@ actual typealias OutputTimeUnit = org.openjdk.jmh.annotations.OutputTimeUnit
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 actual typealias BenchmarkTimeUnit = java.util.concurrent.TimeUnit
 
+@Suppress("ACTUAL_ANNOTATION_CONFLICTING_DEFAULT_ARGUMENT_VALUE")
 actual typealias Warmup = org.openjdk.jmh.annotations.Warmup
 
 @Suppress("ACTUAL_ANNOTATION_CONFLICTING_DEFAULT_ARGUMENT_VALUE")

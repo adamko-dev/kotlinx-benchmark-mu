@@ -11,13 +11,9 @@ import org.openjdk.jmh.runner.options.*
 import java.io.*
 import java.lang.management.*
 import java.util.concurrent.*
-import kotlinx.benchmark.Mode.*
-import org.openjdk.jmh.annotations.Mode as JmhMode
 
 @KotlinxBenchmarkRuntimeInternalApi
-fun main(args: Array<String>) {
-    val config = RunnerConfiguration(args[0].readFile())
-
+fun runJvmBenchmark(config: RunnerConfiguration) {
     val jmhOptions = OptionsBuilder()
     config.iterations?.let { jmhOptions.measurementIterations(it) }
     config.warmups?.let { jmhOptions.warmupIterations(it) }
@@ -77,6 +73,12 @@ fun main(args: Array<String>) {
             e.message ?: "<unknown error>"
         )
     }
+}
+
+@KotlinxBenchmarkRuntimeInternalApi
+fun main(args: Array<String>) {
+    val config = RunnerConfiguration(args[0].readFile())
+    runJvmBenchmark(config)
 }
 
 @KotlinxBenchmarkRuntimeInternalApi

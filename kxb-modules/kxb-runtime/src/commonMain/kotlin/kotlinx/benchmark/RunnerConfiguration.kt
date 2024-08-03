@@ -14,9 +14,7 @@ class RunnerConfiguration(config: String) {
     val traceFormat = singleValue("traceFormat")
     val reportFormat = singleValue("reportFormat", "json")
 
-    val params = mapValues(
-        "param", "="
-    )
+    val params = mapValues("param", "=")
 
     val include = listValues("include")
     val exclude = listValues("exclude")

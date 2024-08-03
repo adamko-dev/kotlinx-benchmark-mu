@@ -21,7 +21,7 @@ abstract class BenchmarkProgress {
             "text" -> {
                 ConsoleBenchmarkProgress()
             }
-            else -> throw UnsupportedOperationException("Format $format is not supported.")
+            else -> throw UnsupportedOperationException("Format '$format' is not supported.")
         }
     }
 
@@ -90,7 +90,6 @@ open class IntelliJBenchmarkProgress : BenchmarkProgress() {
 @KotlinxBenchmarkRuntimeInternalApi
 class ConsoleBenchmarkProgress : BenchmarkProgress() {
     override fun startSuite(suite: String) {
-
     }
 
     override fun endSuite(suite: String, summary: String) {
@@ -117,4 +116,3 @@ class ConsoleBenchmarkProgress : BenchmarkProgress() {
         println(message)
     }
 }
-

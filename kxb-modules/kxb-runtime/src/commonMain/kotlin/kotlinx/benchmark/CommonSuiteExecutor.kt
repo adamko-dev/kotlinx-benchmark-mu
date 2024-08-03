@@ -6,7 +6,7 @@ import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 abstract class CommonSuiteExecutor(
     executionName: String,
     configPath: String,
-    xmlReporter: (() -> BenchmarkProgress)? = null
+    xmlReporter: (() -> BenchmarkProgress)? = null,
 ) : SuiteExecutor(executionName, configPath, xmlReporter) {
 
     private fun runBenchmark(
@@ -18,26 +18,30 @@ abstract class CommonSuiteExecutor(
         val instance = benchmark.suite.factory()
         benchmark.suite.parametrize(instance, parameters)
         benchmark.suite.setup(instance)
-        var exception: Throwable? = null
-        val samples = try {
+//        var exception: Throwable? = null
+//        val samples =
+        try {
             val cycles = estimateCycles(instance, benchmark, configuration)
             val measurer = createIterationMeasurer(instance, benchmark, configuration, cycles)
             warmup(id, configuration, cycles, measurer)
-            measure(id, configuration, cycles, measurer)
-        } catch (e: Throwable) {
-            exception = e
-            doubleArrayOf()
-        } finally {
-            benchmark.suite.teardown(instance)
-            benchmark.blackhole.flush()
-        }
-        if (exception != null) {
+            return measure(id, configuration, cycles, measurer)
+        } catch (exception: Throwable) {
+//            exception = e
             val error = exception.toString()
             val stacktrace = exception.stackTraceToString()
             reporter.endBenchmarkException(executionName, id, error, stacktrace)
             return null
+        } finally {
+            benchmark.suite.teardown(instance)
+            benchmark.blackhole.flush()
         }
-        return samples
+//        if (exception != null) {
+//            val error = exception.toString()
+//            val stacktrace = exception.stackTraceToString()
+//            reporter.endBenchmarkException(executionName, id, error, stacktrace)
+//            return null
+//        }
+//        return samples
     }
 
     private fun saveBenchmarkResults(benchmark: BenchmarkDescriptor<Any?>, configuration: BenchmarkConfiguration, parameters: Map<String, String>, id: String, samples: DoubleArray) {
@@ -160,4 +164,3 @@ abstract class CommonSuiteExecutor(
         }
     }
 }
-

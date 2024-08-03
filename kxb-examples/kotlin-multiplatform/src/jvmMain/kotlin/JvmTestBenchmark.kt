@@ -2,6 +2,8 @@ package test
 
 import org.openjdk.jmh.annotations.*
 import java.util.concurrent.*
+import kotlin.math.cos
+import kotlin.math.sqrt
 
 const val WARMUP_ITERATIONS = 20
 @State(Scope.Benchmark)
@@ -20,12 +22,11 @@ class JvmTestBenchmark {
 
     @Benchmark
     fun sqrtBenchmark(): Double {
-        return Math.sqrt(data)
+        return sqrt(data)
     }
 
     @Benchmark
     fun cosBenchmark(): Double {
-        return Math.cos(data)
+        return cos(data)
     }
 }
-

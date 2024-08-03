@@ -38,7 +38,6 @@ constructor(private val name: String) : Named {
   abstract val mode: Property<BenchmarkMode>
 
   @get:Input
-  @get:Optional
   abstract val reportFormat: Property<ReportFormat>
 
   @get:Input
@@ -99,5 +98,15 @@ constructor(private val name: String) : Named {
 
   fun iterationDuration(duration: Provider<java.time.Duration>) {
     iterationDuration.set(duration.map { it.toKotlinDuration() })
+  }
+
+  fun iterationDuration(duration: Duration) {
+    iterationDuration.set(duration)
+  }
+
+  @JvmSynthetic
+  @JvmName("iterationDurationKt")
+  fun iterationDuration(duration: Provider<Duration>) {
+    iterationDuration.set(duration.map { it })
   }
 }

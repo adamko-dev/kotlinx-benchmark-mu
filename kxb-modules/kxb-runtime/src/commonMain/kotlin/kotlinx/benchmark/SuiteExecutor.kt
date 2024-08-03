@@ -92,9 +92,10 @@ fun runWithParameters(
         parameterValues(name).size
     }
     while (true) {
-        val paramsVariant = names.indices.associateBy({ names[it] }, {
-            parameterValues(names[it])[valueIndices[it]]
-        })
+        val paramsVariant = names.indices.associateBy(
+            { names[it] },
+            { parameterValues(names[it])[valueIndices[it]] },
+        )
         function(paramsVariant)
         for (index in valueIndices.indices) {
             valueIndices[index]++

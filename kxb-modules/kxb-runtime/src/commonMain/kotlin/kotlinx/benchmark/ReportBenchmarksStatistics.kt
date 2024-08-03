@@ -9,8 +9,7 @@ class ReportBenchmarksStatistics(values: DoubleArray) {
     val size: Int get() = values.size
 
     fun valueAt(quantile: Double): Double {
-        if (quantile < 0.0 || quantile > 1.0 || quantile.isNaN())
-            throw IllegalArgumentException("$quantile is not in [0..1]")
+        require(quantile in 0.0..1.0) { "$quantile is not in [0..1]" }
 
         if (size == 0) return 0.0
 
@@ -113,7 +112,7 @@ fun Double.isNaNOrZero(): Boolean = isNaN() || isApproximateZero()
 fun Double.isApproximateZero(): Boolean = this < zeroThreshold
 
 @KotlinxBenchmarkRuntimeInternalApi
-@Suppress("REDUNDANT_ELSE_IN_WHEN")
+//@Suppress("REDUNDANT_ELSE_IN_WHEN")
 fun Double.nanosToText(mode: Mode, unit: BenchmarkTimeUnit): String {
     val value = nanosToSample(mode, unit)
     return when (mode) {
@@ -124,7 +123,7 @@ fun Double.nanosToText(mode: Mode, unit: BenchmarkTimeUnit): String {
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
-@Suppress("REDUNDANT_ELSE_IN_WHEN")
+//@Suppress("REDUNDANT_ELSE_IN_WHEN")
 fun unitText(mode: Mode, unit: BenchmarkTimeUnit) = when (mode) {
     Mode.Throughput -> "ops/${unit.toText()}"
     Mode.AverageTime -> "${unit.toText()}/op"
@@ -132,7 +131,7 @@ fun unitText(mode: Mode, unit: BenchmarkTimeUnit) = when (mode) {
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
-@Suppress("REDUNDANT_ELSE_IN_WHEN")
+//@Suppress("REDUNDANT_ELSE_IN_WHEN")
 fun Double.sampleToText(mode: Mode, unit: BenchmarkTimeUnit): String {
     val value = this
     return when (mode) {
@@ -143,7 +142,7 @@ fun Double.sampleToText(mode: Mode, unit: BenchmarkTimeUnit): String {
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
-@Suppress("REDUNDANT_ELSE_IN_WHEN")
+//@Suppress("REDUNDANT_ELSE_IN_WHEN")
 fun Double.nanosToSample(mode: Mode, unit: BenchmarkTimeUnit): Double {
     val multiplier = unit.toMultiplier() // unit in nanos
     return when (mode) {

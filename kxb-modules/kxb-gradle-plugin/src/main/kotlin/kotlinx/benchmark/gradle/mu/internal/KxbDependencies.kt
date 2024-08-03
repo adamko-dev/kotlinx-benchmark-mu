@@ -54,4 +54,49 @@ internal class KxbDependencies(
         attribute(USAGE_ATTRIBUTE, objects.named(JAVA_RUNTIME))
       }
     }
+
+  private val kxbBenchmarkRunnerJvm: Configuration =
+    project.configurations.create("kxbBenchmarkRunnerJvm") {
+//      description =
+//        "Internal Kotlinx Benchmarks Configuration. Contains declared dependencies required for running benchmark generators."
+      declarable()
+
+      defaultDependencies {
+        addLater(
+          benchmarksExtension.versions.benchmarksGenerator.map { version ->
+            project.dependencies.create(
+              "dev.adamko.kotlinx-benchmark-mu:kxb-runtime:$version"
+            )
+          }
+        )
+        addLater(
+          benchmarksExtension.versions.benchmarksGenerator.map { version ->
+            project.dependencies.create(
+              "dev.adamko.kotlinx-benchmark-mu:kxb-generator:$version"
+            )
+          }
+        )
+//        addLater(
+//          benchmarksExtension.versions.jmh.map { version ->
+//            project.dependencies.create(
+//              "org.openjdk.jmh:jmh-core:$version"
+//            )
+//          }
+//        )
+      }
+    }
+
+  // The name has a dot, to prevent Gradle from generating a Kotlin DSL accessor.
+  val kxbBenchmarkRunnerJvmResolver: Configuration =
+    project.configurations.create("kxbBenchmarkRunnerJvmResolver.internal") {
+//      description =
+//        "Internal Kotlinx Benchmarks Configuration. Resolves dependencies required for running benchmark generators."
+      resolvable()
+
+      extendsFrom(kxbBenchmarkRunnerJvm)
+
+      attributes {
+        attribute(USAGE_ATTRIBUTE, objects.named(JAVA_RUNTIME))
+      }
+    }
 }

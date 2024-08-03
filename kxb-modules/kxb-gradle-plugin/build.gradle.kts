@@ -3,6 +3,7 @@ plugins {
   alias(libs.plugins.gradle.pluginPublish)
   `java-test-fixtures`
 //    alias(libs.plugins.kotlinx.binaryCompatibilityValidator)
+  kotlin("plugin.serialization") version embeddedKotlinVersion
 }
 
 pluginBundle {
@@ -37,17 +38,18 @@ kotlin {
 }
 
 dependencies {
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 //  implementation(libs.kotlin.reflect)
 
   implementation(libs.kotlin.utilKlibMetadata)
   implementation(libs.kotlin.utilKlib)
   implementation(libs.kotlin.utilIo)
 
+  compileOnly(libs.kotlin.gradlePlugin)
   compileOnly(libs.kotlin.allOpen.gradlePlugin)
 
-  compileOnly(libs.kotlin.gradlePlugin)
-
   compileOnly(projects.kxbGenerator)
+  compileOnly(projects.kxbRuntime)
 
   compileOnly(libs.jmh.core) // TODO remove
 }

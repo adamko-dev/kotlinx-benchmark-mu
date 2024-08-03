@@ -9,7 +9,6 @@ import kotlinx.benchmark.gradle.mu.internal.utils.PluginId
 import kotlinx.benchmark.gradle.mu.internal.utils.warn
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
@@ -129,22 +128,28 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
           target.targetName + "Jvm",
         ) {
 
-          compileClasspath.from({ compilation.compileDependencyFiles })
-          runtimeClasspath.from({ compilation.runtimeDependencyFiles })
+          targetCompilationDependencies.from({ compilation.compileDependencyFiles })
+          targetRuntimeDependencies.from({ compilation.runtimeDependencyFiles })
+//          compileClasspath.from({ compilation.output.allOutputs })
+          compiledTarget.from({ compilation.output.allOutputs })
 
           generateBenchmarkTask.configure {
             dependsOn(compilation.compileTaskProvider)
             inputCompileClasspath.from({ compilation.compileDependencyFiles })
             inputClasses.from(compilation.output.allOutputs)
           }
+
           compileTask.configure {
-            (classpath as ConfigurableFileCollection)
-              .from({ compilation.compileDependencyFiles })
-              .from(compilation.output.allOutputs)
+//            if (classpath == null) classpath = objects.fileCollection()
+//            (classpath as ConfigurableFileCollection)
+////              .from({ compilation.compileDependencyFiles })
+//              .from(compiledTargetFiles)
+//              .from(compiledTargetFiles)
+//              .from(compilation.output.allOutputs)
           }
-          runBenchmarkTask.configure {
-            runtimeClasspath.from({ compilation.runtimeDependencyFiles })
-          }
+//          runBenchmarkTask.configure {
+//            runtimeClasspath.from({ compilation.runtimeDependencyFiles })
+//          }
         }
       }
 

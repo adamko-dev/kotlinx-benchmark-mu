@@ -1,8 +1,9 @@
 package kotlinx.benchmark.generator
 
 import java.io.File
-import java.net.URL
 import java.net.URLClassLoader
+import kotlin.io.path.invariantSeparatorsPathString
+import kotlin.io.path.relativeTo
 import kotlinx.benchmark.generator.internal.KotlinxBenchmarkGeneratorInternalApi
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.generators.core.BenchmarkGenerator
@@ -48,7 +49,7 @@ fun generateJvm(
       inputClasses = inputClasses,
       outputSourceDirectory = outputSourceDirectory,
       outputResourceDirectory = outputResourceDirectory,
-      urls = urls,
+//      urls = urls,
       introspectionClassLoader = introspectionClassLoader,
       logger = logger,
     )
@@ -57,31 +58,33 @@ fun generateJvm(
   }
 }
 
+// Based on https://github.com/openjdk/jmh/blob/1.37/jmh-generator-bytecode/src/main/java/org/openjdk/jmh/generators/bytecode/JmhBytecodeGenerator.java
 private fun generateJMH(
   inputClasses: Set<File>,
   outputSourceDirectory: File,
   outputResourceDirectory: File,
-  urls: Array<URL>,
   introspectionClassLoader: URLClassLoader,
   logger: Logger,
 ) {
   val destination = FileSystemDestination(outputResourceDirectory, outputSourceDirectory)
 
-  val allFiles = HashMap<File, Collection<File>>(urls.size)
-  for (directory in inputClasses) {
-    val classes = FileUtils.getClasses(directory)
-    allFiles[directory] = classes
+  val allFiles = inputClasses.associate { dir ->
+    dir.toPath() to FileUtils.getClasses(dir).map { it.toPath() }
   }
 
   val source = RFGeneratorSource()
+
   for ((directory, files) in allFiles) {
     logger.log("Analyzing ${files.size} files from $directory")
-    val directoryPath = directory.absolutePath
     for (file in files) {
-      val resourceName = file.absolutePath.substring(directoryPath.length + 1)
-      if (resourceName.endsWith(classSuffix)) {
-        val className = resourceName.replace('\\', '.').replace('/', '.')
-        val clazz = Class.forName(className.removeSuffix(classSuffix), false, introspectionClassLoader)
+      val resourceName = file.relativeTo(directory).invariantSeparatorsPathString
+      if (resourceName.endsWith(".class")) {
+        val className = resourceName
+//          .replace('\\', '.')
+          .replace('/', '.')
+          .removeSuffix(".class")
+
+        val clazz = Class.forName(className, false, introspectionClassLoader)
         source.processClasses(clazz)
       }
     }
@@ -97,5 +100,3 @@ private fun generateJMH(
     throw RuntimeException("Generation of JMH bytecode failed with ${destination.errors.size} errors:\n$errors")
   }
 }
-
-private const val classSuffix = ".class"

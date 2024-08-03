@@ -1,7 +1,10 @@
 package kotlinx.benchmark.gradle.mu.config
 
-sealed class ReportFormat(val format: String) {
-  object Text : ReportFormat("text") {
+sealed class ReportFormat(
+  val format: String,
+  val extension: String = format,
+) {
+  object Text : ReportFormat("text", "txt") {
     override fun toString(): String = "ReportFormat.Text"
   }
 
@@ -17,11 +20,11 @@ sealed class ReportFormat(val format: String) {
     override fun toString(): String = "ReportFormat.JSON"
   }
 
-  class Custom(format: String) : ReportFormat(format) {
-    override fun toString(): String = "ReportFormat.Custom($format)"
+  class Custom(format: String, extension: String = format) : ReportFormat(format) {
+    override fun toString(): String = "ReportFormat.Custom(format='$format', extension='$extension')"
 
     override fun equals(other: Any?): Boolean =
-      this === other || format == (other as? Custom)?.format
+      this === other || (other is Custom && format == other.format && extension == other.extension)
 
     override fun hashCode(): Int = format.hashCode()
   }

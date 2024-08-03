@@ -6,67 +6,111 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec
-import kotlinx.benchmark.gradle.mu.internal.utils.adding
+import kotlinx.benchmark.gradle.mu.workers.RunJvmBenchmarkWorker
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.assign
-import org.gradle.kotlin.dsl.newInstance
+import org.gradle.kotlin.dsl.submit
 
 @CacheableTask
 abstract class RunJvmBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor(
-  objects: ObjectFactory,
-) : KxbBaseTask() {
+constructor() : KxbBaseTask() {
 
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
 
   @get:Nested
-  val benchmarkParameters: BenchmarkRunSpec =
-    extensions.adding("benchmarkParameters", objects.newInstance("test1"))
+  abstract val benchmarkParameters: Property<BenchmarkRunSpec>// =
+//    extensions.adding("benchmarkParameters", objects.newInstance("test1"))
 
   @KotlinxBenchmarkPluginInternalApi
   @get:Input
   abstract val mainClass: Property<String>
 
   @KotlinxBenchmarkPluginInternalApi
-  @get:Input
-  @get:Optional
+  @get:Internal // only affects stdout logging
   abstract val ideaActive: Property<Boolean>
 
 //  @get:Nested
 //  abstract val javaLauncher: Property<JavaLauncher>
 
+
+  init {
+    // trick IntelliJ into thinking this is a test task,
+    // so we can log test data via stdout encoded with IJ XML.
+    extensions.extraProperties.set(
+      "idea.internal.test",
+      object {
+        override fun toString(): String =
+          ideaActive.getOrElse(false).toString()
+      }
+    )
+  }
+
   @TaskAction
   fun action() {
-    val reportFile = temporaryDir.resolve("report.html")
+    val benchmarkParameters = benchmarkParameters.get()
 
-    val encodedParameters = encodeParameters(
+    val reportFile = temporaryDir.resolve("report.${benchmarkParameters.reportFormat.get().extension}")
+
+    val runnerConfig = buildRunnerConfig(
       name = benchmarkParameters.name,
       reportFile = reportFile,
       traceFormat = if (ideaActive.orNull == true) "xml" else "text",
-      benchmarkParameters,
+      config = benchmarkParameters,
     )
 
-    val parametersFile = temporaryDir.resolve("parameters.txt").apply {
-      writeText(encodedParameters)
+    logger.lifecycle("[$path] runnerConfig: ${runnerConfig.lines().joinToString(" / ")}")
+
+//    val parametersFile = temporaryDir.resolve("parameters.txt").apply {
+//      writeText(encodedParameters)
+//    }
+
+    logger.lifecycle("[$path] runtimeClasspath: ${runtimeClasspath.asPath}")
+    val workQueue =
+//    workers.noIsolation()
+      workers.classLoaderIsolation {
+//      workers.processIsolation {
+        classpath.from(runtimeClasspath)
+
+//        forkOptions {
+//          jvmArgs(
+//            "-Djmh.separateClasspathJAR=true",
+//            "-Djava.class.path=${classpath.asPath}",
+//          )
+//          systemProperty("java.class.path", classpath.asPath)
+//          debug = true
+//          debugOptions {
+//            enabled = true
+//            suspend = true
+//          }
+//        }
+      }
+//      workers.processIsolation {
+//      classpath.from(runtimeClasspath)
+//      forkOptions {
+//      }
+//    }
+
+    workQueue.submit(RunJvmBenchmarkWorker::class) {
+      this.config = runnerConfig
+      this.classpath = runtimeClasspath
     }
 
-    exec.javaexec {
-      mainClass = this@RunJvmBenchmarkTask.mainClass
-      classpath(runtimeClasspath)
-//      javaLauncher = this@ExecJvmBenchmarkTask.javaLauncher
-      args(parametersFile.invariantSeparatorsPath)
-    }
+//    exec.javaexec {
+//      mainClass = this@RunJvmBenchmarkTask.mainClass
+//      classpath(runtimeClasspath)
+////      javaLauncher = this@ExecJvmBenchmarkTask.javaLauncher
+//      args(parametersFile.invariantSeparatorsPath)
+//    }
   }
 }
 
 
-private fun encodeParameters(
+private fun buildRunnerConfig(
   name: String,
   reportFile: File,
   traceFormat: String,
@@ -85,8 +129,6 @@ private fun encodeParameters(
       appendLine("iterationTime:${it.inWholeMilliseconds}")
       appendLine("iterationTimeUnit:${DurationUnit.MILLISECONDS}")
     }
-//    config.iterationTime.orNull?.let { appendLine("iterationTime:$it") }
-//    config.iterationTimeUnit.orNull?.let { appendLine("iterationTimeUnit:$it") }
     config.reportTimeUnit.orNull?.let { appendLine("outputTimeUnit:${it.unit}") }
 
     config.mode.orNull?.let { appendLine("mode:${it.id}") }
