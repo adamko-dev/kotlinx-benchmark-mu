@@ -35,22 +35,23 @@ dependencies {
 benchmark {
 
   benchmarkRuns {
-    register("main") {
+    create("main") {
       warmups = 0
       iterations = 3
       iterationDuration = 5.seconds
     }
   }
 
-  versions {
-    jmh = "1.21"
-  }
+//  versions {
+//    jmh = "1.21"
+//  }
 
   targets {
     kotlinJvm {
     }
   }
 }
+
 
 //benchmark {
 //    configurations {

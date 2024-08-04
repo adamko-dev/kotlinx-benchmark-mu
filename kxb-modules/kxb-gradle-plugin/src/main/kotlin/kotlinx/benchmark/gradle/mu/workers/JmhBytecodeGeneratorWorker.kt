@@ -31,6 +31,17 @@ internal abstract class JmhBytecodeGeneratorWorker : WorkAction<JmhBytecodeGener
       outputResourceDirectory = parameters.outputResourceDir.get().asFile,
       logger = logger::info,
     )
+
+    // experimenting with forcing a dry-run...
+//    parameters.outputResourceDir.get().asFile.resolve("META-INF/BenchmarkList").apply {
+//     writeText(
+//       readText()
+//         .replace("52 test.generated.KtsTestBenchmark_cosBenchmark_jmhTest", "37 kotlinx.benchmark.jvm.DryRunBenchmark")
+//         .replace("52 test.generated.KtsTestBenchmark_sqrtBenchmark_jmhTest", "37 kotlinx.benchmark.jvm.DryRunBenchmark")
+//         .replace("12 cosBenchmark", "6 dryRun")
+//         .replace("13 sqrtBenchmark", "6 dryRun")
+//     )
+//    }
   }
 
   companion object {
