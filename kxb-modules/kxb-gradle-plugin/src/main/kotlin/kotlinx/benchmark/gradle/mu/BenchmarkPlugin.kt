@@ -1,13 +1,14 @@
 package kotlinx.benchmark.gradle.mu
 
 import javax.inject.Inject
+import kotlinx.benchmark.RunnerConfiguration
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.BENCHMARK_PLUGIN_VERSION
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.JMH_DEFAULT_VERSION
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.BenchmarkMode
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
-import kotlinx.benchmark.gradle.mu.config.ReportFormat
-import kotlinx.benchmark.gradle.mu.config.ReportTimeUnit
+import kotlinx.benchmark.gradle.mu.config.ResultFormat
+import kotlinx.benchmark.gradle.mu.config.ResultTimeUnit
 import kotlinx.benchmark.gradle.mu.internal.KxbDependencies
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbJavaAdapter
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbKotlinAdapter
@@ -59,15 +60,15 @@ constructor(
         iterations.convention(1)
         warmups.convention(0)
 //        iterationDuration.convention(10.seconds)
-        mode.convention(BenchmarkMode.Throughput)
-        reportFormat.convention(ReportFormat.Text)
-        reportTimeUnit.convention(ReportTimeUnit.Seconds)
+        mode.convention(RunnerConfiguration.Mode.Throughput)
+        resultFormat.convention(RunnerConfiguration.ResultFormat.Text)
+        resultTimeUnit.convention(RunnerConfiguration.ReportTimeUnit.Seconds)
 
         excludes.set(emptySet())
         excludes.convention(emptySet())
 
-        params.set(emptyMap<String, List<String>>())
-        params.convention(emptyMap<String, List<String>>())
+        parameters.set(emptyMap<String, List<String>>())
+        parameters.convention(emptyMap<String, List<String>>())
 
         advanced.set(emptyMap<String, String>())
         advanced.convention(emptyMap<String, String>())

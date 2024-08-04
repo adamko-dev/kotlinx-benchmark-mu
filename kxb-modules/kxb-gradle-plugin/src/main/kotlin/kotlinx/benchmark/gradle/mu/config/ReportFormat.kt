@@ -1,35 +1,35 @@
 package kotlinx.benchmark.gradle.mu.config
 
-sealed class ReportFormat(
+sealed class ResultFormat(
   val format: String,
   val extension: String = format,
 ) {
-  object Text : ReportFormat("text", "txt") {
-    override fun toString(): String = "ReportFormat.Text"
+  object Text : ResultFormat("text", "txt") {
+    override fun toString(): String = "ResultFormat.Text"
   }
 
-  object CSV : ReportFormat("csv") {
-    override fun toString(): String = "ReportFormat.CSV"
+  object CSV : ResultFormat("csv") {
+    override fun toString(): String = "ResultFormat.CSV"
   }
   /** Semicolon seperated values */
-  object SCSV : ReportFormat("scsv") {
-    override fun toString(): String = "ReportFormat.SCSV"
+  object SCSV : ResultFormat("scsv") {
+    override fun toString(): String = "ResultFormat.SCSV"
   }
 
-  object JSON : ReportFormat("json") {
-    override fun toString(): String = "ReportFormat.JSON"
+  object JSON : ResultFormat("json") {
+    override fun toString(): String = "ResultFormat.JSON"
   }
 
-  class Custom(format: String, extension: String = format) : ReportFormat(format) {
-    override fun toString(): String = "ReportFormat.Custom(format='$format', extension='$extension')"
+  class Custom(format: String, extension: String = format) : ResultFormat(format) {
+    override fun toString(): String = "ResultFormat.Custom(format='$format', extension='$extension')"
 
     override fun equals(other: Any?): Boolean =
       this === other || (other is Custom && format == other.format && extension == other.extension)
 
     override fun hashCode(): Int = format.hashCode()
   }
-  /** LaTeX document */
-//  object LaTeX : ReportFormat("latex")
+//  /** LaTeX document */
+//  object LaTeX : ResultFormat("latex")
 }
 
 //enum class Mode(val id: String) {
@@ -42,36 +42,36 @@ sealed class ReportFormat(
 /**
  * Time unit used in Benchmark reports.
  */
-sealed class ReportTimeUnit {
+sealed class ResultTimeUnit {
   abstract val unit: String
 
-  object Minutes : ReportTimeUnit() {
+  object Minutes : ResultTimeUnit() {
     override val unit: String = "MINUTES"
-    override fun toString(): String = "ReportTimeUnit.Minutes"
+    override fun toString(): String = "ResultTimeUnit.Minutes"
   }
 
-  object Seconds : ReportTimeUnit() {
+  object Seconds : ResultTimeUnit() {
     override val unit: String = "SECONDS"
-    override fun toString(): String = "ReportTimeUnit.Seconds"
+    override fun toString(): String = "ResultTimeUnit.Seconds"
   }
 
-  object Milliseconds : ReportTimeUnit() {
+  object Milliseconds : ResultTimeUnit() {
     override val unit: String = "MILLISECONDS"
-    override fun toString(): String = "ReportTimeUnit.Milliseconds"
+    override fun toString(): String = "ResultTimeUnit.Milliseconds"
   }
 
-  object Microsecond : ReportTimeUnit() {
+  object Microseconds : ResultTimeUnit() {
     override val unit: String = "MICROSECONDS"
-    override fun toString(): String = "ReportTimeUnit.Microsecond"
+    override fun toString(): String = "ResultTimeUnit.Microsecond"
   }
 
-  object Nanoseconds : ReportTimeUnit() {
+  object Nanoseconds : ResultTimeUnit() {
     override val unit: String = "NANOSECONDS"
-    override fun toString(): String = "ReportTimeUnit.Nanoseconds"
+    override fun toString(): String = "ResultTimeUnit.Nanoseconds"
   }
 
-  class Custom(override val unit: String) : ReportTimeUnit() {
-    override fun toString(): String = "ReportTimeUnit.Custom($unit)"
+  class Custom(override val unit: String) : ResultTimeUnit() {
+    override fun toString(): String = "ResultTimeUnit.Custom($unit)"
 
     override fun equals(other: Any?): Boolean =
       this === other || unit == (other as? Custom)?.unit

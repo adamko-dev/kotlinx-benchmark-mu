@@ -41,6 +41,8 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
 //  implementation(libs.kotlin.reflect)
 
+  implementation(projects.kxbRunnerParameters)
+
   implementation(libs.kotlin.utilKlibMetadata)
   implementation(libs.kotlin.utilKlib)
   implementation(libs.kotlin.utilIo)

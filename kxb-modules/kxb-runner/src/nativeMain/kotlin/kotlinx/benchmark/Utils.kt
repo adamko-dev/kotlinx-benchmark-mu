@@ -1,5 +1,6 @@
 package kotlinx.benchmark
 
+import kotlinx.benchmark.native.BenchmarkRun
 import kotlinx.benchmark.native.NativeExecutor
 import kotlinx.cinterop.*
 import platform.posix.*
@@ -47,19 +48,21 @@ internal actual fun String.readFile(): String = buildString {
     }
 }
 
-internal fun String.parseBenchmarkConfig(): NativeExecutor.BenchmarkRun {
-    fun String.getElement(name: String) =
-        if (startsWith(name)) {
-            substringAfter("$name: ")
-        } else throw NoSuchElementException("Parameter `$name` is required.")
+internal fun String.parseBenchmarkConfig(): BenchmarkRun {
+//    fun String.getElement(name: String) =
+//        if (startsWith(name)) {
+//            substringAfter("$name: ")
+//        } else throw NoSuchElementException("Parameter `$name` is required.")
 
     val content = readFile()
-    val lines = content.lines().filter { it.isNotEmpty() }
-    require(lines.size == 3) { "Wrong format of detailed benchmark configuration file. " }
-    val name = lines[0].getElement("benchmark")
-    val configuration = BenchmarkConfiguration.parse(lines[1].getElement("configuration"))
-    val parameters = lines[2].getElement("parameters").parseMap()
-    return NativeExecutor.BenchmarkRun(name, configuration, parameters)
+    return BenchmarkRun.decodeFromJson(content)
+//    val lines = content.lines().filter { it.isNotEmpty() }
+//    require(lines.size == 3) { "Wrong format of detailed benchmark configuration file. " }
+//    val name = lines[0].getElement("benchmark")
+//    val configurationJson = lines[1].getElement("configuration")
+//    val configuration = BenchmarkConfiguration.decodeFromJson(configurationJson)
+//    val parameters = lines[2].getElement("parameters").parseMap()
+//    return  BenchmarkRun(name, configuration, parameters)
 }
 
 internal actual inline fun measureNanoseconds(block: () -> Unit): Long = TODO("Not implemented for this platform")

@@ -5,7 +5,11 @@ import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlin.js.Promise
 
 @KotlinxBenchmarkRuntimeInternalApi
-class JsBenchmarkExecutor(name: String, @Suppress("UNUSED_PARAMETER") dummy_args: Array<out String>) :
+class JsBenchmarkExecutor(
+    name: String,
+    @Suppress("UNUSED_PARAMETER")
+    dummy_args: Array<out String>,
+) :
     SuiteExecutor(name, jsEngineSupport.arguments()[0]) {
 
     init {
@@ -31,7 +35,7 @@ class JsBenchmarkExecutor(name: String, @Suppress("UNUSED_PARAMETER") dummy_args
             val config = BenchmarkConfiguration(runnerConfiguration, suite)
             val isAsync = benchmark.isAsync
 
-            runWithParameters(suite.parameters, runnerConfiguration.params, suite.defaultParameters) { params ->
+            runWithParameters(suite.parameters, runnerConfiguration.parameters, suite.defaultParameters) { params ->
                 val id = id(benchmark.name, params)
 
                 val instance = suite.factory() // TODO: should we create instance per bench or per suite?

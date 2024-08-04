@@ -3,7 +3,9 @@ package kotlinx.benchmark.gradle.mu.tasks
 import java.io.File
 import javax.inject.Inject
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
+import kotlinx.benchmark.RunnerConfiguration
+import kotlinx.benchmark.RunnerConfiguration.Companion.encodeToJson
+import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec
 import kotlinx.benchmark.gradle.mu.workers.RunJvmBenchmarkWorker
@@ -64,13 +66,13 @@ constructor() : KxbBaseTask() {
   fun action() {
     val benchmarkParameters = benchmarkParameters.get()
 
-    val reportFile = temporaryDir.resolve("report.${benchmarkParameters.reportFormat.get().extension}")
+    val reportFile = temporaryDir.resolve("report.${benchmarkParameters.resultFormat.get().extension}")
 
     val runnerConfig = buildRunnerConfig(
       name = benchmarkParameters.name,
       reportFile = reportFile,
-      traceFormat = if (ideaActive.orNull == true) "xml" else "text",
       config = benchmarkParameters,
+      reporting = if (ideaActive.orNull == true) ProgressReporting.IntelliJ else ProgressReporting.Stdout
     )
 
     logger.info("[$path] runnerConfig: ${runnerConfig.lines().joinToString(" / ")}")
@@ -97,41 +99,108 @@ constructor() : KxbBaseTask() {
 private fun buildRunnerConfig(
   name: String,
   reportFile: File,
-  traceFormat: String,
-  config: BenchmarkRunSpec
+  config: BenchmarkRunSpec,
+  reporting: ProgressReporting
 ): String {
   validateConfig(config)
-//  val file = Files.createTempFile("benchmarks", "txt").toFile()
-  return buildString {
-    appendLine("name:$name")
-    appendLine("reportFile:$reportFile")
-    appendLine("traceFormat:$traceFormat")
-    config.reportFormat.orNull?.let { appendLine("reportFormat:${it.format}") }
-    config.iterations.orNull?.let { appendLine("iterations:$it") }
-    config.warmups.orNull?.let { appendLine("warmups:$it") }
-    config.iterationDuration.orNull?.let {
-      appendLine("iterationTime:${it.inWholeMilliseconds}")
-      appendLine("iterationTimeUnit:${DurationUnit.MILLISECONDS}")
-    }
-    config.reportTimeUnit.orNull?.let { appendLine("outputTimeUnit:${it.unit}") }
 
-    config.mode.orNull?.let { appendLine("mode:${it.id}") }
+  return RunnerConfiguration(
+    name = name,
+    resultFilePath = reportFile.invariantSeparatorsPath
+  ) {
+//    name = name,
+//    reportFile = reportFile.invariantSeparatorsPath,
+//    traceFormat = traceFormat,
+    progressReporting = reporting
+    includes += config.includes.orNull.orEmpty()
+    excludes += config.excludes.orNull.orEmpty()
+    measurementIterations = config.iterations.orNull
+    measurementDuration = config.iterationDuration.orNull
+//    iterationDuration = config.iterationDuration.orNull
+//        batchSize = config.batchSize,
+//        runTime = config.runTime,
+    warmupIncludes += config.warmupBenchmarks.orNull.orEmpty()
+    warmupIterations = config.warmupIterations.orNull
+//        warmupBatchSize = config.warmupBatchSize,
+    warmupForks = config.warmupForks.orNull
+    warmupDuration = config.warmupTime.orNull
+    timeout = config.timeout.orNull
+    threads = config.threads.orNull
+    enableSyncIterations = config.synchronizeIterations.orNull
+    enableGcPerIteration = config.gcEachIteration.orNull
+    failOnError = config.failOnError.orNull
+    forks = config.forks.orNull
+//        threadGroups = config.threadGroups,
+//        opsPerInvocation = config.opsPerInvocation,
+    resultTimeUnit = config.resultTimeUnit.orNull
+//      ?.let {
+//      when (it) {
+//        ResultTimeUnit.Minutes      -> RunnerConfiguration.ReportTimeUnit.Minutes
+//        ResultTimeUnit.Microseconds -> RunnerConfiguration.ReportTimeUnit.Microseconds
+//        ResultTimeUnit.Milliseconds -> RunnerConfiguration.ReportTimeUnit.Milliseconds
+//        ResultTimeUnit.Nanoseconds  -> RunnerConfiguration.ReportTimeUnit.Nanoseconds
+//        ResultTimeUnit.Seconds      -> RunnerConfiguration.ReportTimeUnit.Seconds
+//        is ResultTimeUnit.Custom    -> TODO()
+//      }
+//    }
+    mode = config.mode.orNull
+    /*?.let {
+    when (it) {
+      BenchmarkMode.All            -> RunnerConfiguration.Mode.All
+      BenchmarkMode.AverageTime    -> RunnerConfiguration.Mode.AverageTime
+      is BenchmarkMode.Custom      -> TODO()
+      BenchmarkMode.SampleTime     -> RunnerConfiguration.Mode.SampleTime
+      BenchmarkMode.SingleShotTime -> RunnerConfiguration.Mode.SingleShotTime
+      BenchmarkMode.Throughput     -> RunnerConfiguration.Mode.Throughput
+    }
+  }*/
+//    profilers = config.profilers.orNull,
+    resultFormat = config.resultFormat.get()
+//      .let {
+//      when (it) {
+//        ResultFormat.CSV       -> RunnerConfiguration.ResultFormat.CSV
+//        ResultFormat.JSON      -> RunnerConfiguration.ResultFormat.JSON
+//        ResultFormat.SCSV      -> RunnerConfiguration.ResultFormat.SCSV
+//        ResultFormat.Text      -> RunnerConfiguration.ResultFormat.Text
+//        is ResultFormat.Custom -> TODO()
+//      }
+//    }
+    jvmArgs += config.jvmArgs.orNull.orEmpty()
+    parameters += config.parameters.orNull.orEmpty()
+//    advanced = config.advanced.orNull.orEmpty(),
+  }.encodeToJson()
 
-    config.includes.orNull?.forEach {
-      appendLine("include:$it")
-    }
-    config.excludes.orNull?.forEach {
-      appendLine("exclude:$it")
-    }
-    config.params.orNull?.forEach { (param, values) ->
-      values.forEach { value ->
-        appendLine("param:$param=$value")
-      }
-    }
-    config.advanced.orNull?.forEach { (param, value) ->
-      appendLine("advanced:$param=$value")
-    }
-  }
+////  val file = Files.createTempFile("benchmarks", "txt").toFile()
+//  return buildString {
+//    appendLine("name:$name")
+//    appendLine("reportFile:$reportFile")
+//    appendLine("traceFormat:$traceFormat")
+//    config.reportFormat.orNull?.let { appendLine("reportFormat:${it.format}") }
+//    config.iterations.orNull?.let { appendLine("iterations:$it") }
+//    config.warmups.orNull?.let { appendLine("warmups:$it") }
+//    config.iterationDuration.orNull?.let {
+//      appendLine("iterationTime:${it.inWholeMilliseconds}")
+//      appendLine("iterationTimeUnit:${DurationUnit.MILLISECONDS}")
+//    }
+//    config.reportTimeUnit.orNull?.let { appendLine("outputTimeUnit:${it.unit}") }
+//
+//    config.mode.orNull?.let { appendLine("mode:${it.id}") }
+//
+//    config.includes.orNull?.forEach {
+//      appendLine("include:$it")
+//    }
+//    config.excludes.orNull?.forEach {
+//      appendLine("exclude:$it")
+//    }
+//    config.params.orNull?.forEach { (param, values) ->
+//      values.forEach { value ->
+//        appendLine("param:$param=$value")
+//      }
+//    }
+//    config.advanced.orNull?.forEach { (param, value) ->
+//      appendLine("advanced:$param=$value")
+//    }
+//  }
 }
 
 private fun validateConfig(config: BenchmarkRunSpec) {
@@ -183,12 +252,12 @@ private fun validateConfig(config: BenchmarkRunSpec) {
     }
   }
 
-  config.params.orNull?.forEach { (param, values) ->
+  config.parameters.orNull?.forEach { (param, values) ->
     require(param.isNotBlank()) {
-      "Invalid param name: '$param'. It must not be blank."
+      "Invalid parameter name: '$param'. It must not be blank."
     }
     require(values.isNotEmpty()) {
-      "Param '$param' has no values. At least one value is required."
+      "Parameter '$param' has no values. At least one value is required."
     }
   }
 

@@ -33,6 +33,13 @@ internal class KxbDependencies(
             )
           }
         )
+        addLater(
+          benchmarksExtension.versions.benchmarksGenerator.map { version ->
+            project.dependencies.create(
+              "dev.adamko.kotlinx-benchmark-mu:kxb-runner-parameters:$version"
+            )
+          }
+        )
 //        addLater(
 //          benchmarksExtension.versions.kotlinCompiler.map { version ->
 //            project.dependencies.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:$version")
@@ -66,6 +73,13 @@ internal class KxbDependencies(
           benchmarksExtension.versions.benchmarksGenerator.map { version ->
             project.dependencies.create(
               "dev.adamko.kotlinx-benchmark-mu:kxb-runner:$version"
+            )
+          }
+        )
+        addLater(
+          benchmarksExtension.versions.benchmarksGenerator.map { version ->
+            project.dependencies.create(
+              "dev.adamko.kotlinx-benchmark-mu:kxb-runner-parameters:$version"
             )
           }
         )

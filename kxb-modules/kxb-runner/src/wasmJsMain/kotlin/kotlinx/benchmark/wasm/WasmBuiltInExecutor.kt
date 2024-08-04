@@ -21,8 +21,8 @@ class WasmBuiltInExecutor(
     @Suppress("UNUSED_PARAMETER") dummy_args: Array<out String>
 ) : CommonSuiteExecutor(name, jsEngineSupport.arguments()[0]) {
 
-    private val BenchmarkConfiguration.notUseJsBridge: Boolean
-        get() = "false".equals(advanced["jsUseBridge"], ignoreCase = true)
+//    private val BenchmarkConfiguration.notUseJsBridge: Boolean
+//        get() = "false".equals(advanced["jsUseBridge"], ignoreCase = true)
 
     @Suppress("UNCHECKED_CAST")
     private fun createJsMeasurerBridge(originalMeasurer: () -> Long): () -> Long =
@@ -35,6 +35,6 @@ class WasmBuiltInExecutor(
         cycles: Int
     ): () -> Long {
         val measurer = super.createIterationMeasurer(instance, benchmark, configuration, cycles)
-        return if (configuration.notUseJsBridge) measurer else createJsMeasurerBridge(measurer)
+        return if (configuration.jsUseBridge) measurer else createJsMeasurerBridge(measurer)
     }
 }

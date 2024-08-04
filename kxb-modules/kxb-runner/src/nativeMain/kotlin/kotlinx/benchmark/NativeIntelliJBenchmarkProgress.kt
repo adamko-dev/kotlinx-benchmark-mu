@@ -4,8 +4,7 @@ import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 
 // This implementation is used in Kotlin/Native target, where each benchmark is run in a separate process.
 // Previous benchmark id is stored to identify when previous suite (benchmark class) ends.
-@KotlinxBenchmarkRuntimeInternalApi
-class NativeIntelliJBenchmarkProgress(
+internal class NativeIntelliJBenchmarkProgress(
     private val benchProgressPath: String
 ) : IntelliJBenchmarkProgress() {
 

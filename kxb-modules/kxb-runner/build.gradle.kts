@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 plugins {
   id("kxb.build.conventions.kotlin-multiplatform")
   id("kxb.build.conventions.publishing")
+  kotlin("plugin.serialization") version "2.0.0"
 }
 
 kotlin {
@@ -76,6 +77,12 @@ kotlin {
   }
 
   sourceSets {
+    commonMain {
+      dependencies {
+        implementation(projects.kxbRunnerParameters)
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+      }
+    }
     commonTest {
       dependencies {
         implementation(kotlin("test"))

@@ -1,6 +1,7 @@
 package kotlinx.benchmark.gradle.mu.workers
 
 import kotlinx.benchmark.RunnerConfiguration
+import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlinx.benchmark.jvm.runJvmBenchmark
@@ -48,7 +49,7 @@ internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker
     logger.info("java.class.path ${System.getProperty("java.class.path")}")
 
     runJvmBenchmark(
-      RunnerConfiguration(config),
+      RunnerConfiguration.decodeFromJson(config),
       demoMode = isDemoMode,
     )
   }

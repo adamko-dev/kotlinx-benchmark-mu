@@ -30,10 +30,10 @@ actual enum class Mode {
     All,
 }
 
-@KotlinxBenchmarkRuntimeInternalApi
-enum class NativeFork {
-    PerBenchmark, PerIteration
-}
+//@KotlinxBenchmarkRuntimeInternalApi
+//enum class NativeFork {
+//    PerBenchmark, PerIteration
+//}
 
 @Target(AnnotationTarget.CLASS)
 actual annotation class OutputTimeUnit(actual val value: BenchmarkTimeUnit)

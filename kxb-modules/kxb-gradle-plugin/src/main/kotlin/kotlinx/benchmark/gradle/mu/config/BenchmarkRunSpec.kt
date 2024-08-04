@@ -3,8 +3,10 @@ package kotlinx.benchmark.gradle.mu.config
 import javax.inject.Inject
 import kotlin.time.Duration
 import kotlin.time.toKotlinDuration
+import kotlinx.benchmark.RunnerConfiguration
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import org.gradle.api.Named
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -24,6 +26,25 @@ constructor(private val name: String) : Named {
   @get:Input
   @get:Optional
   abstract val iterations: Property<Int>
+  @get:Input
+  @get:Optional
+  abstract val forks: Property<Int>
+  @get:Input
+  @get:Optional
+  abstract val warmupIterations: Property<Int>
+  @get:Input
+  @get:Optional
+  abstract val threads: Property<Int>
+
+  @get:Input
+  @get:Optional
+  abstract val failOnError: Property<Boolean>
+  @get:Input
+  @get:Optional
+  abstract val gcEachIteration: Property<Boolean>
+  @get:Input
+  @get:Optional
+  abstract val synchronizeIterations: Property<Boolean>
 
   @get:Input
   @get:Optional
@@ -31,18 +52,30 @@ constructor(private val name: String) : Named {
 
   @get:Input
   @get:Optional
+  abstract val warmupForks: Property<Int>
+
+  @get:Input
+  @get:Optional
+  abstract val timeout: Property<Duration>
+
+  @get:Input
+  @get:Optional
+  abstract val warmupTime: Property<Duration>
+
+  @get:Input
+  @get:Optional
   abstract val iterationDuration: Property<Duration>
 
   @get:Input
   @get:Optional
-  abstract val mode: Property<BenchmarkMode>
+  abstract val mode: Property<RunnerConfiguration.Mode>
 
   @get:Input
-  abstract val reportFormat: Property<ReportFormat>
+  abstract val resultFormat: Property<RunnerConfiguration.ResultFormat>
 
   @get:Input
   @get:Optional
-  abstract val reportTimeUnit: Property<ReportTimeUnit>
+  abstract val resultTimeUnit: Property<RunnerConfiguration.ReportTimeUnit>
 
   @get:Input
   @get:Optional
@@ -51,11 +84,21 @@ constructor(private val name: String) : Named {
   @get:Input
   @get:Optional
   abstract val excludes: SetProperty<String>
+  @get:Input
+  @get:Optional
+  abstract val profilers: SetProperty<String>
+  @get:Input
+  @get:Optional
+  abstract val jvmArgs: ListProperty<String>
+
+  @get:Input
+  @get:Optional
+  abstract val warmupBenchmarks: SetProperty<String>
 
   // todo typesafe params...
   @get:Input
   @get:Optional
-  abstract val params: MapProperty<String, List<String>>
+  abstract val parameters: MapProperty<String, List<String>>
   @get:Input
 
   // todo typesafe advanced...

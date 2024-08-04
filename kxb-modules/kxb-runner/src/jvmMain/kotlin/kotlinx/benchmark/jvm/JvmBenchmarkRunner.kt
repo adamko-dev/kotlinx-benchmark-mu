@@ -1,32 +1,30 @@
 package kotlinx.benchmark.jvm
 
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.PrintStream
-import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
 import kotlinx.benchmark.BenchmarkProgress
 import kotlinx.benchmark.RunnerConfiguration
+import kotlinx.benchmark.RunnerConfiguration.Mode.*
+import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
+import kotlinx.benchmark.RunnerConfiguration.ReportTimeUnit.*
+import kotlinx.benchmark.RunnerConfiguration.ResultFormat.*
+import kotlinx.benchmark.VerboseMode
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlinx.benchmark.readFile
-import org.openjdk.jmh.infra.BenchmarkParams
-import org.openjdk.jmh.infra.IterationParams
-import org.openjdk.jmh.results.BenchmarkResult
-import org.openjdk.jmh.results.IterationResult
-import org.openjdk.jmh.results.RunResult
+import org.openjdk.jmh.annotations.Mode
 import org.openjdk.jmh.results.format.ResultFormatFactory
 import org.openjdk.jmh.results.format.ResultFormatType
-import org.openjdk.jmh.runner.IterationType
 import org.openjdk.jmh.runner.Runner
-import org.openjdk.jmh.runner.format.OutputFormat
 import org.openjdk.jmh.runner.options.OptionsBuilder
 import org.openjdk.jmh.runner.options.TimeValue
-import org.openjdk.jmh.runner.options.VerboseMode
+import org.openjdk.jmh.runner.options.WarmupMode
 
 
 @KotlinxBenchmarkRuntimeInternalApi
 fun main(args: Array<String>) {
-  val config = RunnerConfiguration(args[0].readFile())
+  val config = RunnerConfiguration.decodeFromJson(args[0].readFile())
   runJvmBenchmark(config)
 }
 
@@ -35,29 +33,89 @@ fun runJvmBenchmark(
   config: RunnerConfiguration,
   demoMode: Boolean = false,
 ) {
-  val jmhOptions = OptionsBuilder()
-  config.iterations?.let { jmhOptions.measurementIterations(it) }
-  config.warmups?.let { jmhOptions.warmupIterations(it) }
-  config.iterationTime?.let {
-    val timeValue = TimeValue(it, config.iterationTimeUnit ?: TimeUnit.SECONDS)
-    jmhOptions.warmupTime(timeValue)
-    jmhOptions.measurementTime(timeValue)
-  }
-  config.outputTimeUnit?.let {
-    jmhOptions.timeUnit(it)
-  }
-  config.mode?.let {
-    jmhOptions.mode(it)
+  val jmhOptions = OptionsBuilder().apply {
+    result(config.resultFilePath)
+
+    resultFormat(
+      when (config.resultFormat) {
+        Text -> ResultFormatType.TEXT
+        CSV  -> ResultFormatType.CSV
+        SCSV -> ResultFormatType.SCSV
+        JSON -> ResultFormatType.JSON
+      }
+    )
+
+    config.measurementIterations?.let { measurementIterations(it) }
+
+    includes += config.includes
+    excludes += config.excludes
+
+    config.enableGcPerIteration?.let { shouldDoGC(it) }
+
+    config.verbosity?.let {
+      verbosity(
+        when (it) {
+          VerboseMode.Silent -> org.openjdk.jmh.runner.options.VerboseMode.SILENT
+          VerboseMode.Normal -> org.openjdk.jmh.runner.options.VerboseMode.NORMAL
+          VerboseMode.Extra  -> org.openjdk.jmh.runner.options.VerboseMode.EXTRA
+        }
+      )
+    }
+    config.failOnError?.let { shouldFailOnError(it) }
+    config.threads?.let { threads(it) }
+    if (config.threadGroups.isNotEmpty()) {
+      threadGroups(*config.threadGroups.toIntArray())
+    }
+    config.enableSyncIterations?.let { syncIterations(it) }
+    config.warmupIterations?.let { warmupIterations(it) }
+    config.warmupDuration?.let { warmupTime(it.toTimeValue()) }
+    config.warmupBatchSize?.let { warmupBatchSize(it) }
+    warmupIncludes += config.warmupIncludes
+    config.measurementIterations?.let { measurementIterations(it) }
+    config.measurementDuration?.let { measurementTime(it.toTimeValue()) }
+    config.measurementBatchSize?.let { measurementBatchSize(it) }
+    config.mode?.let {
+      mode(
+        when (it) {
+          Throughput     -> Mode.Throughput
+          AverageTime    -> Mode.AverageTime
+          SampleTime     -> Mode.SampleTime
+          SingleShotTime -> Mode.SingleShotTime
+          All            -> Mode.All
+        }
+      )
+    }
+    config.resultTimeUnit?.let {
+      timeUnit(
+        when (it) {
+          Minutes      -> TimeUnit.MINUTES
+          Seconds      -> TimeUnit.SECONDS
+          Milliseconds -> TimeUnit.MILLISECONDS
+          Microseconds -> TimeUnit.MICROSECONDS
+          Nanoseconds  -> TimeUnit.NANOSECONDS
+        }
+      )
+    }
+    config.warmupMode?.let {
+      warmupMode(
+        when (it) {
+          RunnerConfiguration.WarmupMode.Individual     -> WarmupMode.INDI
+          RunnerConfiguration.WarmupMode.Bulk           -> WarmupMode.BULK
+          RunnerConfiguration.WarmupMode.BulkIndividual -> WarmupMode.BULK_INDI
+        }
+      )
+    }
+    config.operationsPerInvocation?.let { operationsPerInvocation(it) }
+    config.forks?.let { forks(it) }
+    config.warmupForks?.let { warmupForks(it) }
+    config.jvm?.let { jvm(it) }
+    jvmArgs(*config.jvmArgs.toTypedArray())
+    jvmArgsAppend(*config.jvmArgsAppend.toTypedArray())
+    jvmArgsPrepend(*config.jvmArgsPrepend.toTypedArray())
+    config.timeout?.let { timeout(it.toTimeValue()) }
   }
 
-  config.include.forEach {
-    jmhOptions.include(it)
-  }
-  config.exclude.forEach {
-    jmhOptions.exclude(it)
-  }
-
-  config.params.forEach { (key, value) ->
+  config.parameters.forEach { (key, value) ->
     jmhOptions.param(key, *value.toTypedArray())
   }
 
@@ -73,23 +131,23 @@ fun runJvmBenchmark(
   }
 
 
-  val runtimeMXBean = ManagementFactory.getRuntimeMXBean()
-  val jvmArgs = runtimeMXBean.inputArguments
-  if (jvmArgs.any { it.contains("libasyncProfiler") }) {
-    jmhOptions.forks(0)
-  } else {
-    when (val jvmForks = config.advanced["jvmForks"]) {
-      null           -> jmhOptions.forks(1)
-      "definedByJmh" -> { /* do not override */
-      }
-
-      else           -> {
-        val forks = jvmForks.toIntOrNull()?.takeIf { it >= 0 }
-          ?: throw IllegalArgumentException("jvmForks: expected a non-negative integer or \"definedByJmh\" string literal")
-        jmhOptions.forks(forks)
-      }
-    }
-  }
+//  val runtimeMXBean = ManagementFactory.getRuntimeMXBean()
+//  val jvmArgs = runtimeMXBean.inputArguments
+//  if (jvmArgs.any { it.contains("libasyncProfiler") }) {
+//    jmhOptions.forks(0)
+//  } else {
+//    when (val jvmForks = config.advanced["jvmForks"]) {
+//      null           -> jmhOptions.forks(1)
+//      "definedByJmh" -> { /* do not override */
+//      }
+//
+//      else           -> {
+//        val forks = jvmForks.toIntOrNull()?.takeIf { it >= 0 }
+//          ?: throw IllegalArgumentException("jvmForks: expected a non-negative integer or \"definedByJmh\" string literal")
+//        jmhOptions.forks(forks)
+//      }
+//    }
+//  }
 
 //    jmhOptions.jvmArgs(
 //        "-Djmh.executor=CUSTOM",
@@ -105,14 +163,20 @@ fun runJvmBenchmark(
 //    BenchmarkList.fromString("")
 //    CompilerHints.getCompileCommandFiles(listOf(""))
 
-  val reportFormat = ResultFormatType.valueOf(config.reportFormat.uppercase())
-  val reporter = BenchmarkProgress.create(config.traceFormat)
+  val reportFormat = when (config.resultFormat) {
+    Text -> ResultFormatType.TEXT
+    CSV  -> ResultFormatType.CSV
+    SCSV -> ResultFormatType.SCSV
+    JSON -> ResultFormatType.JSON
+//    null -> ResultFormatType.TEXT
+  }
+  val reporter = BenchmarkProgress.create(config.progressReporting ?: ProgressReporting.Stdout)
   val output = JmhOutputFormat(reporter, config.name)
   try {
     val runner = Runner(jmhOptions.build(), output)
     runner.list()
     val results = runner.run()
-    val resultFormat = ResultFormatFactory.getInstance(reportFormat, PrintStream(File(config.reportFile)))
+    val resultFormat = ResultFormatFactory.getInstance(reportFormat, PrintStream(File(config.resultFilePath)))
     resultFormat.writeOut(results)
   } catch (e: Exception) {
     e.printStackTrace()
@@ -122,74 +186,6 @@ fun runJvmBenchmark(
       BenchmarkProgress.FinishStatus.Failure,
       e.message ?: "<unknown error>"
     )
-  }
-}
-
-@KotlinxBenchmarkRuntimeInternalApi
-class JmhOutputFormat(private val reporter: BenchmarkProgress, private val suiteName: String) :
-  PrintOutputFormat(System.out) {
-
-  internal var lastBenchmarkStart = ""
-
-  override fun startRun() {
-    reporter.startSuite(suiteName)
-  }
-
-  override fun endRun(result: Collection<RunResult>) {
-    val summary = ByteArrayOutputStream().apply {
-      PrintStream(this, true, "UTF-8").use {
-        ResultFormatFactory.getInstance(ResultFormatType.TEXT, it).writeOut(result)
-      }
-    }.toString("UTF-8")
-    reporter.endSuite(suiteName, summary)
-  }
-
-  override fun startBenchmark(benchParams: BenchmarkParams) {
-    val benchmarkId = getBenchmarkId(benchParams)
-    reporter.startBenchmark(suiteName, benchmarkId)
-    lastBenchmarkStart = benchmarkId
-  }
-
-  override fun endBenchmark(result: BenchmarkResult?) {
-    if (result != null) {
-      val benchmarkId = getBenchmarkId(result.params)
-      val value = result.primaryResult
-      val message = value.extendedInfo().trim()
-      reporter.endBenchmark(suiteName, benchmarkId, BenchmarkProgress.FinishStatus.Success, message)
-    } else {
-      reporter.endBenchmarkException(suiteName, lastBenchmarkStart, "<ERROR>", "")
-    }
-  }
-
-  private fun getBenchmarkId(params: BenchmarkParams): String {
-    val benchmarkName = params.benchmark
-    val paramKeys = params.paramsKeys
-    val benchmarkId = if (paramKeys.isEmpty())
-      benchmarkName
-    else
-      benchmarkName + paramKeys.joinToString(prefix = " | ") { "$it=${params.getParam(it)}" }
-    return benchmarkId
-  }
-
-  override fun iteration(benchParams: BenchmarkParams, params: IterationParams, iteration: Int) {}
-
-  override fun iterationResult(
-    benchParams: BenchmarkParams,
-    params: IterationParams,
-    iteration: Int,
-    data: IterationResult
-  ) {
-    when (params.type) {
-      IterationType.WARMUP      -> println("Warm-up $iteration: ${data.primaryResult}")
-      IterationType.MEASUREMENT -> println("Iteration $iteration: ${data.primaryResult}")
-      null                      -> throw UnsupportedOperationException("Iteration type not set")
-    }
-    flush()
-  }
-
-  override fun println(s: String) {
-    if (!s.startsWith("#"))
-      reporter.output(suiteName, lastBenchmarkStart, s)
   }
 }
 
@@ -212,44 +208,15 @@ private fun Collection<RunResult>.toReportBenchmarkResult(): Collection<ReportBe
 }
 */
 
-@KotlinxBenchmarkRuntimeInternalApi
-abstract class PrintOutputFormat(private val out: PrintStream, private val verbose: VerboseMode = VerboseMode.NORMAL) :
-  OutputFormat {
 
-  override fun print(s: String) {
-    if (verbose != VerboseMode.SILENT)
-      out.print(s)
+private fun Duration.toTimeValue(): TimeValue =
+  toComponents { days, hours, minutes, seconds, nanoseconds ->
+    return when {
+      nanoseconds > 0 -> TimeValue.milliseconds(inWholeMilliseconds) // millis are good enough, nanos might be too small
+      seconds > 0     -> TimeValue.seconds(inWholeSeconds)
+      minutes > 0     -> TimeValue.minutes(inWholeMinutes)
+      hours > 0       -> TimeValue.hours(inWholeHours)
+      days > 0        -> TimeValue.days(inWholeDays)
+      else            -> TimeValue.milliseconds(inWholeMilliseconds)
+    }
   }
-
-  override fun verbosePrintln(s: String) {
-    if (verbose == VerboseMode.EXTRA)
-      out.println(s)
-  }
-
-  override fun write(b: Int) {
-    if (verbose != VerboseMode.SILENT)
-      out.print(b)
-  }
-
-  override fun write(b: ByteArray) {
-    if (verbose != VerboseMode.SILENT)
-      out.print(b)
-  }
-
-  override fun println(s: String) {
-    if (verbose != VerboseMode.SILENT)
-      out.println(s)
-  }
-
-  override fun flush() = out.flush()
-  override fun close() = flush()
-}
-
-
-//fun fakeBenchmark() : BenchmarkResult {
-//    val list = BenchmarkList.fromResource(BenchmarkList.BENCHMARK_LIST)
-//    list
-//    return BenchmarkResult(
-//        BenchmarkParams("", "", "")
-//    )
-//}
