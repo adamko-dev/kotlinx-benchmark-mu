@@ -5,6 +5,8 @@ import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlinx.benchmark.jvm.runJvmBenchmark
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
@@ -22,7 +24,7 @@ internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker
   @OptIn(KotlinxBenchmarkRuntimeInternalApi::class)
   override fun execute() {
     val configString = parameters.config.get()
-    println(
+    logger.info(
       "Running RunJvmBenchmarkWorker with config: " +
           "---" +
           configString.prependIndent("\t") +
@@ -36,9 +38,14 @@ internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker
 //      classpath.append(url.path).append(File.pathSeparator)
 //    }
     System.setProperty("java.class.path", parameters.classpath.asPath)
-    println("java.class.path ${System.getProperty("java.class.path")}")
+    logger.info("java.class.path ${System.getProperty("java.class.path")}")
 
     val config = RunnerConfiguration(configString)
     runJvmBenchmark(config)
+  }
+
+  @KotlinxBenchmarkPluginInternalApi
+  companion object {
+    private val logger: Logger = Logging.getLogger(RunJvmBenchmarkWorker::class.java)
   }
 }

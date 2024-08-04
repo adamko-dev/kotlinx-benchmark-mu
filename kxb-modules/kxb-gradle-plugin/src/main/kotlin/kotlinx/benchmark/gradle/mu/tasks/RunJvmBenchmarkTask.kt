@@ -64,13 +64,13 @@ constructor() : KxbBaseTask() {
       config = benchmarkParameters,
     )
 
-    logger.lifecycle("[$path] runnerConfig: ${runnerConfig.lines().joinToString(" / ")}")
+    logger.info("[$path] runnerConfig: ${runnerConfig.lines().joinToString(" / ")}")
 
 //    val parametersFile = temporaryDir.resolve("parameters.txt").apply {
 //      writeText(encodedParameters)
 //    }
 
-    logger.lifecycle("[$path] runtimeClasspath: ${runtimeClasspath.asPath}")
+    logger.info("[$path] runtimeClasspath: ${runtimeClasspath.asPath}")
     val workQueue =
       workers.classLoaderIsolation {
         classpath.from(runtimeClasspath)
