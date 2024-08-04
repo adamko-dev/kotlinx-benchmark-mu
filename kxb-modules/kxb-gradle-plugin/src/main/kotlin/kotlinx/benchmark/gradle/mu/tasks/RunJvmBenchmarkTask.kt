@@ -10,6 +10,7 @@ import kotlinx.benchmark.gradle.mu.workers.RunJvmBenchmarkWorker
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.submit
 
@@ -34,10 +35,18 @@ constructor() : KxbBaseTask() {
   @get:Internal // only affects stdout logging
   abstract val ideaActive: Property<Boolean>
 
+  @get:Input
+  @get:Optional
+  abstract val enableDemoMode: Property<Boolean>
+
 //  @get:Nested
 //  abstract val javaLauncher: Property<JavaLauncher>
 
   // TODO add jmh.ignoreLock Boolean option
+
+  // TODO pass java launcher to JMH
+  @get:Nested
+  abstract val javaLauncher: Property<JavaLauncher>
 
   init {
     // trick IntelliJ into thinking this is a test task,
@@ -79,6 +88,7 @@ constructor() : KxbBaseTask() {
     workQueue.submit(RunJvmBenchmarkWorker::class) {
       this.config = runnerConfig
       this.classpath = runtimeClasspath
+      this.enableDemoMode = this@RunJvmBenchmarkTask.enableDemoMode
     }
   }
 }

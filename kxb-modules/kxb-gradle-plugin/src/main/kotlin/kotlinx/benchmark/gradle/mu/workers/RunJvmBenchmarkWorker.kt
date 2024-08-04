@@ -19,16 +19,18 @@ internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker
   interface Parameters : WorkParameters {
     val config: Property<String>
     val classpath: ConfigurableFileCollection
+    val enableDemoMode: Property<Boolean>
   }
 
   @OptIn(KotlinxBenchmarkRuntimeInternalApi::class)
   override fun execute() {
-    val configString = parameters.config.get()
+    val isDemoMode = parameters.enableDemoMode.getOrElse(false)
+
+    val config = parameters.config.get()
+
     logger.info(
       "Running RunJvmBenchmarkWorker with config: " +
-          "---" +
-          configString.prependIndent("\t") +
-          "---"
+          "---\n$config\n---".prependIndent("\t")
     )
 
 //    org.openjdk.jmh.runner.ForkedMain::class.java
@@ -40,8 +42,14 @@ internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker
     System.setProperty("java.class.path", parameters.classpath.asPath)
     logger.info("java.class.path ${System.getProperty("java.class.path")}")
 
-    val config = RunnerConfiguration(configString)
-    runJvmBenchmark(config)
+    if (isDemoMode) {
+      System.setProperty("jmh.ignoreLock", "true")
+    }
+
+    runJvmBenchmark(
+      RunnerConfiguration(config),
+      demoMode = isDemoMode,
+    )
   }
 
   @KotlinxBenchmarkPluginInternalApi

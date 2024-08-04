@@ -19,6 +19,8 @@ import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 
@@ -29,6 +31,7 @@ constructor(
   private val objects: ObjectFactory,
   private val providers: ProviderFactory,
   private val layout: ProjectLayout,
+  private val javaToolchains: JavaToolchainService,
 ) : Plugin<Project> {
 
   override fun apply(project: Project) {
@@ -69,6 +72,10 @@ constructor(
         advanced.set(emptyMap<String, String>())
         advanced.convention(emptyMap<String, String>())
       }
+
+      enableDemoMode.convention(
+        providers.gradleProperty("kotlinx.benchmark.demoMode").map { it.toBoolean() }
+      )
 
       targets.apply {
         registerFactory(BenchmarkTarget.Kotlin.JVM::class.java) { name ->
@@ -116,6 +123,13 @@ constructor(
     project.tasks.withType<RunJvmBenchmarkTask>().configureEach {
       mainClass.convention("kotlinx.benchmark.jvm.JvmBenchmarkRunnerKt")
       ideaActive.convention(providers.systemProperty("idea.active").map { it.toBoolean() })
+
+      enableDemoMode.convention(
+        kxbExtension.enableDemoMode
+      )
+
+      // TODO inherit from Kotlin/Java
+      javaLauncher.convention(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) })
     }
   }
 

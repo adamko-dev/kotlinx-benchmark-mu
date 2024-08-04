@@ -33,6 +33,8 @@ constructor(
 
   val versions: Versions = extensions.adding("versions", objects.newInstance())
 
+  abstract val enableDemoMode: Property<Boolean>
+
   abstract class Versions {
     abstract val benchmarksGenerator: Property<String>
     abstract val jmh: Property<String>

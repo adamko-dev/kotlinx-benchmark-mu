@@ -1,19 +1,41 @@
 package kotlinx.benchmark.jvm
 
-import kotlinx.benchmark.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.PrintStream
+import java.lang.management.ManagementFactory
+import java.util.concurrent.TimeUnit
+import kotlinx.benchmark.BenchmarkProgress
+import kotlinx.benchmark.RunnerConfiguration
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
-import org.openjdk.jmh.infra.*
-import org.openjdk.jmh.results.*
-import org.openjdk.jmh.results.format.*
-import org.openjdk.jmh.runner.*
-import org.openjdk.jmh.runner.format.*
-import org.openjdk.jmh.runner.options.*
-import java.io.*
-import java.lang.management.*
-import java.util.concurrent.*
+import kotlinx.benchmark.readFile
+import org.openjdk.jmh.infra.BenchmarkParams
+import org.openjdk.jmh.infra.IterationParams
+import org.openjdk.jmh.results.BenchmarkResult
+import org.openjdk.jmh.results.IterationResult
+import org.openjdk.jmh.results.RunResult
+import org.openjdk.jmh.results.format.ResultFormatFactory
+import org.openjdk.jmh.results.format.ResultFormatType
+import org.openjdk.jmh.runner.BenchmarkList
+import org.openjdk.jmh.runner.IterationType
+import org.openjdk.jmh.runner.Runner
+import org.openjdk.jmh.runner.format.OutputFormat
+import org.openjdk.jmh.runner.options.OptionsBuilder
+import org.openjdk.jmh.runner.options.TimeValue
+import org.openjdk.jmh.runner.options.VerboseMode
+
 
 @KotlinxBenchmarkRuntimeInternalApi
-fun runJvmBenchmark(config: RunnerConfiguration) {
+fun main(args: Array<String>) {
+    val config = RunnerConfiguration(args[0].readFile())
+    runJvmBenchmark(config)
+}
+
+@KotlinxBenchmarkRuntimeInternalApi
+fun runJvmBenchmark(
+    config: RunnerConfiguration,
+    demoMode: Boolean = false,
+) {
     val jmhOptions = OptionsBuilder()
     config.iterations?.let { jmhOptions.measurementIterations(it) }
     config.warmups?.let { jmhOptions.warmupIterations(it) }
@@ -40,6 +62,18 @@ fun runJvmBenchmark(config: RunnerConfiguration) {
         jmhOptions.param(key, *value.toTypedArray())
     }
 
+    if (demoMode) {
+        jmhOptions
+            .shouldFailOnError(false)
+            .measurementTime(TimeValue.milliseconds(1))
+            .warmupTime(TimeValue.milliseconds(1))
+            .forks(1)
+            .shouldDoGC(false)
+            .syncIterations(false)
+            .timeout(TimeValue.seconds(1))
+    }
+
+
     val runtimeMXBean = ManagementFactory.getRuntimeMXBean()
     val jvmArgs = runtimeMXBean.inputArguments
     if (jvmArgs.any { it.contains("libasyncProfiler") }) {
@@ -56,11 +90,26 @@ fun runJvmBenchmark(config: RunnerConfiguration) {
         }
     }
 
+//    jmhOptions.jvmArgs(
+//        "-Djmh.executor=CUSTOM",
+//        "-Djmh.executor.class=kotlinx.benchmark.jvm.NoopExecutorService",
+//    )
+//
+//    System.setProperty("jmh.executor", "CUSTOM")
+//    System.setProperty("jmh.executor.class", "kotlinx.benchmark.jvm.NoopExecutorService")
+//    ResultFormatFactory.getInstance(
+//        jmhOptions.resultFormat.get(),
+//        "file"
+//    )
+//    BenchmarkList.fromString("")
+//    CompilerHints.getCompileCommandFiles(listOf(""))
+
     val reportFormat = ResultFormatType.valueOf(config.reportFormat.uppercase())
     val reporter = BenchmarkProgress.create(config.traceFormat)
     val output = JmhOutputFormat(reporter, config.name)
     try {
         val runner = Runner(jmhOptions.build(), output)
+        runner.list()
         val results = runner.run()
         val resultFormat = ResultFormatFactory.getInstance(reportFormat, PrintStream(File(config.reportFile)))
         resultFormat.writeOut(results)
@@ -73,12 +122,6 @@ fun runJvmBenchmark(config: RunnerConfiguration) {
             e.message ?: "<unknown error>"
         )
     }
-}
-
-@KotlinxBenchmarkRuntimeInternalApi
-fun main(args: Array<String>) {
-    val config = RunnerConfiguration(args[0].readFile())
-    runJvmBenchmark(config)
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
@@ -200,3 +243,12 @@ abstract class PrintOutputFormat(private val out: PrintStream, private val verbo
     override fun flush() = out.flush()
     override fun close() = flush()
 }
+
+
+//fun fakeBenchmark() : BenchmarkResult {
+//    val list = BenchmarkList.fromResource(BenchmarkList.BENCHMARK_LIST)
+//    list
+//    return BenchmarkResult(
+//        BenchmarkParams("", "", "")
+//    )
+//}
