@@ -59,8 +59,6 @@ kotlin {
     optIn.addAll(
       "kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi",
       "kotlin.experimental.ExperimentalNativeApi",
-      "kotlin.native.runtime.NativeRuntimeApi",
-      "kotlinx.cinterop.ExperimentalForeignApi",
     )
   }
 
@@ -68,10 +66,8 @@ kotlin {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
       optIn.addAll(
-//        "kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi",
-//        "kotlin.experimental.ExperimentalNativeApi",
-//      "kotlin.native.runtime.NativeRuntimeApi",
-//      "kotlinx.cinterop.ExperimentalForeignApi",
+        "kotlin.native.runtime.NativeRuntimeApi",
+        "kotlinx.cinterop.ExperimentalForeignApi",
       )
     }
   }
@@ -79,8 +75,8 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(projects.kxbRunnerParameters)
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+        api(projects.kxbRunnerParameters)
+        api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
       }
     }
     commonTest {
@@ -98,10 +94,21 @@ kotlin {
         implementation(libs.jmh.core)
       }
     }
-    nativeMain {
-      languageSettings {
-//        optIn("kotlin.native.runtime.NativeRuntimeApi")
-//        optIn("kotlinx.cinterop.ExperimentalForeignApi")
+    listOf(
+      linuxMain,
+      nativeMain,
+      appleMain,
+      iosMain,
+      macosMain,
+      tvosMain,
+      watchosMain,
+      androidNativeMain,
+    ).forEach {
+      it.configure {
+        languageSettings {
+          optIn("kotlin.native.runtime.NativeRuntimeApi")
+          optIn("kotlinx.cinterop.ExperimentalForeignApi")
+        }
       }
     }
   }

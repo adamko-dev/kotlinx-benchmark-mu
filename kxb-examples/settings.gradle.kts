@@ -14,6 +14,7 @@ dependencyResolutionManagement {
   repositoriesMode = RepositoriesMode.PREFER_SETTINGS
 
   repositories {
+//    maven(file("../build/dev-repo"))
     mavenCentral()
     gradlePluginPortal()
   }

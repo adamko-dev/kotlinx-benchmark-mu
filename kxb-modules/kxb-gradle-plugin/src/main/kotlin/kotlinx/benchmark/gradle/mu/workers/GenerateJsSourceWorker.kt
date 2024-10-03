@@ -4,7 +4,6 @@ import kotlinx.benchmark.generator.generateJs
 import kotlinx.benchmark.generator.internal.KotlinxBenchmarkGeneratorInternalApi
 import kotlinx.benchmark.gradle.mu.config.JsBenchmarksExecutor
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.workers.WorkAction
@@ -21,7 +20,7 @@ internal abstract class GenerateJsSourceWorker : WorkAction<GenerateJsSourceWork
 
   internal interface Params : WorkParameters {
     val title: Property<String>
-    val inputClasses: ConfigurableFileTree
+    val inputClasses: ConfigurableFileCollection
     val inputDependencies: ConfigurableFileCollection
     val outputSourcesDir: DirectoryProperty
     val outputResourcesDir: DirectoryProperty

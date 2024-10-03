@@ -14,12 +14,19 @@ import kotlinx.benchmark.VerboseMode
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlinx.benchmark.readFile
 import org.openjdk.jmh.annotations.Mode
+import org.openjdk.jmh.infra.BenchmarkParams
+import org.openjdk.jmh.infra.IterationParams
+import org.openjdk.jmh.results.BenchmarkResult
+import org.openjdk.jmh.results.IterationResult
+import org.openjdk.jmh.results.IterationResultMetaData
+import org.openjdk.jmh.results.RunResult
 import org.openjdk.jmh.results.format.ResultFormatFactory
 import org.openjdk.jmh.results.format.ResultFormatType
+import org.openjdk.jmh.runner.IterationType
 import org.openjdk.jmh.runner.Runner
-import org.openjdk.jmh.runner.options.OptionsBuilder
-import org.openjdk.jmh.runner.options.TimeValue
-import org.openjdk.jmh.runner.options.WarmupMode
+import org.openjdk.jmh.runner.WorkloadParams
+import org.openjdk.jmh.runner.format.OutputFormat
+import org.openjdk.jmh.runner.options.*
 
 
 @KotlinxBenchmarkRuntimeInternalApi
@@ -119,16 +126,16 @@ fun runJvmBenchmark(
     jmhOptions.param(key, *value.toTypedArray())
   }
 
-  if (demoMode) {
-    jmhOptions
-      .shouldFailOnError(false)
-      .measurementTime(TimeValue.milliseconds(1))
-      .warmupTime(TimeValue.milliseconds(1))
-      .forks(1)
-      .shouldDoGC(false)
-      .syncIterations(false)
-      .timeout(TimeValue.seconds(1))
-  }
+//  if (demoMode) {
+//    jmhOptions
+//      .shouldFailOnError(false)
+//      .measurementTime(TimeValue.milliseconds(1))
+//      .warmupTime(TimeValue.milliseconds(1))
+////      .forks(1)
+//      .shouldDoGC(false)
+//      .syncIterations(false)
+//      .timeout(TimeValue.seconds(1))
+//  }
 
 
 //  val runtimeMXBean = ManagementFactory.getRuntimeMXBean()
@@ -173,7 +180,11 @@ fun runJvmBenchmark(
   val reporter = BenchmarkProgress.create(config.progressReporting ?: ProgressReporting.Stdout)
   val output = JmhOutputFormat(reporter, config.name)
   try {
-    val runner = Runner(jmhOptions.build(), output)
+    val runner = if (demoMode) {
+      FakeRunner(jmhOptions.build(), output)
+    } else {
+      Runner(jmhOptions.build(), output)
+    }
     runner.list()
     val results = runner.run()
     val resultFormat = ResultFormatFactory.getInstance(reportFormat, PrintStream(File(config.resultFilePath)))
@@ -181,10 +192,10 @@ fun runJvmBenchmark(
   } catch (e: Exception) {
     e.printStackTrace()
     reporter.endBenchmark(
-      config.name,
-      output.lastBenchmarkStart,
-      BenchmarkProgress.FinishStatus.Failure,
-      e.message ?: "<unknown error>"
+      suite = config.name,
+      benchmark = output.lastBenchmarkStart,
+      status = BenchmarkProgress.FinishStatus.Failure,
+      message = e.message ?: "<unknown error>",
     )
   }
 }
@@ -220,3 +231,77 @@ private fun Duration.toTimeValue(): TimeValue =
       else            -> TimeValue.milliseconds(inWholeMilliseconds)
     }
   }
+
+
+internal class FakeRunner private constructor(
+  options: Options,
+  private val format: Out,
+) : Runner(
+  options,
+  format
+) {
+
+  constructor(options: Options, out: OutputFormat) : this(options, Out(out))
+
+  class Out(val format: OutputFormat) : OutputFormat by format {
+    val captured = mutableListOf<String>()
+    override fun println(s: String) {
+      captured += s
+      format.println(s)
+    }
+  }
+
+
+  override fun run(): Collection<RunResult> {
+//    format.captured.clear()
+    super.list()
+    super.listWithParams(CommandLineOptions())
+    println(format.captured.joinToString("\n") { " - $it" })
+//    val res = super.run()
+//    println(res.joinToString("\n") {
+//      "result -- $it - ${it.primaryResult.extendedInfo()} - "
+//    })
+
+    val params = BenchmarkParams(
+      //@formatter:off
+        /*         benchmark = */ "benchmark...",
+        /*   generatedTarget = */ "generatedTarget",
+        /*   synchIterations = */ options.shouldSyncIterations().orElse(false),
+        /*           threads = */ 1,
+        /*      threadGroups = */ intArrayOf(),
+        /* threadGroupLabels = */ emptyList(),
+        /*             forks = */ 1,
+        /*       warmupForks = */ 0,
+        /*            warmup = */ IterationParams(IterationType.WARMUP, 0, TimeValue.nanoseconds(0), 0),
+        /*       measurement = */ IterationParams(IterationType.MEASUREMENT, 1, TimeValue.nanoseconds(1), 1),
+        /*              mode = */ Mode.AverageTime,
+        /*            params = */ WorkloadParams(),
+        /*          timeUnit = */ TimeUnit.MINUTES,
+        /*  opsPerInvocation = */ 1,
+        /*               jvm = */ "",
+        /*           jvmArgs = */ emptyList(),
+        /*        jdkVersion = */ "1",
+        /*            vmName = */ "vmName",
+        /*         vmVersion = */ "vmVersion",
+        /*        jmhVersion = */ "jmhVersion",
+        /*           timeout = */ TimeValue.minutes(1),
+        //@formatter:on
+    )
+    return listOf(
+      RunResult(
+        params,
+        format.captured.map { c ->
+          BenchmarkResult(
+            params,
+            listOf(
+              IterationResult(
+                params,
+                IterationParams(IterationType.MEASUREMENT, 1, TimeValue.nanoseconds(1), 1),
+                IterationResultMetaData(0, 0),
+              )
+            )
+          )
+        })
+    )
+  }
+}

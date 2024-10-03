@@ -6,5 +6,14 @@ import org.gradle.kotlin.dsl.signing
 plugins {
   id("kxb.build.conventions.base")
   `maven-publish`
-  signing
+  //signing
+}
+
+publishing {
+  repositories {
+    val devRepoDir = generateSequence(gradle) { it.parent}.last().rootProject.projectDir.resolve("build/dev-repo")
+    maven(devRepoDir) {
+      name = "DevRepo"
+    }
+  }
 }

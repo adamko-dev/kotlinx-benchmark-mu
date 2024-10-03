@@ -55,6 +55,13 @@ dependencyResolutionManagement {
       content { includeModule("com.yarnpkg", "yarn") }
     }
     //endregion
+
+    ivy("https://storage.googleapis.com/chromium-v8/official/canary") {
+      name = "chromium-v8 canary"
+      patternLayout { artifact("[artifact]-[revision].[ext]") }
+      metadataSources { artifact() }
+      content { includeModule("google.d8", "v8") }
+    }
   }
 
   versionCatalogs.create("libs") {

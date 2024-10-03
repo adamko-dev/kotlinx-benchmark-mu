@@ -13,7 +13,9 @@ import javax.inject.Inject
 import kotlin.io.path.*
 import kotlinx.benchmark.gradle.mu.config.NativeBenchmarkTarget
 import kotlinx.benchmark.gradle.mu.tasks.NativeSourceGeneratorTask
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.assign
+import org.gradle.work.DisableCachingByDefault
 
 @KotlinxBenchmarkPluginInternalApi
 fun Project.processNativeCompilation(target: NativeBenchmarkTarget) {
@@ -150,6 +152,7 @@ fun Project.createNativeBenchmarkExecTask(
     }
 }
 
+@DisableCachingByDefault(because = "wip")
 abstract class NativeBenchmarkExec
 @KotlinxBenchmarkPluginInternalApi
 @Inject
@@ -162,6 +165,7 @@ constructor(
     var filter: String? = null
 */
     @InputFile
+    @PathSensitive(RELATIVE)
     lateinit var executable: File
 
     @Input
@@ -169,6 +173,7 @@ constructor(
     var workingDir: String? = null
 
     @InputFile
+    @PathSensitive(RELATIVE)
     lateinit var configFile: File
 
     @Input

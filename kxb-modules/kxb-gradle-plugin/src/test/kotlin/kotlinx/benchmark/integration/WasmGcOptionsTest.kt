@@ -1,6 +1,6 @@
 package kotlinx.benchmark.integration
 
-import org.junit.Test
+import kotlin.test.Test
 
 class WasmGcOptionsTest : GradleTest() {
     @Test

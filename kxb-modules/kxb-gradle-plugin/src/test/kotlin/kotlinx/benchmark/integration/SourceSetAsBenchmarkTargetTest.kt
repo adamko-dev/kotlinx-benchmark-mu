@@ -1,6 +1,7 @@
 package kotlinx.benchmark.integration
 
 import java.io.*
+import kotlin.io.path.name
 import kotlin.test.*
 
 class SourceSetAsBenchmarkTargetTest : GradleTest() {
@@ -24,6 +25,6 @@ class SourceSetAsBenchmarkTargetTest : GradleTest() {
         runner.run("${configuration}Benchmark")
         val reports = reports(configuration)
         assertEquals(targets.size, reports.size)
-        assertEquals(targets.map { "$it.json" }.toSet(), reports.map(File::getName).toSet())
+        assertEquals(targets.map { "$it.json" }.toSet(), reports.map({ it.name }).toSet())
     }
 }

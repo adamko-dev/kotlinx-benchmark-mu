@@ -5,12 +5,16 @@ import kotlin.collections.set
 import kotlinx.benchmark.gradle.BenchmarksPlugin
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.assign
@@ -27,11 +31,13 @@ sealed class BenchmarkTarget
 constructor(
   private val name: String
 ) : Named {
+  @get:Input
   abstract val enabled: Property<Boolean>
 //  var workingDir: String? = null
 
 //  internal abstract val named: String
 
+  @Input
   override fun getName(): String = name
 
   abstract class Java
@@ -47,12 +53,14 @@ constructor(
   constructor(
     named: String,
   ) : BenchmarkTarget(named) {
+    @get:Input
     abstract val targetName: String
 
     abstract class JVM
     @KotlinxBenchmarkPluginInternalApi
     @Inject
     constructor(
+      @get:Input
       final override val targetName: String,
       project: Project,
     ) : Kotlin("kotlin$targetName") {
@@ -70,46 +78,21 @@ constructor(
 
       val generateBenchmarkTask: TaskProvider<GenerateJvmBenchmarkTask> =
         project.tasks.register<GenerateJvmBenchmarkTask>("kxbGenerate${targetName}") {
-          description = "Generate JMH source files for '${targetName}'"
-//          dependsOn(compilationTask)
-//        runtimeClasspath = workerClasspath
-//        inputCompileClasspath = compileClasspath
-//        inputClassesDirs = compilationOutput
-//        outputResourcesDir = file("$benchmarkBuildDir/resources")
-//        outputSourcesDir = file("$benchmarkBuildDir/sources")
-//        executableProvider = javaLauncherProvider().map {
-//            it.executablePath.asFile.absolutePath
-//        }
+          description = "Generate JVM source files for '${targetName}'"
         }
-
-//      val prepareResourcesTask: TaskProvider<Sync> =
-//        project.tasks.register<Sync>(
-//          "kxbPrepareResources${targetName}",
-//        ) {
-//          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
-//          from(generateBenchmarkTask.map { it.generatedResources })
-//          into(temporaryDir)
-//        }
 
       val compileTask: TaskProvider<JavaCompile> =
         project.tasks.register<JavaCompile>(
           "kxbCompile${targetName}",
         ) {
-
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
           description = "Compile JMH source files for '${targetName}'"
           dependsOn(generateBenchmarkTask)
-//          classpath = compileClasspath
           classpath = project.objects.fileCollection().apply {
             from(compiledTarget)
             from(targetCompilationDependencies)
-//            from(targetRuntimeDependencies)
-//            from()
           }
           source(generateBenchmarkTask.map { it.generatedSources })
-//        source = fileTree("$benchmarkBuildDir/sources")
-//        destinationDirectory.set(file("$benchmarkBuildDir/classes"))
-//        javaCompiler.set(javaCompilerProvider())
           destinationDirectory.convention(
             project.objects.directoryProperty().fileValue(temporaryDir)
           )
@@ -136,20 +119,36 @@ constructor(
           destinationDirectory = temporaryDir
           archiveBaseName.set("${project.name}-${targetName}-jmh")
         }
-
     }
 
     abstract class JS
     @KotlinxBenchmarkPluginInternalApi
     @Inject
     constructor(
-      final override val targetName: String
+      @get:Input
+      final override val targetName: String,
+      project: Project,
     ) : Kotlin("kotlin$targetName") {
       @get:Input
-      abstract val title: String
+      abstract val title: Property<String>
 
       @get:Input
       abstract val benchmarksExecutor: Property<JsBenchmarksExecutor>
+
+      //    val benchmarkBuildDir = benchmarkBuildDir(target)
+      val generatorTask =
+        project.tasks.register<JsSourceGeneratorTask>("${targetName}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}") {
+          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
+          description = "Generate JS source files for '${targetName}'"
+          title.convention(targetName)
+          benchmarksExecutor.convention(JsBenchmarksExecutor.BenchmarkJs)
+//        title = target.name
+//        useBenchmarkJs = target.jsBenchmarksExecutor == JsBenchmarksExecutor.BenchmarkJs
+//        inputClassesDirs = compilationOutput.output.allOutputs
+//        inputDependencies = compilationOutput.compileDependencyFiles
+//        outputResourcesDir = file("$benchmarkBuildDir/resources")
+//        outputSourcesDir = file("$benchmarkBuildDir/sources")
+        }
     }
 
     abstract class Native

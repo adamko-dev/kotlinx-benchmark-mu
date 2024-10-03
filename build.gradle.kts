@@ -1,41 +1,44 @@
 plugins {
   idea
   base
+  kotlin("multiplatform") version "2.0.0" apply false
 }
 
 idea {
   module {
     excludeDirs.plusAssign(
-      listOf(
+      files(
         ".idea",
         ".kotlin",
-//        "build-logic/build-plugins/.kotlin",
-      ).map(::File)
+        "build-logic/build-plugins/.kotlin",
+        "kxb-modules/.kotlin",
+        "kxb-examples/.kotlin",
+      )
     )
-//    excludeDirs.plusAssign(
-//      listOf(
-//        "kotlin-dsl-accessors",
-//        "kotlin-dsl-external-plugin-spec-builders",
-//        "kotlin-dsl-plugins",
-//      ).map { File("build-logic/build-plugins/build/generated-sources/$it/kotlin/gradle/") }
-//    )
+    excludeDirs.plusAssign(
+      listOf(
+        "kotlin-dsl-accessors",
+        "kotlin-dsl-external-plugin-spec-builders",
+        "kotlin-dsl-plugins",
+      ).map { file("build-logic/build-plugins/build/generated-sources/$it/kotlin/gradle/") }
+    )
   }
 }
 
 tasks.assemble {
-//  dependsOn(gradle.includedBuild("kxb-examples").task(":assemble"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":assemble"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-generator:assemble"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-gradle-plugin:assemble"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runner:assemble"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runner-parameters:assemble"))
 }
 
 tasks.check {
-//  dependsOn(gradle.includedBuild("kxb-examples").task(":assemble"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":check"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-generator:check"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-gradle-plugin:check"))
   dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runner:check"))
+  dependsOn(gradle.includedBuild("kxb-modules").task(":kxb-runner-parameters:check"))
 }
 
 //import kxb.build.tasks.CheckReadmeTask

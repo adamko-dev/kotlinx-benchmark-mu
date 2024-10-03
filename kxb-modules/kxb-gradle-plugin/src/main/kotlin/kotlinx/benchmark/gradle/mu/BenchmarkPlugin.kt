@@ -5,15 +5,13 @@ import kotlinx.benchmark.RunnerConfiguration
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.BENCHMARK_PLUGIN_VERSION
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.JMH_DEFAULT_VERSION
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.config.BenchmarkMode
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
-import kotlinx.benchmark.gradle.mu.config.ResultFormat
-import kotlinx.benchmark.gradle.mu.config.ResultTimeUnit
 import kotlinx.benchmark.gradle.mu.internal.KxbDependencies
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbJavaAdapter
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbKotlinAdapter
 import kotlinx.benchmark.gradle.mu.internal.utils.uppercaseFirstChar
 import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
 import kotlinx.benchmark.gradle.mu.tasks.RunJvmBenchmarkTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -93,8 +91,12 @@ constructor(
         enabled.convention(false)
       }
 
-      versions.jmh.convention(JMH_DEFAULT_VERSION)
-      versions.benchmarksGenerator.convention(BENCHMARK_PLUGIN_VERSION)
+      versions.apply {
+        jmh.convention(JMH_DEFAULT_VERSION)
+        benchmarksGenerator.convention(BENCHMARK_PLUGIN_VERSION)
+        benchmarkJs.convention("2.1.4")
+        jsSourceMapSupport.convention("0.5.21")
+      }
     }
   }
 
@@ -120,6 +122,15 @@ constructor(
         objects.directoryProperty().fileValue(temporaryDir.resolve("generated-sources"))
       )
     }
+    project.tasks.withType<JsSourceGeneratorTask>().configureEach {
+      runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
+      generatedResources.convention(
+        objects.directoryProperty().fileValue(temporaryDir.resolve("generated-resources"))
+      )
+      generatedSources.convention(
+        objects.directoryProperty().fileValue(temporaryDir.resolve("generated-sources"))
+      )
+    }
 
     project.tasks.withType<RunJvmBenchmarkTask>().configureEach {
       mainClass.convention("kotlinx.benchmark.jvm.JvmBenchmarkRunnerKt")
@@ -129,7 +140,19 @@ constructor(
         kxbExtension.enableDemoMode
       )
 
-      // TODO inherit from Kotlin/Java
+      // TODO inherit javaLauncher from Kotlin/Java plugins
+      javaLauncher.convention(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) })
+    }
+
+    project.tasks.withType<RunBenchm>().configureEach {
+      mainClass.convention("kotlinx.benchmark.jvm.JvmBenchmarkRunnerKt")
+      ideaActive.convention(providers.systemProperty("idea.active").map { it.toBoolean() })
+
+      enableDemoMode.convention(
+        kxbExtension.enableDemoMode
+      )
+
+      // TODO inherit javaLauncher from Kotlin/Java plugins
       javaLauncher.convention(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) })
     }
   }

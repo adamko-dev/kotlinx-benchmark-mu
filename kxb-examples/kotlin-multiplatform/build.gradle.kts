@@ -17,11 +17,11 @@ kotlin {
     jvm {
 //        compilations.create('benchmark') { associateWith(compilations.main) }
     }
-//    js(IR) {
-//        nodejs()
+    js(IR) {
+        nodejs()
 //        compilations.create("defaultExecutor") { associateWith(compilations.main) }
 //        compilations.create("builtInExecutor") { associateWith(compilations.main) }
-//    }
+    }
 //    wasm('wasmJs') { nodejs() }
 //
 //    // Native targets
@@ -88,7 +88,7 @@ benchmark {
             advanced.put("jvmForks", "3")
             advanced.put("jsUseBridge", "true")
         }
-//
+
 //        params {
 //            iterations = 5 // number of iterations
 //            iterationTime = 300
@@ -125,14 +125,15 @@ benchmark {
 //            advanced("nativeFork", "perIteration") // see README.md for possible "nativeFork" values
 //        }
     }
-//
-//    // Setup configurations
-//    targets {
-//        // This one matches target name, e.g. 'jvm', 'js',
-//        // and registers its 'main' compilation, so 'jvm' registers 'jvmMain'
-//        register("jvm") {
+
+    // Setup configurations
+    targets {
+        // This one matches target name, e.g. 'jvm', 'js',
+        // and registers its 'main' compilation, so 'jvm' registers 'jvmMain'
+        registerJvm("jvm") {
 //            jmhVersion = "1.21"
-//        }
+        }
+
 //        // This one matches source set name, e.g. 'jvmMain', 'jvmTest', etc
 //        // and register the corresponding compilation (here the 'benchmark' compilation declared in the 'jvm' target)
 //        register("jvmBenchmark") {
@@ -149,7 +150,7 @@ benchmark {
 //        register("macosArm64")
 //        register("linuxX64")
 //        register("mingwX64")
-//    }
+    }
 }
 
 //// Node.js with canary v8 that supports recent Wasm GC changes

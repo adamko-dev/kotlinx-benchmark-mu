@@ -4,7 +4,10 @@ import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
+import org.gradle.work.DisableCachingByDefault
 
+
+@DisableCachingByDefault(because = "wip")
 abstract class JvmBenchmarkExecTask : DefaultTask() {
 
   @get:Inject

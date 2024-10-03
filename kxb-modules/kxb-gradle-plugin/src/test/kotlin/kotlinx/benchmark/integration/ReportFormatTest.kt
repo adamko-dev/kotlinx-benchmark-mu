@@ -1,6 +1,7 @@
 package kotlinx.benchmark.integration
 
 import java.io.*
+import kotlin.io.path.name
 import kotlin.test.*
 
 class ReportFormatTest : GradleTest() {
@@ -27,7 +28,7 @@ class ReportFormatTest : GradleTest() {
             runner.run("${name}Benchmark")
             val reports = reports(name)
             assertEquals(targets.size, reports.size)
-            assertEquals(targets.map { "$it.$ext" }.toSet(), reports.map(File::getName).toSet())
+            assertEquals(targets.map { "$it.$ext" }.toSet(), reports.map({it.name}).toSet())
         }
     }
 }

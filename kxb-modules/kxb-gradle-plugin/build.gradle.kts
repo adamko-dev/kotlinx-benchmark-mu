@@ -43,9 +43,9 @@ dependencies {
 
   implementation(projects.kxbRunnerParameters)
 
-  implementation(libs.kotlin.utilKlibMetadata)
-  implementation(libs.kotlin.utilKlib)
-  implementation(libs.kotlin.utilIo)
+//  implementation(libs.kotlin.utilKlibMetadata)
+//  implementation(libs.kotlin.utilKlib)
+//  implementation(libs.kotlin.utilIo)
 
   compileOnly(libs.kotlin.gradlePlugin)
   compileOnly(libs.kotlin.allOpen.gradlePlugin)
@@ -54,6 +54,13 @@ dependencies {
   compileOnly(projects.kxbRunner)
 
   compileOnly(libs.jmh.core) // TODO remove
+
+  testFixturesImplementation(gradleTestKit())
+  testFixturesImplementation(libs.junit.jupiterApi)
+  testFixturesImplementation(libs.junit.jupiterParams)
+
+  testImplementation(kotlin("test"))
+  testImplementation(libs.junit.jupiterApi)
 }
 
 val generatePluginConstants by tasks.registering {
@@ -99,3 +106,7 @@ sourceSets {
 //apiValidation {
 //    nonPublicMarkers += ["kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi"]
 //}
+
+tasks.withType<Test>().configureEach {
+  useJUnitPlatform()
+}

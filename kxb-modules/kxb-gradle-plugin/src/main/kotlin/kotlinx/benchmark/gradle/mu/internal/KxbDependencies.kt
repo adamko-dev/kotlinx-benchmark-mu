@@ -5,6 +5,7 @@ import kotlinx.benchmark.gradle.mu.internal.utils.declarable
 import kotlinx.benchmark.gradle.mu.internal.utils.resolvable
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.attributes.Usage.JAVA_RUNTIME
 import org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import org.gradle.api.model.ObjectFactory
@@ -48,12 +49,10 @@ internal class KxbDependencies(
       }
     }
 
-  // The name has a dot, to prevent Gradle from generating a Kotlin DSL accessor.
   val kxbGeneratorResolver: Configuration =
-    project.configurations.create("kxbGeneratorResolver.internal") {
+    project.configurations.createResolver("kxbGeneratorResolver") {
       description =
         "Internal Kotlinx Benchmarks Configuration. Resolves dependencies required for running benchmark generators."
-      resolvable()
 
       extendsFrom(kxbGenerator)
 
@@ -76,6 +75,13 @@ internal class KxbDependencies(
             )
           }
         )
+//        addLater(
+//          benchmarksExtension.versions.benchmarksGenerator.map { version ->
+//            project.dependencies.create(
+//              "dev.adamko.kotlinx-benchmark-mu:kxb-runner-jvm:$version"
+//            )
+//          }
+//        )
         addLater(
           benchmarksExtension.versions.benchmarksGenerator.map { version ->
             project.dependencies.create(
@@ -100,12 +106,10 @@ internal class KxbDependencies(
       }
     }
 
-  // The name has a dot, to prevent Gradle from generating a Kotlin DSL accessor.
   val kxbBenchmarkRunnerJvmResolver: Configuration =
-    project.configurations.create("kxbBenchmarkRunnerJvmResolver.internal") {
+    project.configurations.createResolver("kxbBenchmarkRunnerJvmResolver") {
 //      description =
 //        "Internal Kotlinx Benchmarks Configuration. Resolves dependencies required for running benchmark generators."
-      resolvable()
 
       extendsFrom(kxbBenchmarkRunnerJvm)
 
@@ -113,4 +117,16 @@ internal class KxbDependencies(
         attribute(USAGE_ATTRIBUTE, objects.named(JAVA_RUNTIME))
       }
     }
+
+  companion object {
+    private fun ConfigurationContainer.createResolver(
+      name: String,
+      configure: Configuration.() -> Unit
+    ): Configuration =
+      // The name has a dot, to prevent Gradle from generating a Kotlin DSL accessor.
+      create("$name.internal") {
+        resolvable()
+        configure()
+      }
+  }
 }

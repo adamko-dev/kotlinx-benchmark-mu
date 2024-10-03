@@ -1,5 +1,6 @@
 package kotlinx.benchmark.integration
 
+import kotlin.io.path.readText
 import kotlin.test.*
 
 class OptionsOverrideAnnotationsTest : GradleTest() {

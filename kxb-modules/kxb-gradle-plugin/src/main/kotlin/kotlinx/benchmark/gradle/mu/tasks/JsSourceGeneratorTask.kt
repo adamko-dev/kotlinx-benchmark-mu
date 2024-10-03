@@ -2,13 +2,13 @@ package kotlinx.benchmark.gradle.mu.tasks
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
+import kotlinx.benchmark.gradle.mu.config.JsBenchmarksExecutor
 import kotlinx.benchmark.gradle.mu.workers.GenerateJsSourceWorker
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.submit
 
 @CacheableTask
@@ -17,8 +17,8 @@ abstract class JsSourceGeneratorTask
 @Inject
 constructor() : KxbBaseTask() {
 
-  @get:Nested
-  abstract val benchmarkTarget: Property<BenchmarkTarget.Kotlin.JS>
+//  @get:Nested
+//  abstract val benchmarkTarget: Property<BenchmarkTarget.Kotlin.JS>
 
 //  @get:Input
 //  abstract val title: String
@@ -27,35 +27,41 @@ constructor() : KxbBaseTask() {
 //  abstract val useBenchmarkJs: Boolean
 
   @get:Classpath
-  abstract val inputClasses: ConfigurableFileTree
+  abstract val inputClasses: ConfigurableFileCollection
 
   @get:Classpath
   abstract val inputDependencies: ConfigurableFileCollection
 
   @get:OutputDirectory
-  abstract val outputResourcesDir: DirectoryProperty
+  abstract val generatedResources: DirectoryProperty
 
   @get:OutputDirectory
-  abstract val outputSourcesDir: DirectoryProperty
+  abstract val generatedSources: DirectoryProperty
 
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
 
+  @get:Input
+  abstract val benchmarksExecutor: Property<JsBenchmarksExecutor>
+
+  @get:Input
+  abstract val title: Property<String>
+
   @TaskAction
   fun generate() {
-    val benchmarkTarget = benchmarkTarget.get()
+//    val benchmarkTarget = benchmarkTarget.get()
 
     val workQueue = workers.classLoaderIsolation {
       classpath.from(runtimeClasspath)
     }
 
     workQueue.submit(GenerateJsSourceWorker::class) {
-      this.title.set(benchmarkTarget.title)
-      this.benchmarksExecutor.set(benchmarkTarget.benchmarksExecutor)
+      this.title = this@JsSourceGeneratorTask.title
+      this.benchmarksExecutor = this@JsSourceGeneratorTask.benchmarksExecutor
       this.inputClasses.from(this@JsSourceGeneratorTask.inputClasses)
-      this.inputDependencies.from(this@JsSourceGeneratorTask.inputDependencies)
-      this.outputResourcesDir.set(this@JsSourceGeneratorTask.outputResourcesDir)
-      this.outputSourcesDir.set(this@JsSourceGeneratorTask.outputSourcesDir)
+      this.inputDependencies = this@JsSourceGeneratorTask.inputDependencies
+      this.outputResourcesDir = this@JsSourceGeneratorTask.generatedResources
+      this.outputSourcesDir = this@JsSourceGeneratorTask.generatedSources
     }
 
     workQueue.await()

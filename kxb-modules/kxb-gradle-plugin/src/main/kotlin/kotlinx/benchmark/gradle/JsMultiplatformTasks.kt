@@ -4,6 +4,8 @@ import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.JsBenchmarkTarget
 import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
 import org.gradle.api.*
+import org.gradle.kotlin.dsl.assign
+import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.ir.*
 
@@ -27,10 +29,11 @@ private fun Project.createJsBenchmarkCompileTask(target: JsBenchmarkTarget): Kot
     val benchmarkCompilation =
         compilation.target.compilations.create(target.name + BenchmarksPlugin.BENCHMARK_COMPILATION_SUFFIX) as KotlinJsIrCompilation
 
-    (compilation.target as KotlinJsTargetDsl).apply {
-        //force to create executable: required for IR, do nothing on Legacy
-        binaries.executable(benchmarkCompilation)
-    }
+    target.compilation.binaries.executable(benchmarkCompilation)
+//    (compilation.target as KotlinJsTargetDsl).apply {
+//        //force to create executable: required for IR, do nothing on Legacy
+//        binaries.executable(benchmarkCompilation)
+//    }
 
     benchmarkCompilation.apply {
         val sourceSet = kotlinSourceSets.single()
@@ -43,9 +46,10 @@ private fun Project.createJsBenchmarkCompileTask(target: JsBenchmarkTarget): Kot
             implementation(npm("benchmark", "*"))
             runtimeOnly(npm("source-map-support", "*"))
         }
-        project.configurations.let {
-            it.getByName(sourceSet.implementationConfigurationName).extendsFrom(
-                it.getByName(compilation.compileDependencyConfigurationName)
+
+        project.configurations.named(sourceSet.implementationConfigurationName) {
+            extendsFrom(
+                project.configurations.named(compilation.compileDependencyConfigurationName).get()
             )
         }
 
@@ -58,10 +62,8 @@ private fun Project.createJsBenchmarkCompileTask(target: JsBenchmarkTarget): Kot
                 //destinationDir = file("$benchmarkBuildDir/classes")
                 dependsOn("${target.name}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}")
 
-                kotlinOptions.apply {
-                    sourceMap = true
-                    moduleKind = "umd"
-            }
+            compilerOptions.sourceMap = true
+            compilerOptions.moduleKind = JsModuleKind.MODULE_UMD
         }
     }
     return benchmarkCompilation

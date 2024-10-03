@@ -8,8 +8,11 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.process.ExecOperations
+import org.gradle.work.DisableCachingByDefault
 import org.gradle.workers.WorkerExecutor
 
+
+@DisableCachingByDefault(because = "wip")
 abstract class KxbBaseTask
 @KotlinxBenchmarkPluginInternalApi
 protected constructor() : DefaultTask() {

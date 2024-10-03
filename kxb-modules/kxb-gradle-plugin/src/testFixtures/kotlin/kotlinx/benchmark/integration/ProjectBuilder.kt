@@ -4,7 +4,7 @@ class ProjectBuilder {
     private val configurations = mutableMapOf<String, BenchmarkConfiguration>()
     private val targets = mutableMapOf<String, BenchmarkTarget>()
 
-    var kotlinVersion: String = System.getProperty("kotlin_version")
+    var kotlinVersion: String = System.getProperty("kotlin_version") ?: "1.9.25"
 
     fun configuration(name: String, configuration: BenchmarkConfiguration.() -> Unit = {}) {
         configurations[name] = BenchmarkConfiguration().apply(configuration)

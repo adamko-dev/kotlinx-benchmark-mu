@@ -34,7 +34,10 @@ kotlin {
 
   jvm()
 
-  js(IR) { nodejs() }
+  js(IR) {
+    nodejs()
+    binaries.library()
+  }
 
   @OptIn(ExperimentalWasmDsl::class)
   wasmJs { d8() }

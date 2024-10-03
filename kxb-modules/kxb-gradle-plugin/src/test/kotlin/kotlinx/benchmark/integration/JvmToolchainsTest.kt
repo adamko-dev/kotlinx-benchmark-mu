@@ -1,8 +1,8 @@
 package kotlinx.benchmark.integration
 
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.Test
 
 class JvmToolchainsTest : GradleTest() {
     @Test
