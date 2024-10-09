@@ -22,13 +22,4 @@ protected constructor() : KxbBaseTask() {
   @get:Input
   @get:Optional
   abstract val enableDemoMode: Property<Boolean>
-
-  init {
-    // Trick IntelliJ into thinking this is a test task,
-    // so we can log test data via stdout encoded with IJ XML.
-    val ideaActiveProvider: String by lazy {
-      ideaActive.orNull.toString()
-    }
-    extensions.extraProperties.set("idea.internal.test", ideaActiveProvider)
-  }
 }

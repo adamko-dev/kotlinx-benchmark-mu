@@ -51,18 +51,6 @@ constructor() : RunBenchmarkBaseTask() {
 //  @get:Input
 //  abstract val mainClass: Property<String>
 
-  init {
-    // trick IntelliJ into thinking this is a test task,
-    // so we can log test data via stdout encoded with IJ XML.
-    extensions.extraProperties.set(
-      "idea.internal.test",
-      object {
-        override fun toString(): String =
-          ideaActive.getOrElse(false).toString()
-      }
-    )
-  }
-
   @TaskAction
   fun action() {
 

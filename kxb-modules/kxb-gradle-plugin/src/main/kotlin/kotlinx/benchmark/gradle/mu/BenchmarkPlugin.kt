@@ -220,6 +220,13 @@ constructor(
     project.tasks.withType<RunBenchmarkBaseTask>().configureEach {
       enableDemoMode.convention(kxbExtension.enableDemoMode)
       ideaActive.convention(providers.systemProperty("idea.active").toBoolean())
+
+      // Trick IntelliJ into thinking this is a test task,
+      // so we can log test data via stdout encoded with IJ XML.
+      extensions.extraProperties.set(
+        "idea.internal.test",
+        providers.systemProperty("idea.active").getOrElse("false").toBoolean(),
+      )
     }
 
     project.tasks.withType<RunJvmBenchmarkTask>().configureEach {
