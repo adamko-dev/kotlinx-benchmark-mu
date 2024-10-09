@@ -83,16 +83,18 @@ constructor() : KxbBaseTask() {
       }
     }
 
-    val r =
-      @Suppress("UnstableApiUsage")
-      providers.exec {
-        executable(installationDir.get().file("bin/node").asFile)
-        args("--version")
+    @Suppress("UnstableApiUsage")
+    run {
+      val r =
+        providers.exec {
+          executable(installationDir.get().file("bin/node").asFile)
+          args("--version")
 //      standardOutput = System.out
 //      errorOutput = System.err
-      }
+        }
 
-    logger.lifecycle("[$path] node version ${r.standardOutput.asText.get()}")
+      logger.lifecycle("[$path] node version ${r.standardOutput.asText.get()}")
+    }
   }
 
   companion object

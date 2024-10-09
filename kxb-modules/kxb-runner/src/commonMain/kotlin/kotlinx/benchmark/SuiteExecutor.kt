@@ -7,14 +7,15 @@ import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 abstract class SuiteExecutor(
   val executionName: String,
   configPath: String,
-  xmlReporter: (() -> BenchmarkProgress)? = null
+  xmlReporter: (() -> BenchmarkProgress)? = null,
 ) {
-  private val config = RunnerConfiguration.decodeFromJson(configPath.readFile())
+  private val config: RunnerConfiguration = RunnerConfiguration.decodeFromJson(configPath.readFile())
 
-  val reporter = BenchmarkProgress.create(
-    format = config.progressReporting ?: ProgressReporting.Stdout,
-    xml = xmlReporter,
-  )
+  val reporter: BenchmarkProgress =
+    BenchmarkProgress.create(
+      format = config.progressReporting ?: ProgressReporting.Stdout,
+      xml = xmlReporter,
+    )
 
   private val reportFormatter = BenchmarkReportFormatter.create(config.resultFormat)
 
@@ -27,7 +28,7 @@ abstract class SuiteExecutor(
   }
 
   fun run() {
-    //println(config.toString())
+    println("[SuiteExecutor] running with config: $config")
     val include = if (config.includes.isEmpty()) {
       listOf(Regex(".*"))
     } else {

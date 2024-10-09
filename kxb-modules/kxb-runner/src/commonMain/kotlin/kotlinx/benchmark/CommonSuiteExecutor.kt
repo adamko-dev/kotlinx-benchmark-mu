@@ -6,9 +6,12 @@ import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 abstract class CommonSuiteExecutor(
   executionName: String,
   configPath: String,
-//    progressReporting: ProgressReporting,
   xmlReporter: (() -> BenchmarkProgress)? = null,
-) : SuiteExecutor(executionName, configPath, xmlReporter) {
+) : SuiteExecutor(
+  executionName = executionName,
+  configPath = configPath,
+  xmlReporter = xmlReporter
+) {
 
   private fun runBenchmark(
     benchmark: BenchmarkDescriptor<Any?>,

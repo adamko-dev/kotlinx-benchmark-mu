@@ -66,8 +66,6 @@ constructor() : RunBenchmarkBaseTask() {
 
   @TaskAction
   protected fun action() {
-
-
     val nodeExecutable = nodeExecutable.get().asFile
     val benchmarkArgs = buildArgs()
 
@@ -83,9 +81,10 @@ constructor() : RunBenchmarkBaseTask() {
     exec.exec {
       executable(nodeExecutable)
       args(benchmarkArgs)
-      standardOutput = System.out
-      errorOutput = System.err
+//      standardOutput = System.out
+//      errorOutput = System.err
     }
+
     logger.lifecycle("[$path] Finished running benchmark with Node")
   }
 
@@ -109,19 +108,20 @@ constructor() : RunBenchmarkBaseTask() {
 
     logger.lifecycle("[$path] runnerConfig: ${runnerConfigFile.toURI()}")
 
-
-
     return buildList {
-      add(runnerConfigFile.invariantSeparatorsPath)
-
       addAll(module.map { it.absoluteFile.canonicalFile.invariantSeparatorsPath })
 
       addAll(nodeJsArgs.orNull.orEmpty())
 
       if (sourceMapStackTraces.get()) {
-        //      add("--require")
-        //      add(npmProject.require("source-map-support/register.js"))
+//              add("--require")
+//              add("-r")
+//              add("source-map-support/register")
+//              add("source-map-support/register.js")
+//              add(npmProject.require("source-map-support/register.js"))
       }
+
+      add(runnerConfigFile.invariantSeparatorsPath)
     }
   }
 }

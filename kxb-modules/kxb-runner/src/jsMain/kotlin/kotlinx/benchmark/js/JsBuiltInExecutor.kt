@@ -7,8 +7,11 @@ import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 class JsBuiltInExecutor(
   name: String,
   @Suppress("UNUSED_PARAMETER")
-  dummy_args: Array<out String>,
-) : CommonSuiteExecutor(name, jsEngineSupport.arguments()[0]) {
+  dummyArgs: Array<out String>,
+) : CommonSuiteExecutor(
+  executionName = name,
+  configPath = jsEngineSupport.arguments().first(),
+) {
 
 //  private val BenchmarkConfiguration.notUseJsBridge: Boolean
 //    get() = "false".equals(advanced["jsUseBridge"], ignoreCase = true)
