@@ -3,9 +3,9 @@ import kotlin.time.Duration.Companion.milliseconds
 //import kotlinx.benchmark.gradle.JsBenchmarksExecutor
 
 plugins {
-    id ("org.jetbrains.kotlin.multiplatform") version "2.0.0"
-    id ("org.jetbrains.kotlin.plugin.allopen") version "2.0.0"
-    id("dev.adamko.kotlinx-benchmark")
+  id("org.jetbrains.kotlin.multiplatform") version "2.0.20"
+  id("org.jetbrains.kotlin.plugin.allopen") version "2.0.20"
+  id("dev.adamko.kotlinx-benchmark")
 }
 
 // how to apply plugin to a specific source set?
