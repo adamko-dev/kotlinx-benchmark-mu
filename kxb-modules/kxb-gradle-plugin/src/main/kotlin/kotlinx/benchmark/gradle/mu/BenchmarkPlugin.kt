@@ -230,11 +230,13 @@ constructor(
     }
 
     project.tasks.withType<RunJsNodeBenchmarkTask>().configureEach {
-      workingDir.fileValue(temporaryDir)
       sourceMapStackTraces.convention(true)
+      workingDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("work")))
+      cacheDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("cache")))
     }
     project.tasks.withType<RunJsD8BenchmarkTask>().configureEach {
-      workingDir.fileValue(temporaryDir)
+      workingDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("work")))
+      //cacheDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("cache")))
     }
   }
 

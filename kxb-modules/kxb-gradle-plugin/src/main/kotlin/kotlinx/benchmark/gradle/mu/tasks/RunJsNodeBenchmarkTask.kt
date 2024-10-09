@@ -1,8 +1,10 @@
 package kotlinx.benchmark.gradle.mu.tasks
 
 import javax.inject.Inject
+import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec
+import kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec.Companion.buildRunnerConfig
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -59,8 +61,13 @@ constructor() : RunBenchmarkBaseTask() {
   @get:Input
   abstract val sourceMapStackTraces: Property<Boolean>
 
+  @get:LocalState
+  abstract val cacheDir: DirectoryProperty
+
   @TaskAction
   protected fun action() {
+
+
     val nodeExecutable = nodeExecutable.get().asFile
     val benchmarkArgs = buildArgs()
 
@@ -82,15 +89,39 @@ constructor() : RunBenchmarkBaseTask() {
     logger.lifecycle("[$path] Finished running benchmark with Node")
   }
 
-  private fun buildArgs(): List<String> = buildList {
+  private fun buildArgs(): List<String> {
 
-    addAll(module.map { it.absoluteFile.canonicalFile.invariantSeparatorsPath })
+    val benchmarkParameters = benchmarkParameters.get()
 
-    addAll(nodeJsArgs.orNull.orEmpty())
+    val reportFile = temporaryDir.resolve("report.${benchmarkParameters.resultFormat.get().extension}")
 
-    if (sourceMapStackTraces.get()) {
-//      add("--require")
-//      add(npmProject.require("source-map-support/register.js"))
+    val runnerConfig = buildRunnerConfig(
+      name = benchmarkParameters.name,
+      reportFile = reportFile,
+      config = benchmarkParameters,
+      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
+    )
+
+    val runnerConfigFile = cacheDir.get().asFile.resolve("runnerConfig.json").apply {
+      parentFile.mkdirs()
+      writeText(runnerConfig)
+    }
+
+    logger.lifecycle("[$path] runnerConfig: ${runnerConfigFile.toURI()}")
+
+
+
+    return buildList {
+      add(runnerConfigFile.invariantSeparatorsPath)
+
+      addAll(module.map { it.absoluteFile.canonicalFile.invariantSeparatorsPath })
+
+      addAll(nodeJsArgs.orNull.orEmpty())
+
+      if (sourceMapStackTraces.get()) {
+        //      add("--require")
+        //      add(npmProject.require("source-map-support/register.js"))
+      }
     }
   }
 }

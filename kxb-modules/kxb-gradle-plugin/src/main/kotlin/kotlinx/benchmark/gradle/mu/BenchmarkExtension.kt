@@ -25,7 +25,7 @@ constructor(
   abstract val baseReportsDir: DirectoryProperty
 
   /**
-   *
+   * Benchmark executions. Will be run once per [target][targets].
    */
   val benchmarkRuns: BenchmarkRunSpecsContainer =
     extensions.adding("benchmarkRuns", objects.benchmarkRunSpecsContainer())
