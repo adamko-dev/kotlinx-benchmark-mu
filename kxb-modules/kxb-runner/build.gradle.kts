@@ -1,6 +1,8 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 plugins {
   id("kxb.build.conventions.kotlin-multiplatform")
@@ -111,5 +113,14 @@ kotlin {
         }
       }
     }
+  }
+}
+
+rootProject.plugins.withType<YarnPlugin>().configureEach {
+  rootProject.extensions.configure<YarnRootExtension> {
+    yarnLockMismatchReport = YarnLockMismatchReport.NONE
+    yarnLockAutoReplace = true
+    reportNewYarnLock = false
+    lockFileDirectory = rootDir.resolve(".kotlin/js-store")
   }
 }

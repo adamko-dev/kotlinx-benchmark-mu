@@ -177,5 +177,6 @@ rootProject.plugins.withType<YarnPlugin>().configureEach {
     yarnLockMismatchReport = YarnLockMismatchReport.NONE
     yarnLockAutoReplace = true
     reportNewYarnLock = false
+    lockFileDirectory = rootDir.resolve(".kotlin/js-store")
   }
 }
