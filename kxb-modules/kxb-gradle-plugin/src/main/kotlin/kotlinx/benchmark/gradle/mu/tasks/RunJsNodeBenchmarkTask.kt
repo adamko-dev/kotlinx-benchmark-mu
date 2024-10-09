@@ -16,7 +16,7 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.work.DisableCachingByDefault
 
 /**
- * Run JS Benchmarks using D8.
+ * Run JS Benchmarks using NodeJS.
  */
 @DisableCachingByDefault(because = "wip")
 abstract class RunJsNodeBenchmarkTask

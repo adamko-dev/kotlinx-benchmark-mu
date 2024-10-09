@@ -12,8 +12,8 @@ import kotlinx.benchmark.gradle.mu.internal.KxbDependencies
 import kotlinx.benchmark.gradle.mu.internal.KxbTasks
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbJavaAdapter
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbKotlinAdapter
+import kotlinx.benchmark.gradle.mu.internal.utils.buildName
 import kotlinx.benchmark.gradle.mu.internal.utils.toBoolean
-import kotlinx.benchmark.gradle.mu.internal.utils.uppercaseFirstChar
 import kotlinx.benchmark.gradle.mu.tasks.*
 import kotlinx.benchmark.gradle.mu.tasks.tools.D8SetupTask
 import kotlinx.benchmark.gradle.mu.tasks.tools.NodeJsSetupTask
@@ -251,7 +251,9 @@ constructor(
   ) {
     kxbExtension.benchmarkRuns.all {
       val runSpec = this
-      project.tasks.register<RunJvmBenchmarkTask>("benchmark${target.name.uppercaseFirstChar()}${runSpec.name.uppercaseFirstChar()}") {
+      project.tasks.register<RunJvmBenchmarkTask>(
+        name = buildName("benchmark", target.name, runSpec.name)
+      ) {
         description = "Executes benchmark for JVM target ${target.name}"
 
         runtimeClasspath.from(target.jarTask)
@@ -273,17 +275,19 @@ constructor(
   ) {
     kxbExtension.benchmarkRuns.all {
       val runSpec = this
-      project.tasks.register<RunJsNodeBenchmarkTask>("benchmark${target.name.uppercaseFirstChar()}${runSpec.name.uppercaseFirstChar()}") {
+      project.tasks.register<RunJsNodeBenchmarkTask>(
+        name = buildName("benchmark", target.name, runSpec.name)
+      ) {
         description = "Executes benchmark for JS target ${target.name} using NodeJS"
 
         benchmarkParameters.set(runSpec)
 
-        runArguments.convention(
-          listOf(
-            "-r",
-            "source-map-support/register",
-          )
-        )
+//        runArguments.convention(
+//          listOf(
+//            "-r",
+//            "source-map-support/register",
+//          )
+//        )
 
 //        module.convention(target.compiledExecutableModule)
         module.from(target.compiledExecutableModule)
