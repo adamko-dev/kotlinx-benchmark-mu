@@ -19,11 +19,14 @@ sealed interface RunnerConfiguration {
 
   /**
    * Which benchmarks to execute?
-   * @return list of regexps matching the requested benchmarks
+   * A list of regexps matching the requested benchmarks
    */
   val includes: List<String>
 
-  /** Which benchmarks to omit? A list of regexps matching the ignored benchmarks. */
+  /**
+   * Which benchmarks to omit?
+   * A list of regexps matching the ignored benchmarks.
+   */
   val excludes: List<String>
 
   /** Result format to use. */
@@ -100,10 +103,10 @@ sealed interface RunnerConfiguration {
   /** Mode to execute the benchmark in. */
   val mode: Mode?
 
-  /** Time unit to use in report. */
+  /** Time unit to use in the report. */
   val resultTimeUnit: ReportTimeUnit?
 
-  /** Operations per invocation. */
+  /** Number of operations per test invocation. */
   val operationsPerInvocation: Int?
 
   /** Fork count. 0, to prohibit forking. */
