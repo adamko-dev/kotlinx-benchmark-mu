@@ -12,7 +12,9 @@ idea {
         ".kotlin",
         "build-logic/build-plugins/.kotlin",
         "kxb-modules/.kotlin",
+        "kxb-modules/kotlin-js-store",
         "kxb-examples/.kotlin",
+        "kxb-examples/kotlin-js-store",
       )
     )
     excludeDirs.plusAssign(
