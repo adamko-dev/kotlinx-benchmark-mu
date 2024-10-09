@@ -142,8 +142,6 @@ benchmark {
 //
 //        }
 
-    println("benchmark.targets: ${this.names}")
-
 //        // This one matches source set name, e.g. 'jvmMain', 'jvmTest', etc
 //        // and register the corresponding compilation (here the 'benchmark' compilation declared in the 'jvm' target)
 //        register("jvmBenchmark") {

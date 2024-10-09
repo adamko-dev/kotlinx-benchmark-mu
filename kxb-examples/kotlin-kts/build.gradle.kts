@@ -50,7 +50,6 @@ benchmark {
     jvm {
       //this.compileTask
     }
-    println("${project.displayName} - targets:${targets.names}")
 //    jvm {
 //
 //    }
