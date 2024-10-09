@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 plugins {
   id("kxb.build.conventions.kotlin-multiplatform")
   id("kxb.build.conventions.publishing")
-  kotlin("plugin.serialization") version "2.0.0"
+  kotlin("plugin.serialization") version "2.0.20"
 }
 
 kotlin {
