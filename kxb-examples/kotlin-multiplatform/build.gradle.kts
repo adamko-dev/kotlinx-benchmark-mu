@@ -86,11 +86,11 @@ kotlin {
 benchmark {
   benchmarkRuns {
     create("main") { // --> jvmBenchmark, jsBenchmark, <native target>Benchmark, benchmark
-      iterations = 5
+      iterations = 3
       iterationDuration = 300.milliseconds
-//            iterationTimeUnit = "ms"
       advanced.put("jvmForks", "3")
-      advanced.put("jsUseBridge", "true")
+//      advanced.put("jsUseBridge", "true")
+      enableJsBridges = true
     }
 
 //        params {

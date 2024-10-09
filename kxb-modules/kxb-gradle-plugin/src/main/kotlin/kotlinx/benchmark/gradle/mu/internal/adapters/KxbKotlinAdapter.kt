@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
+import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
@@ -198,13 +199,13 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
         }
       }
 
-    require(benchmarkCompilation.target == kotlinJs) {
-      "${benchmarkCompilation.target} != $kotlinJs"
-    }
+//    require(benchmarkCompilation.target == kotlinJs) {
+//      "${benchmarkCompilation.target} != $kotlinJs"
+//    }
     val binary = kotlinJs.binaries.executable(benchmarkCompilation)
       .first { it.mode == KotlinJsBinaryMode.PRODUCTION }
 
-    println("KxbKotlinAdapter: binary:${binary.name}")
+//    println("KxbKotlinAdapter: binary:${binary.name}")
 
 //      benchmarkCompilation.compileTaskProvider.map { task ->
 //        task.compilerOptions.moduleName.map { "${it}.js" }
@@ -252,6 +253,10 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
         inputDependencies.from({ mainCompilation.compileDependencyFiles })
         inputDependencies.from({ benchmarkCompilation.compileDependencyFiles })
       }
+
+      requiredJsFiles.from(
+        { benchmarkCompilation.npmProject.require("source-map-support/register.js") }
+      )
     }
 
     benchmarkCompilation.defaultSourceSet {

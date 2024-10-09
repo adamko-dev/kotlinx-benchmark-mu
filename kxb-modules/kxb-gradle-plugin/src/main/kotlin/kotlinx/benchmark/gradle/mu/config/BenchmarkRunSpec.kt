@@ -109,8 +109,8 @@ constructor(private val name: String) : Named {
   @get:Input
   @get:Optional
   abstract val parameters: MapProperty<String, List<String>>
-  @get:Input
 
+  @get:Input
   // todo typesafe advanced...
   @get:Optional
   abstract val advanced: MapProperty<String, String>
@@ -123,7 +123,7 @@ constructor(private val name: String) : Named {
     excludes.add(pattern)
   }
 
-//  fun param(name: String, vararg value: Any?) {
+  //  fun param(name: String, vararg value: Any?) {
 //    val values = params.getOrPut(name) { mutableListOf() }
 //    values.addAll(value)
 //  }
@@ -132,15 +132,6 @@ constructor(private val name: String) : Named {
 //    advanced[name] = value
 //  }
 //
-//  @KotlinxBenchmarkPluginInternalApi
-//  fun capitalizedName() = if (name == "main") "" else name.capitalize()
-//
-//  @KotlinxBenchmarkPluginInternalApi
-//  fun prefixName(suffix: String) = if (name == "main") suffix else name + suffix.capitalize()
-//
-//  @KotlinxBenchmarkPluginInternalApi
-//  fun reportFileExt(): String = reportFormat?.toLowerCase() ?: "json"
-
   @Input
   override fun getName(): String = name
 
@@ -153,15 +144,24 @@ constructor(private val name: String) : Named {
     iterationDuration.set(duration.map { it.toKotlinDuration() })
   }
 
-  fun iterationDuration(duration: Duration) {
-    iterationDuration.set(duration)
-  }
+//  fun iterationDuration(duration: Duration) {
+//    iterationDuration.set(duration)
+//  }
+//
+//  @JvmName("iterationDurationKt")
+//  fun iterationDuration(duration: Provider<Duration>) {
+//    iterationDuration.set(duration.map { it })
+//  }
 
-  //  @JvmSynthetic
-  @JvmName("iterationDurationKt")
-  fun iterationDuration(duration: Provider<Duration>) {
-    iterationDuration.set(duration.map { it })
-  }
+  /**
+   * Generate special benchmark bridges to stop inlining optimizations.
+   *
+   * This value is only valid for JavaScript targets.
+   */
+  @get:Input
+  @get:Optional
+  abstract val enableJsBridges: Property<Boolean>
+
 
   companion object {
     internal fun buildRunnerConfig(
@@ -236,6 +236,7 @@ constructor(private val name: String) : Named {
         jvmArgs += config.jvmArgs.orNull.orEmpty()
         parameters += config.parameters.orNull.orEmpty()
 //    advanced = config.advanced.orNull.orEmpty(),
+        enableJsBridges = config.enableJsBridges.orNull
       }.encodeToJson()
 
 ////  val file = Files.createTempFile("benchmarks", "txt").toFile()

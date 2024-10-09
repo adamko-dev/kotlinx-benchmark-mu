@@ -1,5 +1,6 @@
 package kotlinx.benchmark.gradle.mu
 
+import java.io.File
 import javax.inject.Inject
 import kotlinx.benchmark.RunnerConfiguration
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.BENCHMARK_PLUGIN_VERSION
@@ -21,7 +22,9 @@ import kotlinx.benchmark.gradle.mu.tooling.Platform.Arch.*
 import kotlinx.benchmark.gradle.mu.tooling.Platform.System.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -200,21 +203,13 @@ constructor(
   ) {
     project.tasks.withType<GenerateJvmBenchmarkTask>().configureEach {
       runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
-      generatedResources.convention(
-        objects.directoryProperty().fileValue(temporaryDir.resolve("generated-resources"))
-      )
-      generatedSources.convention(
-        objects.directoryProperty().fileValue(temporaryDir.resolve("generated-sources"))
-      )
+      generatedResources.convention(temporaryDir.resolve("generated-resources"))
+      generatedSources.convention(temporaryDir.resolve("generated-sources"))
     }
     project.tasks.withType<JsSourceGeneratorTask>().configureEach {
       runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
-      generatedResources.convention(
-        objects.directoryProperty().fileValue(temporaryDir.resolve("generated-resources"))
-      )
-      generatedSources.convention(
-        objects.directoryProperty().fileValue(temporaryDir.resolve("generated-sources"))
-      )
+      generatedResources.convention(temporaryDir.resolve("generated-resources"))
+      generatedSources.convention(temporaryDir.resolve("generated-sources"))
     }
 
     project.tasks.withType<RunBenchmarkBaseTask>().configureEach {
@@ -238,11 +233,12 @@ constructor(
 
     project.tasks.withType<RunJsNodeBenchmarkTask>().configureEach {
       sourceMapStackTraces.convention(true)
-      workingDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("work")))
-      cacheDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("cache")))
+      //workingDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("work")))
+      cacheDir.convention(temporaryDir.resolve("cache"))
+      results.convention(temporaryDir.resolve("output/results.json"))
     }
     project.tasks.withType<RunJsD8BenchmarkTask>().configureEach {
-      workingDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("work")))
+      workingDir.convention(temporaryDir.resolve("work"))
       //cacheDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("cache")))
     }
   }
@@ -295,7 +291,15 @@ constructor(
         nodeExecutable.convention(
           kxbTasks.setupNodeJsBenchmarkRunner.map { it.installationDir.get().file("bin/node") }
         )
+
+        requiredJsFiles.from(target.requiredJsFiles)
       }
     }
   }
+
+  private fun RegularFileProperty.convention(value: File): RegularFileProperty =
+    convention(objects.fileProperty().fileValue(value))
+
+  private fun DirectoryProperty.convention(value: File): DirectoryProperty =
+    convention(objects.directoryProperty().fileValue(value))
 }

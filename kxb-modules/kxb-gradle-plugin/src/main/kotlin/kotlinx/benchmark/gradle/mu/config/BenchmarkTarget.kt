@@ -9,10 +9,8 @@ import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
 import org.gradle.api.Named
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -139,7 +137,7 @@ constructor(
       @get:Input
       abstract val title: Property<String>
 
-//      abstract val compiledExecutableModule: RegularFileProperty
+      //      abstract val compiledExecutableModule: RegularFileProperty
       abstract val compiledExecutableModule: ConfigurableFileCollection
 
 //      abstract val runner: Property<JsRunner>
@@ -151,6 +149,8 @@ constructor(
 
       @get:Input
       abstract val benchmarksExecutor: Property<JsBenchmarksExecutor>
+
+      abstract val requiredJsFiles: ConfigurableFileCollection
 
       //    val benchmarkBuildDir = benchmarkBuildDir(target)
       val generatorTask =

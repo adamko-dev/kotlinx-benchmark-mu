@@ -1,5 +1,6 @@
 package kotlinx.benchmark.gradle.mu.tasks
 
+import java.io.File
 import javax.inject.Inject
 import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
@@ -30,10 +31,13 @@ constructor() : RunBenchmarkBaseTask() {
   /** Arguments for the program being executed. Will be passed last, after `--`. */
   @get:Input
   @get:Optional
-  abstract val runArguments: ListProperty<String>
+  abstract val runArguments: ListProperty<String> // TODO implement runArguments
 
-  @get:OutputDirectory
-  abstract val workingDir: DirectoryProperty
+//  @get:OutputDirectory
+//  abstract val workingDir: DirectoryProperty
+
+  @get:OutputFile
+  abstract val results: RegularFileProperty
 
   @get:InputFile
   @get:PathSensitive(RELATIVE)
@@ -45,24 +49,22 @@ constructor() : RunBenchmarkBaseTask() {
 //  //@get:NormalizeLineEndings
 //  abstract val module: RegularFileProperty
 
-  @get:PathSensitive(RELATIVE)
   @get:InputFiles
+  @get:PathSensitive(RELATIVE)
   abstract val module: ConfigurableFileCollection
-
-//  @get:Classpath
-//  abstract val runtimeClasspath: ConfigurableFileCollection
 
   @get:Nested
   abstract val benchmarkParameters: Property<BenchmarkRunSpec>
-
-//  @get:Input
-//  abstract val mainClass: Property<String>
 
   @get:Input
   abstract val sourceMapStackTraces: Property<Boolean>
 
   @get:LocalState
   abstract val cacheDir: DirectoryProperty
+
+  @get:InputFiles
+  @get:PathSensitive(RELATIVE)
+  abstract val requiredJsFiles: ConfigurableFileCollection
 
   @TaskAction
   protected fun action() {
@@ -90,29 +92,15 @@ constructor() : RunBenchmarkBaseTask() {
 
   private fun buildArgs(): List<String> {
 
-    val benchmarkParameters = benchmarkParameters.get()
-
-    val reportFile = temporaryDir.resolve("report.${benchmarkParameters.resultFormat.get().extension}")
-
-    val runnerConfig = buildRunnerConfig(
-      name = benchmarkParameters.name,
-      reportFile = reportFile,
-      config = benchmarkParameters,
-      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
-    )
-
-    val runnerConfigFile = cacheDir.get().asFile.resolve("runnerConfig.json").apply {
-      parentFile.mkdirs()
-      writeText(runnerConfig)
-    }
-
-    logger.lifecycle("[$path] runnerConfig: ${runnerConfigFile.toURI()}")
+    val benchmarkParameters = createBenchmarkParametersFile()
 
     return buildList {
-      addAll(module.map { it.absoluteFile.canonicalFile.invariantSeparatorsPath })
-
-      addAll(nodeJsArgs.orNull.orEmpty())
-
+      addAll(requiredJsFiles.flatMap {
+        listOf(
+          "-r",
+          it.absoluteFile.canonicalFile.invariantSeparatorsPath
+        )
+      })
       if (sourceMapStackTraces.get()) {
 //              add("--require")
 //              add("-r")
@@ -121,7 +109,40 @@ constructor() : RunBenchmarkBaseTask() {
 //              add(npmProject.require("source-map-support/register.js"))
       }
 
-      add(runnerConfigFile.invariantSeparatorsPath)
+      addAll(nodeJsArgs.orNull.orEmpty())
+
+      addAll(module.map { it.absoluteFile.canonicalFile.invariantSeparatorsPath })
+
+      add(benchmarkParameters.invariantSeparatorsPath)
+
     }
+  }
+
+  private fun createBenchmarkParametersFile(): File {
+
+    val benchmarkParameters = benchmarkParameters.get()
+
+    val reportFile = results.get().asFile.apply {
+      parentFile.mkdirs()
+    }
+
+    val runnerConfig = buildRunnerConfig(
+      name = benchmarkParameters.name,
+      reportFile = reportFile,
+      config = benchmarkParameters,
+      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
+    )
+
+    val benchmarkParametersFile = cacheDir.get().asFile.resolve("benchmarkParameters.json").apply {
+      parentFile.mkdirs()
+      writeText(runnerConfig)
+    }
+
+    logger.lifecycle(
+      "[$path] benchmarkParameters ${benchmarkParametersFile.toURI()}: " +
+          benchmarkParametersFile.useLines { it.joinToString(" / ") }
+    )
+
+    return benchmarkParametersFile
   }
 }
