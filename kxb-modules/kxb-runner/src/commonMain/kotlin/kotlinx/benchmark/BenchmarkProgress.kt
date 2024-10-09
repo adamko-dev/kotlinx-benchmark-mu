@@ -94,14 +94,11 @@ internal class ConsoleBenchmarkProgress : BenchmarkProgress() {
   }
 
   override fun endSuite(suite: String, summary: String) {
-    println()
-    println("$suite summary:")
-    println(summary)
+    println("\n$suite summary:\n$summary")
   }
 
   override fun startBenchmark(suite: String, benchmark: String) {
-    println()
-    println("… $benchmark")
+    println("\n… $benchmark")
   }
 
   override fun endBenchmark(suite: String, benchmark: String, status: FinishStatus, message: String) {
@@ -109,8 +106,7 @@ internal class ConsoleBenchmarkProgress : BenchmarkProgress() {
   }
 
   override fun endBenchmarkException(suite: String, benchmark: String, error: String, stacktrace: String) {
-    println("  EXCEPTION: $error")
-    println(stacktrace)
+    println("  EXCEPTION: $error\n$stacktrace")
   }
 
   override fun output(suite: String, benchmark: String, message: String) {
