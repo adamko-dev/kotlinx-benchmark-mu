@@ -275,37 +275,37 @@ constructor(private val name: String) : Named {
     private fun validateConfig(config: BenchmarkRunSpec) {
 //  config.reportFormat.orNull?.let {
 //    require(it.lowercase() in ValidOptions.format) {
-//      "Invalid report format: '$it'. Accepted formats: ${ValidOptions.format.joinToString(", ")} (e.g., reportFormat = \"json\")."
+//      "Invalid report format: '$it'. Accepted formats: ${ValidOptions.format.joinToString(", ")} (e.g. reportFormat = \"json\")."
 //    }
 //  }
 
       config.iterations.orNull?.let {
         require(it > 0) {
-          "Invalid iterations: '$it'. Expected a positive integer (e.g., iterations = 5)."
+          "Invalid iterations: '$it'. Expected a positive integer (e.g. iterations = 5)."
         }
       }
 
       config.warmups.orNull?.let {
         require(it >= 0) {
-          "Invalid warmups: '$it'. Expected a non-negative integer (e.g., warmups = 3)."
+          "Invalid warmups: '$it'. Expected a non-negative integer (e.g. warmups = 3)."
         }
       }
 
       config.iterationDuration.orNull?.let {
         require(it > Duration.ZERO) {
-          "Invalid iterationTime: '$it'. Must be greater than ${Duration.ZERO} (e.g., iterationTime = 300.seconds)."
+          "Invalid iterationTime: '$it'. Must be greater than ${Duration.ZERO} (e.g. iterationTime = 300.seconds)."
         }
       }
 
 //  config.mode.orNull?.let {
 //    require(it in ValidOptions.modes) {
-//      "Invalid benchmark mode: '$it'. Accepted modes: ${ValidOptions.modes.joinToString(", ")} (e.g., mode = \"thrpt\")."
+//      "Invalid benchmark mode: '$it'. Accepted modes: ${ValidOptions.modes.joinToString(", ")} (e.g. mode = \"thrpt\")."
 //    }
 //  }
 
 //  config.outputTimeUnit.orNull?.let {
 //    require(it in ValidOptions.timeUnits) {
-//      "Invalid outputTimeUnit: '$it'. Accepted units: ${ValidOptions.timeUnits.joinToString(", ")} (e.g., outputTimeUnit = \"ns\")."
+//      "Invalid outputTimeUnit: '$it'. Accepted units: ${ValidOptions.timeUnits.joinToString(", ")} (e.g. outputTimeUnit = \"ns\")."
 //    }
 //  }
 
@@ -323,7 +323,7 @@ constructor(private val name: String) : Named {
 
       config.parameters.orNull?.forEach { (param, values) ->
         require(param.isNotBlank()) {
-          "Invalid parameter name: '$param'. It must not be blank."
+          "Invalid parameter name: '$param'. Name must not be blank."
         }
         require(values.isNotEmpty()) {
           "Parameter '$param' has no values. At least one value is required."
@@ -332,10 +332,10 @@ constructor(private val name: String) : Named {
 
       config.advanced.orNull?.forEach { (param, value) ->
         require(param.isNotBlank()) {
-          "Invalid advanced option name: '$param'. It must not be blank."
+          "Invalid advanced option name: '$param'. Value must not be blank."
         }
         require(value.toString().isNotBlank()) {
-          "Invalid value for advanced option '$param': '$value'. Value should not be blank."
+          "Invalid value for advanced option '$param': '$value'. Value must not be blank."
         }
 
         when (param) {
