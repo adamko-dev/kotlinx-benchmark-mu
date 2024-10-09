@@ -7,11 +7,11 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 
-/** Container for all TODO .... */
+/** Container for [BenchmarkTarget]s. */
 typealias BenchmarkTargetsContainer =
     ExtensiblePolymorphicDomainObjectContainer<BenchmarkTarget>
 
-/** Container for all TODO .... */
+/** Container for [BenchmarkRunSpec]s. */
 typealias BenchmarkRunSpecsContainer =
     NamedDomainObjectContainer<BenchmarkRunSpec>
 

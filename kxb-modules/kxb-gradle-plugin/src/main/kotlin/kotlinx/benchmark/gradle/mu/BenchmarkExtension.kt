@@ -4,6 +4,7 @@ import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.*
 import kotlinx.benchmark.gradle.mu.internal.utils.adding
+import kotlinx.benchmark.gradle.mu.tooling.JsToolsExtension
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
@@ -23,9 +24,15 @@ constructor(
 
   abstract val baseReportsDir: DirectoryProperty
 
+  /**
+   *
+   */
   val benchmarkRuns: BenchmarkRunSpecsContainer =
     extensions.adding("benchmarkRuns", objects.benchmarkRunSpecsContainer())
 
+  /**
+   * Benchmark source targets. E.g. for JVM, JS, or custom.
+   */
   val targets: BenchmarkTargetsContainer =
     extensions.adding(
       "targets",
@@ -33,6 +40,9 @@ constructor(
     )
 
   val versions: Versions = extensions.adding("versions", objects.newInstance())
+
+  val jsTools: JsToolsExtension =
+    extensions.adding("tools", objects.newInstance<JsToolsExtension>())
 
   @KotlinxBenchmarkPluginInternalApi
   abstract val enableDemoMode: Property<Boolean>
@@ -50,6 +60,24 @@ constructor(
     configure: BenchmarkTarget.Kotlin.JVM.() -> Unit,
   ): NamedDomainObjectProvider<BenchmarkTarget.Kotlin.JVM> =
     register<BenchmarkTarget.Kotlin.JVM>(name, configure)
+
+  fun BenchmarkTargetsContainer.registerJs(
+    name: String,
+    configure: BenchmarkTarget.Kotlin.JS.() -> Unit,
+  ): NamedDomainObjectProvider<BenchmarkTarget.Kotlin.JS> =
+    register<BenchmarkTarget.Kotlin.JS>(name, configure)
+
+  fun BenchmarkTargetsContainer.registerWasmJs(
+    name: String,
+    configure: BenchmarkTarget.Kotlin.WasmJs.() -> Unit,
+  ): NamedDomainObjectProvider<BenchmarkTarget.Kotlin.WasmJs> =
+    register<BenchmarkTarget.Kotlin.WasmJs>(name, configure)
+
+  fun BenchmarkTargetsContainer.registerNative(
+    name: String,
+    configure: BenchmarkTarget.Kotlin.Native.() -> Unit,
+  ): NamedDomainObjectProvider<BenchmarkTarget.Kotlin.Native> =
+    register<BenchmarkTarget.Kotlin.Native>(name, configure)
 
   companion object
 }

@@ -6,13 +6,19 @@ import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.BENCHMARK_PLU
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.JMH_DEFAULT_VERSION
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
+import kotlinx.benchmark.gradle.mu.config.tools.D8ToolSpec
 import kotlinx.benchmark.gradle.mu.internal.KxbDependencies
+import kotlinx.benchmark.gradle.mu.internal.KxbTasks
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbJavaAdapter
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbKotlinAdapter
+import kotlinx.benchmark.gradle.mu.internal.utils.toBoolean
 import kotlinx.benchmark.gradle.mu.internal.utils.uppercaseFirstChar
-import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
-import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
-import kotlinx.benchmark.gradle.mu.tasks.RunJvmBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.*
+import kotlinx.benchmark.gradle.mu.tasks.tools.D8SetupTask
+import kotlinx.benchmark.gradle.mu.tasks.tools.NodeJsSetupTask
+import kotlinx.benchmark.gradle.mu.tooling.Platform
+import kotlinx.benchmark.gradle.mu.tooling.Platform.Arch.*
+import kotlinx.benchmark.gradle.mu.tooling.Platform.System.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
@@ -36,7 +42,10 @@ constructor(
   override fun apply(project: Project) {
     val kxbExtension = createKxbExtension(project)
 
+    configureJsTools(project, kxbExtension)
+
     val kxbDependencies = KxbDependencies(project, kxbExtension)
+    val kxbTasks = KxbTasks(project, kxbDependencies)
 
     project.pluginManager.apply(KxbKotlinAdapter::class)
     project.pluginManager.apply(KxbJavaAdapter::class)
@@ -47,6 +56,9 @@ constructor(
 
     kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JVM>().all {
       handleKotlinJvmTarget(project, kxbExtension, kxbDependencies, this)
+    }
+    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JS>().all {
+      handleKotlinJsTarget(project, kxbExtension, kxbDependencies, kxbTasks, this)
     }
   }
 
@@ -83,7 +95,8 @@ constructor(
 
         registerBinding(BenchmarkTarget.Kotlin.JS::class, BenchmarkTarget.Kotlin.JS::class)
         registerBinding(BenchmarkTarget.Kotlin.Native::class, BenchmarkTarget.Kotlin.Native::class)
-        registerBinding(BenchmarkTarget.Kotlin.Wasm::class, BenchmarkTarget.Kotlin.Wasm::class)
+        registerBinding(BenchmarkTarget.Kotlin.WasmJs::class, BenchmarkTarget.Kotlin.WasmJs::class)
+        registerBinding(BenchmarkTarget.Kotlin.WasmWasi::class, BenchmarkTarget.Kotlin.WasmWasi::class)
         registerBinding(BenchmarkTarget.Java::class, BenchmarkTarget.Java::class)
       }
 
@@ -97,6 +110,78 @@ constructor(
         benchmarkJs.convention("2.1.4")
         jsSourceMapSupport.convention("0.5.21")
       }
+    }
+  }
+
+  private fun configureJsTools(
+    project: Project,
+    extension: BenchmarkExtension,
+  ) {
+    extension.jsTools.apply {
+
+      hostPlatform.set(Platform.getHostPlatform(providers))
+      toolsDir.convention(layout.buildDirectory.dir("kxb/tools"))
+
+      d8.apply {
+        edition.convention(D8ToolSpec.Edition.Debug)
+        installationDir.convention(toolsDir.dir("d8"))
+        platform.convention(hostPlatform.map { p ->
+          buildString {
+            when (p.system) {
+              Linux   -> append("linux")
+              MacOS   -> append("mac")
+              Windows -> append("win")
+              SunOS   -> error("D8 does not support system: ${p.system}")
+            }
+            when (p.arch) {
+              Arm64 -> append("-arm64")
+              X64   -> append("64")
+              X86   -> append("86")
+              Ppc64LE,
+              S390x -> error("D8 does not support architecture: ${p.arch}")
+            }
+          }
+        })
+      }
+      project.tasks.withType<D8SetupTask>().configureEach {
+        this.installationDir.convention(extension.jsTools.d8.installationDir)
+      }
+
+      nodeJs.apply {
+        command.convention("node")
+        version.convention("22.0.0")
+        installationDir.convention(toolsDir.dir("nodejs"))
+//        downloadBaseUrl("https://nodejs.org/dist")
+        distDownloadUrl.convention(
+          hostPlatform.zip(version) { p, version ->
+            val system = when (p.system) {
+              Linux   -> "linux"
+              MacOS   -> "darwin"
+              Windows -> "win"
+              SunOS   -> error("Unsupported platform: $p")
+            }
+
+            val arch = when (p.arch) {
+              X64     -> "x64"
+              Arm64   -> "arm64"
+              Ppc64LE -> "ppc64le"
+              S390x   -> "s390x"
+              X86     -> "x86"
+            }
+
+            val ext = if (p.system == Windows) "zip" else "tar.gz"
+
+            "https://nodejs.org/dist/v$version/node-v$version-${system}-$arch.$ext"
+          }
+        )
+      }
+    }
+
+    project.tasks.withType<NodeJsSetupTask>().configureEach {
+      this.installationDir.convention(extension.jsTools.nodeJs.installationDir)
+//      this.arch.convention(extension.jsTools.hostPlatform.map { it.arch })
+      this.distDownloadUrl.convention(extension.jsTools.nodeJs.distDownloadUrl)
+      this.cacheDir.set(temporaryDir.resolve("cache"))
     }
   }
 
@@ -132,28 +217,24 @@ constructor(
       )
     }
 
+    project.tasks.withType<RunBenchmarkBaseTask>().configureEach {
+      enableDemoMode.convention(kxbExtension.enableDemoMode)
+      ideaActive.convention(providers.systemProperty("idea.active").toBoolean())
+    }
+
     project.tasks.withType<RunJvmBenchmarkTask>().configureEach {
       mainClass.convention("kotlinx.benchmark.jvm.JvmBenchmarkRunnerKt")
-      ideaActive.convention(providers.systemProperty("idea.active").map { it.toBoolean() })
-
-      enableDemoMode.convention(
-        kxbExtension.enableDemoMode
-      )
 
       // TODO inherit javaLauncher from Kotlin/Java plugins
       javaLauncher.convention(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) })
     }
 
-    project.tasks.withType<RunBenchm>().configureEach {
-      mainClass.convention("kotlinx.benchmark.jvm.JvmBenchmarkRunnerKt")
-      ideaActive.convention(providers.systemProperty("idea.active").map { it.toBoolean() })
-
-      enableDemoMode.convention(
-        kxbExtension.enableDemoMode
-      )
-
-      // TODO inherit javaLauncher from Kotlin/Java plugins
-      javaLauncher.convention(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) })
+    project.tasks.withType<RunJsNodeBenchmarkTask>().configureEach {
+      workingDir.fileValue(temporaryDir)
+      sourceMapStackTraces.convention(true)
+    }
+    project.tasks.withType<RunJsD8BenchmarkTask>().configureEach {
+      workingDir.fileValue(temporaryDir)
     }
   }
 
@@ -166,12 +247,45 @@ constructor(
     kxbExtension.benchmarkRuns.all {
       val runSpec = this
       project.tasks.register<RunJvmBenchmarkTask>("benchmark${target.name.uppercaseFirstChar()}${runSpec.name.uppercaseFirstChar()}") {
+        description = "Executes benchmark for JVM target ${target.name}"
+
         runtimeClasspath.from(target.jarTask)
         runtimeClasspath.from(target.runtimeClasspath)
         runtimeClasspath.from(target.targetRuntimeDependencies)
         runtimeClasspath.from(target.compiledTarget)
         runtimeClasspath.from(kxbDependencies.kxbBenchmarkRunnerJvmResolver)
         benchmarkParameters.set(runSpec)
+      }
+    }
+  }
+
+  private fun handleKotlinJsTarget(
+    project: Project,
+    kxbExtension: BenchmarkExtension,
+    kxbDependencies: KxbDependencies,
+    kxbTasks: KxbTasks,
+    target: BenchmarkTarget.Kotlin.JS,
+  ) {
+    kxbExtension.benchmarkRuns.all {
+      val runSpec = this
+      project.tasks.register<RunJsNodeBenchmarkTask>("benchmark${target.name.uppercaseFirstChar()}${runSpec.name.uppercaseFirstChar()}") {
+        description = "Executes benchmark for JS target ${target.name} using NodeJS"
+
+        benchmarkParameters.set(runSpec)
+
+        runArguments.convention(
+          listOf(
+            "-r",
+            "source-map-support/register",
+          )
+        )
+
+//        module.convention(target.compiledExecutableModule)
+        module.from(target.compiledExecutableModule)
+
+        nodeExecutable.convention(
+          kxbTasks.setupNodeJsBenchmarkRunner.map { it.installationDir.get().file("bin/node") }
+        )
       }
     }
   }

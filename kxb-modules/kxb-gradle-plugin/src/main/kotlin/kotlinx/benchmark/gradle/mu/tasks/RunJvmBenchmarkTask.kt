@@ -20,7 +20,7 @@ import org.gradle.kotlin.dsl.submit
 abstract class RunJvmBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : KxbBaseTask() {
+constructor() : RunBenchmarkBaseTask() {
 
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
@@ -33,14 +33,6 @@ constructor() : KxbBaseTask() {
   @get:Input
   abstract val mainClass: Property<String>
 
-  @KotlinxBenchmarkPluginInternalApi
-  @get:Internal // only affects stdout logging
-  abstract val ideaActive: Property<Boolean>
-
-  @get:Input
-  @get:Optional
-  abstract val enableDemoMode: Property<Boolean>
-
 //  @get:Nested
 //  abstract val javaLauncher: Property<JavaLauncher>
 
@@ -49,18 +41,6 @@ constructor() : KxbBaseTask() {
   // TODO pass java launcher to JMH
   @get:Nested
   abstract val javaLauncher: Property<JavaLauncher>
-
-  init {
-    // trick IntelliJ into thinking this is a test task,
-    // so we can log test data via stdout encoded with IJ XML.
-    extensions.extraProperties.set(
-      "idea.internal.test",
-      object {
-        override fun toString(): String =
-          ideaActive.getOrElse(false).toString()
-      }
-    )
-  }
 
   @TaskAction
   fun action() {
@@ -72,7 +52,7 @@ constructor() : KxbBaseTask() {
       name = benchmarkParameters.name,
       reportFile = reportFile,
       config = benchmarkParameters,
-      reporting = if (ideaActive.orNull == true) ProgressReporting.IntelliJ else ProgressReporting.Stdout
+      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
     )
 
     logger.info("[$path] runnerConfig: ${runnerConfig.lines().joinToString(" / ")}")

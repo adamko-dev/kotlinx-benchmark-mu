@@ -95,19 +95,18 @@ inline fun <reified T : Task> Project.task(
 //    }
 //}
 
-//@KotlinxBenchmarkPluginInternalApi
-//fun Task.setupReporting(target: BenchmarkTarget, config: BenchmarkConfiguration): File {
-//    extensions.extraProperties.set("idea.internal.test", project.getSystemProperty("idea.active"))
-//    val reportsDir = project.benchmarkReportsDir(config, target)
-//    val reportFile = reportsDir.resolve("${target.name}.${config.reportFileExt()}")
-//    val configName = config.name
-//    val targetName = target.name
-//    doFirst {
-//        reportsDir.mkdirs()
-//        logger.lifecycle("Running '${configName}' benchmarks for '${targetName}'")
-//    }
-//    return reportFile
-//}
+internal fun Task.setupReporting(target: OldBenchmarkTarget, config: BenchmarkConfiguration): File {
+    extensions.extraProperties.set("idea.internal.test", project.getSystemProperty("idea.active"))
+    val reportsDir: File = TODO() // project.benchmarkReportsDir(config, target)
+    val reportFile = reportsDir.resolve("${target.name}.${config.reportFileExt()}")
+    val configName = config.name
+    val targetName = target.name
+    doFirst {
+        reportsDir.mkdirs()
+        logger.lifecycle("Running '${configName}' benchmarks for '${targetName}'")
+    }
+    return reportFile
+}
 
 @KotlinxBenchmarkPluginInternalApi
 fun Task.traceFormat(): String {

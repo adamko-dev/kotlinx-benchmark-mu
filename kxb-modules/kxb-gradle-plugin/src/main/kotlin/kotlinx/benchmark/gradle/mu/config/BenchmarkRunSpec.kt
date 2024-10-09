@@ -2,16 +2,15 @@ package kotlinx.benchmark.gradle.mu.config
 
 import javax.inject.Inject
 import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 import kotlin.time.toKotlinDuration
 import kotlinx.benchmark.RunnerConfiguration
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
+import kotlinx.benchmark.gradle.mu.internal.utils.DurationJdk
 import org.gradle.api.Named
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.api.provider.SetProperty
+import org.gradle.api.provider.*
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 
 abstract class BenchmarkRunSpec
@@ -62,9 +61,17 @@ constructor(private val name: String) : Named {
   @get:Optional
   abstract val warmupTime: Property<Duration>
 
+  @get:Internal // Cannot fingerprint input property 'iterationDuration': value '300ms' cannot be serialized.
+  abstract val iterationDuration: Property<Duration>
+
   @get:Input
   @get:Optional
-  abstract val iterationDuration: Property<Duration>
+  @get:JvmSynthetic
+  @KotlinxBenchmarkPluginInternalApi
+  @Deprecated(level = DeprecationLevel.HIDDEN, message = "Because Gradle can't serializer kotlin.time.Duration")
+  @Suppress("unused")
+  protected val iterationDurationProvider: Provider<DurationJdk>
+    get() = iterationDuration.map { it.toJavaDuration() }
 
   @get:Input
   @get:Optional
@@ -135,11 +142,11 @@ constructor(private val name: String) : Named {
   override fun getName(): String = name
 
 
-  fun iterationDuration(duration: java.time.Duration) {
+  fun iterationDuration(duration: DurationJdk) {
     iterationDuration.set(duration.toKotlinDuration())
   }
 
-  fun iterationDuration(duration: Provider<java.time.Duration>) {
+  fun iterationDuration(duration: Provider<DurationJdk>) {
     iterationDuration.set(duration.map { it.toKotlinDuration() })
   }
 
@@ -147,7 +154,7 @@ constructor(private val name: String) : Named {
     iterationDuration.set(duration)
   }
 
-  @JvmSynthetic
+  //  @JvmSynthetic
   @JvmName("iterationDurationKt")
   fun iterationDuration(duration: Provider<Duration>) {
     iterationDuration.set(duration.map { it })

@@ -1,4 +1,7 @@
 import kotlin.time.Duration.Companion.milliseconds
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 
 //import kotlinx.benchmark.gradle.JsBenchmarksExecutor
 
@@ -14,14 +17,15 @@ plugins {
 //}
 
 kotlin {
-    jvm {
+  jvm {
 //        compilations.create('benchmark') { associateWith(compilations.main) }
-    }
-    js(IR) {
-        nodejs()
-//        compilations.create("defaultExecutor") { associateWith(compilations.main) }
-//        compilations.create("builtInExecutor") { associateWith(compilations.main) }
-    }
+  }
+  js {
+    nodejs()
+//    val mainCompilation = compilations.getByName("main")
+//    compilations.create("defaultExecutor") { associateWith(mainCompilation) }
+//    compilations.create("builtInExecutor") { associateWith(mainCompilation) }
+  }
 //    wasm('wasmJs') { nodejs() }
 //
 //    // Native targets
@@ -44,7 +48,7 @@ kotlin {
 //        }
 //    }
 //
-//    sourceSets {
+  sourceSets {
 //        commonMain {
 //            dependencies {
 //                implementation project(":kotlinx-benchmark-runtime")
@@ -54,40 +58,40 @@ kotlin {
 //        jvmMain {}
 //
 //        wasmJsMain {}
-//
-//        jsMain {
+
+    jsMain {
 //            jsDefaultExecutor.dependsOn(it)
 //            jsBuiltInExecutor.dependsOn(it)
-//        }
-//
-//        nativeMain {}
-//    }
-
-    sourceSets {
-        commonMain {
-            dependencies {
-                implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runner")
-            }
-        }
-        jvmMain {
-            dependencies {
-                // TODO auto-add jmh-core dependency...
-                implementation("org.openjdk.jmh:jmh-core:${benchmark.versions.jmh.get()}")
-            }
-        }
     }
+
+//        nativeMain {}
+  }
+
+  sourceSets {
+    commonMain {
+      dependencies {
+        implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runner")
+      }
+    }
+    jvmMain {
+      dependencies {
+        // TODO auto-add jmh-core dependency...
+        implementation("org.openjdk.jmh:jmh-core:${benchmark.versions.jmh.get()}")
+      }
+    }
+  }
 }
 
-//// Configure benchmark
+// Configure benchmark
 benchmark {
-    benchmarkRuns {
-        create("main") { // --> jvmBenchmark, jsBenchmark, <native target>Benchmark, benchmark
-            iterations = 5
-            iterationDuration = 300.milliseconds
+  benchmarkRuns {
+    create("main") { // --> jvmBenchmark, jsBenchmark, <native target>Benchmark, benchmark
+      iterations = 5
+      iterationDuration = 300.milliseconds
 //            iterationTimeUnit = "ms"
-            advanced.put("jvmForks", "3")
-            advanced.put("jsUseBridge", "true")
-        }
+      advanced.put("jvmForks", "3")
+      advanced.put("jsUseBridge", "true")
+    }
 
 //        params {
 //            iterations = 5 // number of iterations
@@ -124,15 +128,21 @@ benchmark {
 //            advanced("jvmForks", "definedByJmh") // see README.md for possible "jvmForks" values
 //            advanced("nativeFork", "perIteration") // see README.md for possible "nativeFork" values
 //        }
-    }
+  }
 
-    // Setup configurations
-    targets {
-        // This one matches target name, e.g. 'jvm', 'js',
-        // and registers its 'main' compilation, so 'jvm' registers 'jvmMain'
-        registerJvm("jvm") {
-//            jmhVersion = "1.21"
-        }
+  // Setup configurations
+  targets {
+    // This one matches target name, e.g. 'jvm', 'js',
+    // and registers its 'main' compilation, so 'jvm' registers 'jvmMain'
+//    registerJvm("jvm") {
+////            jmhVersion = "1.21"
+//    }
+
+//        registerJs("js") {
+//
+//        }
+
+    println("benchmark.targets: ${this.names}")
 
 //        // This one matches source set name, e.g. 'jvmMain', 'jvmTest', etc
 //        // and register the corresponding compilation (here the 'benchmark' compilation declared in the 'jvm' target)
@@ -150,7 +160,7 @@ benchmark {
 //        register("macosArm64")
 //        register("linuxX64")
 //        register("mingwX64")
-    }
+  }
 }
 
 //// Node.js with canary v8 that supports recent Wasm GC changes
@@ -163,3 +173,11 @@ benchmark {
 //rootProject.tasks.withType(org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask.class).configureEach {
 //    args.add("--ignore-engines")
 //}
+
+rootProject.plugins.withType<YarnPlugin>().configureEach {
+  rootProject.extensions.configure<YarnRootExtension> {
+    yarnLockMismatchReport = YarnLockMismatchReport.NONE
+    yarnLockAutoReplace = true
+    reportNewYarnLock = false
+  }
+}

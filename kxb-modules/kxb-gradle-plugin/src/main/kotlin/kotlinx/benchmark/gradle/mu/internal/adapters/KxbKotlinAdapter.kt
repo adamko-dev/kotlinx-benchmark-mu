@@ -1,16 +1,21 @@
 package kotlinx.benchmark.gradle.mu.internal.adapters
 
+import java.io.File
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.BenchmarksPlugin
+import kotlinx.benchmark.gradle.BenchmarksPlugin.Companion.BENCHMARK_COMPILATION_SUFFIX
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.BenchmarkExtension
 import kotlinx.benchmark.gradle.mu.BenchmarkPlugin
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
 import kotlinx.benchmark.gradle.mu.internal.utils.PluginId
+import kotlinx.benchmark.gradle.mu.internal.utils.buildName
 import kotlinx.benchmark.gradle.mu.internal.utils.warn
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.Logging
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
@@ -20,22 +25,26 @@ import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation.Companion.MAIN_COMPILATION_NAME
+import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.js
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.wasm
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 
 /**
- * Automatically register Kotlin source sets as Benchmark targes.
+ * Automatically register Kotlin source sets as Benchmark targets.
  */
 internal abstract class KxbKotlinAdapter @Inject constructor(
   private val objects: ObjectFactory,
   private val providers: ProviderFactory,
+  private val layout: ProjectLayout,
 ) : Plugin<Project> {
 
   override fun apply(project: Project) {
@@ -71,40 +80,28 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
       is KotlinMultiplatformExtension -> {
 
-        val jvmTargets =
-          kotlinExtension.targets
-            .withType<KotlinJvmTarget>()
-
-        val nativeTargets =
-          kotlinExtension.targets
-            .withType<KotlinNativeTarget>()
-
-        val wasmTargets =
-          kotlinExtension.targets
-            .withType<KotlinJsIrTarget>()
-            .matching { it.platformType == wasm }
-
-        val jsTargets =
-          kotlinExtension.targets
-            .withType<KotlinJsIrTarget>()
-            .matching { it.platformType == js }
-
-        wasmTargets.all target@{
-          registerWasmTarget(this@target)
-          kxbExtension.targets.create<BenchmarkTarget.Kotlin.Wasm>(this@target.targetName) {
-          }
-        }
-
-        jsTargets.all target@{
-          createKotlinJsBenchmarkTarget(kxbExtension, kotlinExtension, this@target)
-        }
-
+        val jvmTargets = kotlinExtension.targets.withType<KotlinJvmTarget>()
         jvmTargets.all target@{
           createKotlinJvmBenchmarkTarget(kxbExtension, this@target)
         }
 
+        val nativeTargets = kotlinExtension.targets.withType<KotlinNativeTarget>()
         nativeTargets.all target@{
           createKotlinNativeBenchmarkTarget(kxbExtension, this@target)
+        }
+
+        val jsTargets = kotlinExtension.targets.withType<KotlinJsIrTarget>()
+          .matching { it.platformType == js }
+        jsTargets.all target@{
+          createKotlinJsBenchmarkTarget(kxbExtension, kotlinExtension, this@target)
+        }
+
+        val wasmJsTargets = kotlinExtension.targets.withType<KotlinJsIrTarget>()
+          .matching { it.platformType == wasm }
+        wasmJsTargets.all target@{
+          registerWasmTarget(this@target)
+          kxbExtension.targets.create<BenchmarkTarget.Kotlin.WasmJs>(this@target.targetName) {
+          }
         }
       }
 
@@ -121,7 +118,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
     val compilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
 
     kxbExtension.targets.create<BenchmarkTarget.Kotlin.JVM>(
-      target.targetName + "Jvm",
+      target.targetName.ifBlank { "jvm" },
     ) {
 
       targetCompilationDependencies.from({ compilation.compileDependencyFiles })
@@ -152,56 +149,101 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
   private fun createKotlinJsBenchmarkTarget(
     kxbExtension: BenchmarkExtension,
     kotlinExtension: KotlinMultiplatformExtension,
-    target: KotlinTarget,
+    target: KotlinJsIrTarget,
   ) {
-    kxbExtension.targets.create<BenchmarkTarget.Kotlin.JS>(target.targetName + "Js") {
-      val mainCompilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
+    val mainCompilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
 
-      val kotlinJs = kotlinExtension.js()
+    val kotlinJs = kotlinExtension.js()
 
-      val benchmarkCompilation =
-        kotlinJs.compilations.create("benchmark" + target.name + BenchmarksPlugin.BENCHMARK_COMPILATION_SUFFIX) {
+//      this.runner.convention(
+//        when {
+//          //target.isD8Configured     -> BenchmarkTarget.Kotlin.JS.JsRunner.D8
+//          target.isNodejsConfigured -> BenchmarkTarget.Kotlin.JS.JsRunner.NodeJs
+//          else                      -> error("kotlinx-benchmark only supports nodejs() environment for Kotlin/JS")
+//        }
+//      )
 
-          defaultSourceSet {
+    val benchmarkCompilation: KotlinJsIrCompilation =
+      kotlinJs.compilations.create(buildName("benchmark", target.name, BENCHMARK_COMPILATION_SUFFIX)) {
 
-            // TODO why set resources to empty?
-            //resources.setSrcDirs(emptyList<String>())
+        defaultSourceSet {
 
-            dependencies {
-              implementation(mainCompilation.output.allOutputs)
-              implementation(
-                kxbExtension.versions.benchmarkJs.map { v -> npm("benchmark", v) }
-              )
-              runtimeOnly(
-                kxbExtension.versions.jsSourceMapSupport.map { v -> npm("source-map-support", v) }
-              )
-            }
-          }
+          // TODO why set resources to empty?
+          resources.setSrcDirs(emptyList<File>())
 
-          project.configurations.named(implementationConfigurationName) {
-//            extendsFrom(
-//              project.configurations.getByName(mainCompilation.compileDependencyConfigurationName)
-//            )
-          }
-
-          compileTaskProvider.configure {
-            group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
-            description = "Compile JS benchmark source files for '${target.name}'"
-
-            //TODO: fix destination dir after KT-29711 is fixed
-            //println("JS: ${kotlinOptions.outputFile}")
-            //destinationDir = file("$benchmarkBuildDir/classes")
-            dependsOn("${target.name}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}")
-
-            compilerOptions.sourceMap = true
-            compilerOptions.moduleKind = JsModuleKind.MODULE_UMD
+          dependencies {
+            implementation(mainCompilation.output.allOutputs)
+            implementation(npm("benchmark", version = kxbExtension.versions.benchmarkJs))
+            implementation(npm("source-map-support", version = kxbExtension.versions.jsSourceMapSupport))
           }
         }
 
-      kotlinJs.binaries.executable(benchmarkCompilation)
+        project.configurations.named(implementationConfigurationName) {
+          extendsFrom(
+            project.configurations.getByName(mainCompilation.compileDependencyConfigurationName)
+          )
+        }
 
-//          compilation.target.compilations.create()
-//          target.compilations.create<KotlinJsIrCompilation>("")
+        compileTaskProvider.configure {
+          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
+          description = "Compile JS benchmark source files for '${target.name}'"
+
+          //TODO: fix destination dir after KT-29711 is fixed
+          //println("JS: ${kotlinOptions.outputFile}")
+          //destinationDir = file("$benchmarkBuildDir/classes")
+          dependsOn("${target.name}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}")
+
+          compilerOptions.sourceMap = true
+          compilerOptions.moduleKind = JsModuleKind.MODULE_UMD
+        }
+      }
+
+    require(benchmarkCompilation.target == kotlinJs) {
+      "${benchmarkCompilation.target} != $kotlinJs"
+    }
+    val binary = kotlinJs.binaries.executable(benchmarkCompilation)
+      .first { it.mode == KotlinJsBinaryMode.PRODUCTION }
+
+    println("KxbKotlinAdapter: binary:${binary.name}")
+
+//      benchmarkCompilation.compileTaskProvider.map { task ->
+//        task.compilerOptions.moduleName.map { "${it}.js" }
+//      }
+    val outputFileName = binary.linkTask.flatMap { task ->
+      task.compilerOptions.moduleName.map { "${it}.js" }
+    }
+    val destinationDir = binary.linkSyncTask.flatMap { it.destinationDirectory }
+    val executableFile =
+//        layout.file(
+      destinationDir.zip(outputFileName) { dir, fileName -> dir.resolve(fileName) }
+//        )
+
+//    val execTaskFiles = objects.fileCollection().apply {
+//      from(executableFile)
+//      builtBy(
+//        benchmarkCompilation.compileTaskProvider,
+//        binary.linkTask,
+//        binary.linkSyncTask,
+//      )
+//    }
+
+    val kxbJsTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.JS>(
+      target.targetName.ifBlank { "js" },
+//      listOf(benchmarkCompilation.compileTaskProvider,
+//      binary.linkTask,
+//      binary.linkSyncTask),
+    ) {
+
+//      this@create.compiledExecutableModule.fileProvider(
+//        execTaskFiles.elements.map { it.single().asFile }
+//      )
+
+      compiledExecutableModule.from(executableFile)
+      compiledExecutableModule.builtBy(
+        benchmarkCompilation.compileTaskProvider,
+        binary.linkTask,
+        binary.linkSyncTask,
+      )
 
       generatorTask.configure {
         inputClasses.from(mainCompilation.output.allOutputs)
@@ -210,6 +252,10 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
         inputDependencies.from({ mainCompilation.compileDependencyFiles })
         inputDependencies.from({ benchmarkCompilation.compileDependencyFiles })
       }
+    }
+
+    benchmarkCompilation.defaultSourceSet {
+      kotlin.srcDir(kxbJsTarget.generatorTask)
     }
   }
 
@@ -628,3 +674,10 @@ private fun KotlinProjectExtension.allKotlinCompilations(): Collection<KotlinCom
 //    )
 //  }
 //}
+
+private fun KotlinDependencyHandler.npm(
+  dependency: String,
+  version: Provider<String>,
+): Provider<Dependency> {
+  return version.map { npm(dependency, it) }
+}

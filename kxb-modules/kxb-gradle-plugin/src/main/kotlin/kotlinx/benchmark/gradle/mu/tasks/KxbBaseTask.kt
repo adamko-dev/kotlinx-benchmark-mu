@@ -3,6 +3,7 @@ package kotlinx.benchmark.gradle.mu.tasks
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
@@ -15,11 +16,14 @@ import org.gradle.workers.WorkerExecutor
 @DisableCachingByDefault(because = "wip")
 abstract class KxbBaseTask
 @KotlinxBenchmarkPluginInternalApi
-protected constructor() : DefaultTask() {
+@Inject
+constructor() : DefaultTask() {
   @get:Inject
   protected open val workers: WorkerExecutor get() = error("injected")
   @get:Inject
   protected open val fs: FileSystemOperations get() = error("injected")
+  @get:Inject
+  protected open val archives: ArchiveOperations get() = error("injected")
   @get:Inject
   protected open val providers: ProviderFactory get() = error("injected")
   @get:Inject

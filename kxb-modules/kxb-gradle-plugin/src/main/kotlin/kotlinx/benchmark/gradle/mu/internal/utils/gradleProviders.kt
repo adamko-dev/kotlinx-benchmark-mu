@@ -23,3 +23,6 @@ internal infix fun Boolean.or(right: Provider<Boolean>): Provider<Boolean> =
 
 internal infix fun Provider<Boolean>.or(right: Boolean): Provider<Boolean> =
   map { l -> l || right }
+
+internal fun Provider<String>.toBoolean(): Provider<Boolean> =
+  map { it.toBoolean() }

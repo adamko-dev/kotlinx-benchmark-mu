@@ -9,6 +9,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RelativePath
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.specs.Spec
@@ -163,7 +164,6 @@ internal inline fun <reified T : Any> ExtensionContainer.adding(
 }
 
 
-
 /**
  * Creates a new [Attribute] of the given name with a type of [String].
  *
@@ -246,3 +246,7 @@ private fun Attribute<*>.matchesTypeOf(other: Attribute<*>): Boolean {
  */
 private fun Attribute<*>.typeId(): String? =
   type.toString().ifBlank { null }
+
+/** Drop the first [count] directories from the path */
+internal fun RelativePath.dropDirectories(count: Int): RelativePath =
+  RelativePath(true, *segments.drop(count).toTypedArray())

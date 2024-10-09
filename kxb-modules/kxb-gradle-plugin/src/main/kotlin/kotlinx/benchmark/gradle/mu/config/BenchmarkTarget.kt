@@ -4,12 +4,15 @@ import javax.inject.Inject
 import kotlin.collections.set
 import kotlinx.benchmark.gradle.BenchmarksPlugin
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
+import kotlinx.benchmark.gradle.mu.internal.utils.uppercaseFirstChar
 import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
 import org.gradle.api.Named
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
@@ -63,7 +66,7 @@ constructor(
       @get:Input
       final override val targetName: String,
       project: Project,
-    ) : Kotlin("kotlin$targetName") {
+    ) : Kotlin(targetName) {
       @get:Classpath
       abstract val compiledTarget: ConfigurableFileCollection
 
@@ -77,13 +80,13 @@ constructor(
       abstract val runtimeClasspath: ConfigurableFileCollection
 
       val generateBenchmarkTask: TaskProvider<GenerateJvmBenchmarkTask> =
-        project.tasks.register<GenerateJvmBenchmarkTask>("kxbGenerate${targetName}") {
+        project.tasks.register<GenerateJvmBenchmarkTask>("kxbGenerate${targetName.uppercaseFirstChar()}") {
           description = "Generate JVM source files for '${targetName}'"
         }
 
       val compileTask: TaskProvider<JavaCompile> =
         project.tasks.register<JavaCompile>(
-          "kxbCompile${targetName}",
+          "kxbCompile${targetName.uppercaseFirstChar()}",
         ) {
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
           description = "Compile JMH source files for '${targetName}'"
@@ -100,15 +103,16 @@ constructor(
 
       val jarTask: TaskProvider<Jar> =
         project.tasks.register<Jar>(
-          "kxbJar${targetName}",
+          "kxbJar${targetName.uppercaseFirstChar()}",
         ) {
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
           description = "Build JAR for JMH compiled files for '${targetName}'"
 
           isZip64 = true
           archiveClassifier = "JMH"
-          manifest.attributes["Main-Class"] = "org.openjdk.jmh.Main"
-
+          manifest {
+            attributes["Main-Class"] = "org.openjdk.jmh.Main"
+          }
           duplicatesStrategy = DuplicatesStrategy.FAIL
 
           from(compileTask) {
@@ -128,9 +132,22 @@ constructor(
       @get:Input
       final override val targetName: String,
       project: Project,
-    ) : Kotlin("kotlin$targetName") {
+//      internal val compilationTask: TaskProvider<Task>,
+//      internal val linkTask: TaskProvider<Task>,
+//      internal val linkSyncTask: TaskProvider<Task>,
+    ) : Kotlin(targetName) {
       @get:Input
       abstract val title: Property<String>
+
+//      abstract val compiledExecutableModule: RegularFileProperty
+      abstract val compiledExecutableModule: ConfigurableFileCollection
+
+//      abstract val runner: Property<JsRunner>
+//
+//      enum class JsRunner {
+////        D8,
+//        NodeJs,
+//      }
 
       @get:Input
       abstract val benchmarksExecutor: Property<JsBenchmarksExecutor>
@@ -156,17 +173,36 @@ constructor(
     @Inject
     constructor(
       final override val targetName: String
-    ) : Kotlin("kotlin$targetName") {
+    ) : Kotlin(targetName) {
       @get:Input
       abstract val title: String
     }
 
-    abstract class Wasm
+    abstract class WasmWasi
     @KotlinxBenchmarkPluginInternalApi
     @Inject
     constructor(
       final override val targetName: String
-    ) : Kotlin("kotlin$targetName")
+    ) : Kotlin(targetName) {
+
+      enum class WasmRunner {
+        D8,
+        NodeJs,
+      }
+    }
+
+    abstract class WasmJs
+    @KotlinxBenchmarkPluginInternalApi
+    @Inject
+    constructor(
+      final override val targetName: String
+    ) : Kotlin(targetName) {
+
+      enum class WasmRunner {
+        D8,
+        NodeJs,
+      }
+    }
   }
 }
 
