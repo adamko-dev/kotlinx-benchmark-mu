@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 plugins {
   id("kxb.build.conventions.kotlin-gradle-plugin")
   alias(libs.plugins.gradle.pluginPublish)
