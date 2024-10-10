@@ -1,12 +1,15 @@
 package kotlinx.benchmark
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 
 @KotlinxBenchmarkRuntimeInternalApi
 object DefaultDescriptorParameters {
     val iterations = 5
     val warmups = 5
-    val iterationTime = IterationTime(10, BenchmarkTimeUnit.SECONDS)
+    val measurementDuration: Duration = 10.seconds
+//    val iterationTime = IterationTime(10, BenchmarkTimeUnit.SECONDS)
     val outputTimeUnit = BenchmarkTimeUnit.SECONDS
     val mode = Mode.Throughput
 }
@@ -25,7 +28,8 @@ open class SuiteDescriptor<T>(
     val iterations: Int = DefaultDescriptorParameters.iterations,
     val warmups: Int = DefaultDescriptorParameters.warmups,
 
-    val iterationTime: IterationTime = DefaultDescriptorParameters.iterationTime,
+    val measurementDuration: Duration = DefaultDescriptorParameters.measurementDuration,
+//    val iterationTime: IterationTime = DefaultDescriptorParameters.iterationTime,
     val outputTimeUnit: BenchmarkTimeUnit = DefaultDescriptorParameters.outputTimeUnit,
     val mode: Mode = DefaultDescriptorParameters.mode
 ) {

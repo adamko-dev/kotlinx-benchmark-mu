@@ -1,6 +1,9 @@
 package kotlinx.benchmark.js
 
 import kotlin.js.Promise
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit.NANOSECONDS
+import kotlin.time.DurationUnit.SECONDS
 import kotlinx.benchmark.*
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 
@@ -19,7 +22,7 @@ class JsBenchmarkExecutor(
     check(!isD8) { "${JsBenchmarkExecutor::class.simpleName} does not support d8 engine" }
   }
 
-  private val benchmarkJs: dynamic = require("benchmark")
+  private val benchmarkJs: BenchmarkJs = require("benchmark").unsafeCast<BenchmarkJs>()
 
   override fun run(
     runnerConfiguration: RunnerConfiguration,
@@ -28,7 +31,7 @@ class JsBenchmarkExecutor(
     complete: () -> Unit
   ) {
     start()
-    val jsSuite: dynamic = benchmarkJs.Suite()
+    val jsSuite = benchmarkJs.Suite()
     jsSuite.on("complete") {
       complete()
     }
@@ -43,7 +46,8 @@ class JsBenchmarkExecutor(
 
         val instance = suite.factory() // TODO: should we create instance per bench or per suite?
         suite.parametrize(instance, params)
-        val asynchronous = if (isAsync) {
+
+        if (isAsync) {
           when (benchmark) {
             // Mind asDynamic: this is **not** a regular promise
             is JsBenchmarkDescriptorWithNoBlackholeParameter -> {
@@ -62,24 +66,24 @@ class JsBenchmarkExecutor(
               }
             }
 
-            else                                             -> error("Unexpected ${benchmark::class.simpleName}")
+            else                                             ->
+              error("Unexpected benchmark descriptor ${benchmark::class.simpleName}")
           }
-          true
         } else {
           when (benchmark) {
             is JsBenchmarkDescriptorWithNoBlackholeParameter -> {
-              val function = benchmark.function
+              val function: Any?.() -> Any? = benchmark.function
               jsSuite.add(benchmark.name) { instance.function() }
             }
 
             is JsBenchmarkDescriptorWithBlackholeParameter   -> {
-              val function = benchmark.function
+              val function: Any?.(Blackhole) -> Any? = benchmark.function
               jsSuite.add(benchmark.name) { instance.function(benchmark.blackhole) }
             }
 
-            else                                             -> error("Unexpected ${benchmark::class.simpleName}")
+            else                                             ->
+              error("Unexpected benchmark descriptor ${benchmark::class.simpleName}")
           }
-          false
         }
 
         val jsBenchmark = jsSuite[jsSuite.length - 1] // take back last added benchmark and subscribe to events
@@ -91,47 +95,47 @@ class JsBenchmarkExecutor(
 
         jsBenchmark.options.initCount = config.warmups
         jsBenchmark.options.minSamples = config.iterations
-        val iterationSeconds = config.iterationTime * config.iterationTimeUnit.toSecondsMultiplier()
+//        val iterationSeconds = config.iterationTime * config.iterationTimeUnit.toSecondsMultiplier()
+        val iterationSeconds = config.measurementDuration.toDouble(SECONDS)
         jsBenchmark.options.minTime = iterationSeconds
         jsBenchmark.options.maxTime = iterationSeconds
-        jsBenchmark.options.async = asynchronous
-        jsBenchmark.options.defer = asynchronous
+        jsBenchmark.options.async = isAsync
+        jsBenchmark.options.defer = isAsync
 
         jsBenchmark.on("start") { _ ->
           reporter.startBenchmark(executionName, id)
           suite.setup(instance)
         }
         var iteration = 0
-        jsBenchmark.on("cycle") { event ->
+        jsBenchmark.on("cycle") { event: dynamic ->
           val target = event.target
-          val nanos = (target.times.period as Double) * BenchmarkTimeUnit.SECONDS.toMultiplier()
+          val nanos = (target.times.period as Double).seconds.toDouble(NANOSECONDS)
           val sample = nanos.nanosToText(config.mode, config.outputTimeUnit)
           // (${target.cycles} × ${target.count} calls) -- TODO: what's this?
           reporter.output(
-            executionName,
-            id,
-            "Iteration #${iteration++}: $sample"
+            suite = executionName,
+            benchmark = id,
+            message = "Iteration #${iteration++}: $sample",
           )
         }
-        jsBenchmark.on("complete") { event ->
+        jsBenchmark.on("complete") { event: dynamic ->
           suite.teardown(instance)
           benchmark.blackhole.flush()
           val stats = event.target.stats
           val samples = stats.sample
             .unsafeCast<DoubleArray>()
             .map {
-              val nanos = it * BenchmarkTimeUnit.SECONDS.toMultiplier()
+              val nanos = it.seconds.inWholeNanoseconds.toDouble()
               nanos.nanosToSample(config.mode, config.outputTimeUnit)
             }
             .toDoubleArray()
           val result = ReportBenchmarksStatistics.createResult(benchmark, params, config, samples)
-          val message = with(result) {
-            "  ~ ${
-              score.sampleToText(
-                config.mode,
-                config.outputTimeUnit
-              )
-            } ±${(error / score * 100).formatSignificant(2)}%"
+          val message = buildString {
+            append("  ~ ")
+            append(result.score.sampleToText(config.mode, config.outputTimeUnit))
+            append(" ±")
+            append((result.error / result.score * 100).formatSignificant(2))
+            append("%")
           }
           val error = event.target.error
           if (error == null) {
@@ -157,4 +161,84 @@ class JsBenchmarkExecutor(
     }
     jsSuite.run()
   }
+}
+
+
+private external interface BenchmarkJs {
+  fun Suite(): Suite
+}
+
+private external interface Suite {
+  fun on(s: String, function: (event: dynamic) -> Unit)
+  fun add(name: String, function: (event: dynamic) -> Any?)
+  fun run()
+  val length: Int
+}
+
+private operator fun Suite.get(index: Int): Benchmark =
+  asDynamic()[index].unsafeCast<Benchmark>()
+
+private external interface Benchmark {
+  val name: String
+  val options: BenchmarkJsOptions
+  fun on(s: String, function: (event: dynamic) -> Unit)
+}
+
+
+fun main() {
+  val integerValue: Long = 214000000
+  Long.MAX_VALUE
+
+}
+
+private external interface BenchmarkJsOptions {
+
+  /** A flag to indicate that benchmark cycles will execute asynchronously by default. */
+  var async: Boolean?
+
+  /** A flag to indicate that the benchmark clock is deferred. */
+  var defer: Boolean?
+
+  /** The delay between test cycles (secs). */
+  var delay: Double?
+
+  /** Displayed by [Benchmark.toString] when a [name] is not available (auto-generated if absent). */
+  var id: String?
+
+  /** The default number of times to execute a test on a benchmark's first cycle. */
+  var initCount: Int?
+
+  /**
+   * The maximum time a benchmark is allowed to run before finishing (secs).
+   *
+   * Note: Cycle delays aren't counted toward the maximum time.
+   */
+  var maxTime: Double?
+
+  /** The minimum sample size required to perform statistical analysis. */
+  var minSamples: Int?
+
+  /** The time needed to reduce the percent uncertainty of measurement to 1% (secs). */
+  var minTime: Double?
+
+  /** The name of the benchmark. */
+  var name: String
+
+  /** An event listener called when the benchmark is aborted. */
+  var onAbort: (() -> Unit)?
+
+  /** An event listener called when the benchmark completes running. */
+  var onComplete: (() -> Unit)?
+
+  /** An event listener called after each run cycle. */
+  var onCycle: (() -> Unit)?
+
+  /** An event listener called when a test errors. */
+  var onError: (() -> Unit)?
+
+  /** An event listener called when the benchmark is reset. */
+  var onReset: (() -> Unit)?
+
+  /** An event listener called when the benchmark starts running. */
+  var onStart: (() -> Unit)?
 }

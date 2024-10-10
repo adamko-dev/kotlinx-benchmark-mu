@@ -6,8 +6,8 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 //import kotlinx.benchmark.gradle.JsBenchmarksExecutor
 
 plugins {
-  id("org.jetbrains.kotlin.multiplatform") version "2.0.20"
-  id("org.jetbrains.kotlin.plugin.allopen") version "2.0.20"
+  kotlin("multiplatform") version "2.0.20"
+  kotlin("plugin.allopen") version "2.0.20"
   id("dev.adamko.kotlinx-benchmark")
 }
 
@@ -86,10 +86,9 @@ kotlin {
 benchmark {
   benchmarkRuns {
     create("main") { // --> jvmBenchmark, jsBenchmark, <native target>Benchmark, benchmark
-      iterations = 3
-      iterationDuration = 300.milliseconds
+      iterations = 1
+      iterationDuration = 50.milliseconds
       advanced.put("jvmForks", "3")
-//      advanced.put("jsUseBridge", "true")
       enableJsBridges = true
     }
 

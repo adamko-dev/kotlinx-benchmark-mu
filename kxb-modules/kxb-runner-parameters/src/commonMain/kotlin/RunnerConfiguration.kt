@@ -55,7 +55,6 @@ sealed interface RunnerConfiguration {
 
   /**
    * How verbose should we be?
-   * @return verbosity mode
    */
   val verbosity: VerboseMode?
 
@@ -83,7 +82,7 @@ sealed interface RunnerConfiguration {
   /** The duration for warmup iterations. */
   val warmupDuration: Duration?
 
-  /** Number of batch size for warmup. */
+  /** The warmup batch size. */
   val warmupBatchSize: Int?
 
   /** Warmup mode. */
@@ -167,7 +166,8 @@ sealed interface RunnerConfiguration {
   }
 
   enum class NativeFork {
-    PerBenchmark, PerIteration
+    PerBenchmark,
+    PerIteration,
   }
 
   enum class ProgressReporting {
@@ -177,7 +177,7 @@ sealed interface RunnerConfiguration {
 
   enum class WarmupMode {
     /**
-     * Do the individual warmup for every benchmark
+     * Do the individual warmup for every benchmark.
      */
     Individual,
 
@@ -197,8 +197,8 @@ sealed interface RunnerConfiguration {
   companion object {
     @OptIn(ExperimentalSerializationApi::class)
     private val json = kotlinx.serialization.json.Json {
-      prettyPrint// = true
-      prettyPrintIndent// = "  "
+      prettyPrint = true
+      prettyPrintIndent = "  "
     }
 
     fun RunnerConfiguration.encodeToJson(): String {

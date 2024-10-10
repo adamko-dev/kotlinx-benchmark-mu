@@ -8,7 +8,7 @@ internal class ReportBenchmarksStatistics(values: DoubleArray) {
   private val size: Int get() = values.size
 
   fun valueAt(quantile: Double): Double {
-    require(quantile in 0.0..1.0) { "$quantile is not in [0..1]" }
+    require(quantile in 0.0..1.0) { "quantile $quantile is not in [0..1]" }
 
     if (size == 0) return 0.0
 
@@ -62,26 +62,27 @@ internal class ReportBenchmarksStatistics(values: DoubleArray) {
       val score = statistics.mean()
       val errorMargin = 1.96 * (statistics.standardDeviation() / sqrt(samples.size.toDouble()))
       /*
-                  val d = (4 - log10(score).toInt()).coerceAtLeast(0) // display 4 significant digits
-                  val minText = statistics.min().format(d)
-                  val maxText = statistics.max().format(d)
-                  val devText = statistics.standardDeviation().format(d)
+      val d = (4 - log10(score).toInt()).coerceAtLeast(0) // display 4 significant digits
+      val minText = statistics.min().format(d)
+      val maxText = statistics.max().format(d)
+      val devText = statistics.standardDeviation().format(d)
       */
 
       // These quantiles are inverted, because we are interested in ops/sec and the higher the better
       // so we need minimum speed at which 90% of samples run
-      val percentiles = listOf(0.0, 0.25, 0.5, 0.75, 0.90, 0.99, 0.999, 0.9999, 1.0).associate {
-        (it * 100) to statistics.valueAt(it)
-      }
+      val percentiles: Map<Double, Double> =
+        listOf(0.0, 0.25, 0.5, 0.75, 0.90, 0.99, 0.999, 0.9999, 1.0).associate {
+          (it * 100) to statistics.valueAt(it)
+        }
       return ReportBenchmarkResult(
-        config,
-        benchmark,
-        params,
-        score,
-        errorMargin,
-        (score - errorMargin) to (score + errorMargin),
-        percentiles,
-        samples
+        config = config,
+        benchmark = benchmark,
+        params = params,
+        score = score,
+        error = errorMargin,
+        confidence = (score - errorMargin) to (score + errorMargin),
+        percentiles = percentiles,
+        values = samples,
       )
     }
   }

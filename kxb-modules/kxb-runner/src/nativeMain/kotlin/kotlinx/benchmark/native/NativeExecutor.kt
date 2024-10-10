@@ -276,7 +276,8 @@ class NativeExecutor(
     var iterations = 0
     val warmupIterations = if (config.nativeFork == NativeFork.PerIteration) 1 else config.warmups
     repeat(warmupIterations) { iteration ->
-      val benchmarkNanos = config.iterationTime * config.iterationTimeUnit.toMultiplier()
+      val benchmarkNanos = config.measurementDuration.inWholeNanoseconds
+//      val benchmarkNanos = config.iterationTime * config.iterationTimeUnit.toMultiplier()
 
       if (config.enableGcPerIteration) {
         GC.collect()

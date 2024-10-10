@@ -102,7 +102,9 @@ abstract class CommonSuiteExecutor(
     val estimator = wrapBenchmarkFunction(instance, benchmark) { body ->
       var iterations = 0
       var elapsedTime = 0L
-      val benchmarkIterationTime = configuration.iterationTime * configuration.iterationTimeUnit.toMultiplier()
+//      val benchmarkIterationTime = configuration.iterationTime * configuration.iterationTimeUnit.toMultiplier()
+      val benchmarkIterationTime = configuration.measurementDuration.inWholeNanoseconds
+
       do {
         val subIterationDuration = measureNanoseconds(body)
         elapsedTime += subIterationDuration

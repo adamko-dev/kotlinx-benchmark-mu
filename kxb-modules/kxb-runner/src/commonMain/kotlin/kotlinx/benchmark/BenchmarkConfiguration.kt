@@ -1,5 +1,6 @@
 package kotlinx.benchmark
 
+import kotlin.time.Duration
 import kotlinx.benchmark.RunnerConfiguration.Mode.*
 import kotlinx.benchmark.RunnerConfiguration.ReportTimeUnit.*
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
@@ -10,8 +11,9 @@ import kotlinx.serialization.Serializable
 data class BenchmarkConfiguration(
   val iterations: Int,
   val warmups: Int,
-  val iterationTime: Long,
-  val iterationTimeUnit: BenchmarkTimeUnit,
+  val measurementDuration: Duration,
+//  val iterationTime: Long,
+//  val iterationTimeUnit: BenchmarkTimeUnit,
   val outputTimeUnit: BenchmarkTimeUnit,
   val mode: Mode,
 //  val advanced: Map<String, String>,
@@ -26,14 +28,15 @@ data class BenchmarkConfiguration(
   ) : this(
     iterations = runner.measurementIterations ?: suite.iterations,
     warmups = runner.warmupIterations ?: suite.warmups,
-    iterationTime = runner.measurementDuration?.inWholeMilliseconds ?: suite.iterationTime.value,
-    iterationTimeUnit =
-    if (runner.measurementDuration == null) BenchmarkTimeUnit.MILLISECONDS else suite.iterationTime.timeUnit,
+    measurementDuration = runner.measurementDuration ?: suite.measurementDuration,
+//    iterationTime = runner.measurementDuration?.inWholeMilliseconds ?: suite.iterationTime.value,
+//    iterationTimeUnit =
+//    if (runner.measurementDuration == null) BenchmarkTimeUnit.MILLISECONDS else suite.iterationTime.timeUnit,
     outputTimeUnit = runner.resultTimeUnit?.convert() ?: suite.outputTimeUnit,
     mode = runner.mode?.convert() ?: suite.mode,
     enableJsBridges = runner.enableJsBridges ?: false,
     nativeFork = runner.nativeFork ?: RunnerConfiguration.NativeFork.PerBenchmark,
-    enableGcPerIteration = runner.enableGcPerIteration ?:   false,
+    enableGcPerIteration = runner.enableGcPerIteration ?: false,
 //    advanced = runner.advanced
   )
 

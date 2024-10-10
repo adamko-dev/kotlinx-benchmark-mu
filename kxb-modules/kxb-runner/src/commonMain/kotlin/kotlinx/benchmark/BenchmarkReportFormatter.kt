@@ -1,6 +1,7 @@
 package kotlinx.benchmark
 
 import kotlin.math.max
+import kotlin.time.DurationUnit
 import kotlinx.benchmark.RunnerConfiguration.ResultFormat.*
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlinx.serialization.json.*
@@ -173,9 +174,11 @@ private object JsonBenchmarkReportFormatter : BenchmarkReportFormatter() {
     put("benchmark", result.benchmark.name)
     put("mode", result.config.mode.toText())
     put("warmupIterations", result.benchmark.name)
-    put("warmupTime", "${result.config.iterationTime} ${result.config.iterationTimeUnit.toText()}")
+    put("warmupTime", "${result.config.measurementDuration.inWholeMilliseconds} ${DurationUnit.MILLISECONDS}")
+//    put("warmupTime", "${result.config.iterationTime} ${result.config.iterationTimeUnit.toText()}")
     put("warmupIterations", result.config.warmups)
-    put("measurementTime", "${result.config.iterationTime} ${result.config.iterationTimeUnit.toText()}")
+    put("measurementTime", "${result.config.measurementDuration.inWholeMilliseconds} ${DurationUnit.MILLISECONDS}")
+//    put("measurementTime", "${result.config.iterationTime} ${result.config.iterationTimeUnit.toText()}")
     put("measurementIterations", result.config.iterations)
     putJsonObject("params") {
       result.params.entries.forEach { (k, v) ->

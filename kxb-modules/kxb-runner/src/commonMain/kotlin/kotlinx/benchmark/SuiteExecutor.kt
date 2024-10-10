@@ -29,20 +29,22 @@ abstract class SuiteExecutor(
 
   fun run() {
     println("[SuiteExecutor] running with config: $config")
-    val include = if (config.includes.isEmpty()) {
+    val includes = if (config.includes.isEmpty()) {
       listOf(Regex(".*"))
     } else {
       config.includes.map { Regex(it) }
     }
-    val exclude = config.excludes.map { Regex(it) }
+    val excludes = config.excludes.map { Regex(it) }
 
-//    @Suppress("UNCHECKED_CAST")
     val benchmarks = suites.flatMap { suite ->
-      suite.benchmarks
+      val matches = suite.benchmarks
         .filter { benchmark ->
-          val fullName = suite.name + "." + benchmark.name
-          include.any { it.containsMatchIn(fullName) } && exclude.none { it.containsMatchIn(fullName) }
-        } as List<BenchmarkDescriptor<Any?>>
+          val fullName = "${suite.name}.${benchmark.name}"
+          includes.any { it.containsMatchIn(fullName) } && excludes.none { it.containsMatchIn(fullName) }
+        }
+
+      //@Suppress("UNCHECKED_CAST")
+      matches as List<BenchmarkDescriptor<Any?>>
     }
 
     run(config, benchmarks, { reporter.startSuite(executionName) }) {

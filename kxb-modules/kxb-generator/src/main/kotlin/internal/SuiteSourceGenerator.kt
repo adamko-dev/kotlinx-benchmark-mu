@@ -223,18 +223,28 @@ class SuiteSourceGenerator(val title: String, val module: ModuleDescriptor, val 
                 })
 
                 val defaultParametersString = defaultParameters.entries
-                    .joinToString(prefix = "mapOf(", postfix = ")") { (key, value) ->
-                        "\"${key}\" to ${value.joinToString(prefix = "listOf(", postfix = ")") { "\"\"\"${it.value.replace(' ', '·')}\"\"\"" }}"
+                    .joinToString(separator = ",\n", prefix = "mapOf(\n", postfix = "\n)") { (key, value) ->
+                        val values = value.joinToString {
+                            "\"\"\"${it.value.replace(' ', '·')}\"\"\""
+                            }
+                        "  \"${key}\" to listOf(${values})"
                     }
 
                 val timeUnitClass = ClassName.bestGuess(timeUnitFQN)
-                val iterationTimeClass = ClassName.bestGuess(iterationTimeFQN)
+                //val iterationTimeClass = ClassName.bestGuess(iterationTimeFQN)
                 val modeClass = ClassName.bestGuess(modeFQN)
 
                 function("describe") {
                     returns(suiteDescriptorType.parameterizedBy(originalClass))
                     addCode(
-                        "«val descriptor = %T(name = %S, factory = ::%T, setup = ::%N, teardown = ::%N, parametrize = ::%N",
+                        """
+                          «val descriptor = %T(
+                          name = %S,
+                          factory = ::%T,
+                          setup = ::%N,
+                          teardown = ::%N,
+                          parametrize = ::%N
+                        """.trimIndent(),
                         suiteDescriptorType,
                         originalName,
                         originalClass,
@@ -243,34 +253,35 @@ class SuiteSourceGenerator(val title: String, val module: ModuleDescriptor, val 
                         parametersFunctionName
                     )
 
-                    val params =
-                        parameterProperties.joinToString(prefix = "listOf(", postfix = ")") { "\"${it.name}\"" }
-                    addCode(", parameters = $params")
+                    val params = parameterProperties
+                        .joinToString(prefix = "listOf(", postfix = ")") { "\"${it.name}\"" }
 
-                    addCode(", defaultParameters = $defaultParametersString")
+                    addCode(",\nparameters = $params")
 
-                    if (iterations != null)
-                        addCode(", iterations = $iterations")
-                    if (warmups != null)
-                        addCode(", warmups = $warmups")
-                    if (iterationTime != null)
+                    addCode(",\ndefaultParameters = $defaultParametersString")
+
+                    if (iterations != null) {
+                        addCode(",\niterations = $iterations")
+                    }
+                    if (warmups != null) {
+                        addCode(",\nwarmups = $warmups")
+                    }
+                    if (iterationTime != null) {
+                        addImport("kotlin.time.Duration.Companion", iterationTimeUnit.lowercase())
+                        addCode(",\nmeasurementDuration = ${measureIterationTime}.${iterationTimeUnit.lowercase()}")
+                    }
+                    if (outputTimeUnit != null) {
                         addCode(
-                            ", iterationTime = %T($measureIterationTime, %T.%N)",
-                            iterationTimeClass,
-                            timeUnitClass,
-                            MemberName(timeUnitClass, iterationTimeUnit)
-                        )
-                    if (outputTimeUnit != null)
-                        addCode(
-                            ", outputTimeUnit = %T.%N", timeUnitClass,
+                            ",\noutputTimeUnit = %T.%N", timeUnitClass,
                             MemberName(timeUnitClass, outputTimeUnit)
                         )
+                    }
                     if (mode != null)
                         addCode(
-                            ", mode = %T.%N", modeClass,
+                            ",\nmode = %T.%N", modeClass,
                             MemberName(modeClass, mode)
                         )
-                    addCode(")\n»")
+                    addCode("\n)\n»")
                     addStatement("")
 
                     val bhClass = ClassName.bestGuess(blackholeFQN)
