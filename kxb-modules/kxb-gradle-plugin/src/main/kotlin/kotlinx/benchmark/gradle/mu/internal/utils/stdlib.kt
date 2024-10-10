@@ -11,7 +11,7 @@ internal fun String.lowercaseFirstChar(): String =
 internal fun buildName(
   vararg name: String,
 ): String {
-  require(name.isNotEmpty()) { "name must not be empty" }
-  require(name.none { it.isEmpty() }) { "name must not contain empty parts" }
+  require(name.isNotEmpty()) { "name $name must not be empty" }
+  require(name.none { it.isBlank() }) { "name $name must not contain blank parts" }
   return name.joinToString("") { it.uppercaseFirstChar() }.lowercaseFirstChar()
 }
