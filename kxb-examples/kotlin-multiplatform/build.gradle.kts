@@ -27,9 +27,9 @@ kotlin {
 //    compilations.create("builtInExecutor") { associateWith(mainCompilation) }
   }
 //    wasm('wasmJs') { nodejs() }
-//
-//    // Native targets
-//    macosX64()
+
+    // Native targets
+    macosX64()
 //    macosArm64()
 //    linuxX64()
 //    mingwX64()

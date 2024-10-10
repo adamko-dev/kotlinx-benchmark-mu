@@ -27,10 +27,10 @@ fun generateNative(
       val storageManager = LockBasedStorageManager("Inspect")
       val module = KlibResolver.Native.createModuleDescriptor(lib, inputDependencies, storageManager)
       val generator = SuiteSourceGenerator(
-        title,
-        module,
-        outputSourcesDir,
-        Platform.NativeBuiltIn,
+        title = title,
+        module = module,
+        output = outputSourcesDir,
+        platform = Platform.NativeBuiltIn,
       )
       generator.generate()
     }

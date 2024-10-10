@@ -2,7 +2,6 @@ package kotlinx.benchmark.gradle.mu.tasks
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
 import kotlinx.benchmark.gradle.mu.workers.NativeSourceGeneratorWorker
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -16,14 +15,11 @@ abstract class NativeSourceGeneratorTask
 @Inject
 constructor() : KxbBaseTask() {
 
-  @get:Nested
-  abstract val benchmarkTarget: Property<BenchmarkTarget.Kotlin.Native>
+  @get:Input
+  abstract val title: Property<String>
 
   @get:Input
-  abstract val title: String
-
-  @get:Input
-  abstract val nativeTarget: Property<String>
+  abstract val targetName: Property<String>
 
   @get:Classpath
   abstract val inputClasses: ConfigurableFileCollection
@@ -32,29 +28,29 @@ constructor() : KxbBaseTask() {
   abstract val inputDependencies: ConfigurableFileCollection
 
   @get:OutputDirectory
-  abstract val outputResourcesDir: DirectoryProperty
+  abstract val generatedResources: DirectoryProperty
 
   @get:OutputDirectory
-  abstract val outputSourcesDir: DirectoryProperty
+  abstract val generatedSources: DirectoryProperty
 
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
 
   @TaskAction
   fun generate() {
-    val benchmarkTarget = benchmarkTarget.get()
+//    val benchmarkTarget = benchmarkTarget.get()
 
     val workQueue = workers.classLoaderIsolation {
       classpath.from(runtimeClasspath)
     }
 
     workQueue.submit(NativeSourceGeneratorWorker::class) {
-      title.set(benchmarkTarget.title)
-      target.set(benchmarkTarget.targetName)
-      inputClasses.from(this@NativeSourceGeneratorTask.inputClasses)
-      inputDependencies.from(this@NativeSourceGeneratorTask.inputDependencies)
-      outputSourcesDir.set(this@NativeSourceGeneratorTask.outputSourcesDir)
-      outputResourcesDir.set(this@NativeSourceGeneratorTask.outputResourcesDir)
+      this.title.set(this@NativeSourceGeneratorTask.title)
+      this.target.set(this@NativeSourceGeneratorTask.targetName)
+      this.inputClasses.from(this@NativeSourceGeneratorTask.inputClasses)
+      this.inputDependencies.from(this@NativeSourceGeneratorTask.inputDependencies)
+      this.outputSourcesDir.set(this@NativeSourceGeneratorTask.generatedSources)
+      this.outputResourcesDir.set(this@NativeSourceGeneratorTask.generatedResources)
     }
 
     workQueue.await()

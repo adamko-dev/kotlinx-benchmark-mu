@@ -55,13 +55,17 @@ constructor(
 
     configureAllOpenPlugin(project)
 
-    configureKxbTasks(project, kxbExtension, kxbDependencies)
+    configureGenerateBenchmarkTasks(project, kxbDependencies)
+    configureRunBenchmarkTasks(project, kxbExtension)
 
     kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JVM>().all {
       handleKotlinJvmTarget(project, kxbExtension, kxbDependencies, this)
     }
     kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JS>().all {
       handleKotlinJsTarget(project, kxbExtension, kxbDependencies, kxbTasks, this)
+    }
+    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.Native>().all {
+      handleKotlinNativeTarget(project, kxbExtension, kxbDependencies, kxbTasks, this)
     }
   }
 
@@ -196,9 +200,11 @@ constructor(
     }
   }
 
-  private fun configureKxbTasks(
+  /**
+   * Configure all tasks used to generate code used to run the benchmarks.
+   */
+  private fun configureGenerateBenchmarkTasks(
     project: Project,
-    kxbExtension: BenchmarkExtension,
     kxbDependencies: KxbDependencies,
   ) {
     project.tasks.withType<GenerateJvmBenchmarkTask>().configureEach {
@@ -206,12 +212,27 @@ constructor(
       generatedResources.convention(temporaryDir.resolve("generated-resources"))
       generatedSources.convention(temporaryDir.resolve("generated-sources"))
     }
+
     project.tasks.withType<JsSourceGeneratorTask>().configureEach {
       runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
       generatedResources.convention(temporaryDir.resolve("generated-resources"))
       generatedSources.convention(temporaryDir.resolve("generated-sources"))
     }
 
+    project.tasks.withType<NativeSourceGeneratorTask>().configureEach {
+      runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
+      generatedResources.convention(temporaryDir.resolve("generated-resources"))
+      generatedSources.convention(temporaryDir.resolve("generated-sources"))
+    }
+  }
+
+  /**
+   * Configure all tasks used to run benchmarks.
+   */
+  private fun configureRunBenchmarkTasks(
+    project: Project,
+    kxbExtension: BenchmarkExtension,
+  ) {
     project.tasks.withType<RunBenchmarkBaseTask>().configureEach {
       enableDemoMode.convention(kxbExtension.enableDemoMode)
       ideaActive.convention(providers.systemProperty("idea.active").toBoolean())
@@ -237,6 +258,7 @@ constructor(
       cacheDir.convention(temporaryDir.resolve("cache"))
       results.convention(temporaryDir.resolve("output/results.json"))
     }
+
     project.tasks.withType<RunJsD8BenchmarkTask>().configureEach {
       workingDir.convention(temporaryDir.resolve("work"))
       //cacheDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("cache")))
@@ -261,6 +283,26 @@ constructor(
         runtimeClasspath.from(target.targetRuntimeDependencies)
         runtimeClasspath.from(target.compiledTarget)
         runtimeClasspath.from(kxbDependencies.kxbBenchmarkRunnerJvmResolver)
+        benchmarkParameters.set(runSpec)
+      }
+    }
+  }
+
+  private fun handleKotlinNativeTarget(
+    project: Project,
+    kxbExtension: BenchmarkExtension,
+    kxbDependencies: KxbDependencies,
+    kxbTasks: KxbTasks,
+    target: BenchmarkTarget.Kotlin.Native,
+  ) {
+
+    kxbExtension.benchmarkRuns.all {
+      val runSpec = this
+      project.tasks.register<RunNativeBenchmarkTask>(
+        name = buildName("benchmark", target.name, runSpec.name)
+      ) {
+        description = "Executes benchmark for JS target ${target.name} using NodeJS"
+
         benchmarkParameters.set(runSpec)
       }
     }

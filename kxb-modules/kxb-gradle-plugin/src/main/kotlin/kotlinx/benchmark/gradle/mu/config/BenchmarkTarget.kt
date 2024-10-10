@@ -4,18 +4,17 @@ import javax.inject.Inject
 import kotlin.collections.set
 import kotlinx.benchmark.gradle.BenchmarksPlugin
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
+import kotlinx.benchmark.gradle.mu.internal.utils.buildName
 import kotlinx.benchmark.gradle.mu.internal.utils.uppercaseFirstChar
 import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
+import kotlinx.benchmark.gradle.mu.tasks.NativeSourceGeneratorTask
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.assign
@@ -154,9 +153,11 @@ constructor(
 
       //    val benchmarkBuildDir = benchmarkBuildDir(target)
       val generatorTask =
-        project.tasks.register<JsSourceGeneratorTask>("${targetName}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}") {
+        project.tasks.register<JsSourceGeneratorTask>(
+          buildName("kxb", "Generate", targetName, "Benchmarks")
+        ) {
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
-          description = "Generate JS source files for '${targetName}'"
+          description = "Generate sources for running Kotlin/JS '${targetName}' benchmarks."
           title.convention(targetName)
           benchmarksExecutor.convention(JsBenchmarksExecutor.BenchmarkJs)
 //        title = target.name
@@ -172,10 +173,22 @@ constructor(
     @KotlinxBenchmarkPluginInternalApi
     @Inject
     constructor(
-      final override val targetName: String
+      final override val targetName: String,
+      project: Project,
     ) : Kotlin(targetName) {
       @get:Input
-      abstract val title: String
+      abstract val title: Property<String>
+
+      @get:Internal
+      val generatorTask =
+        project.tasks.register<NativeSourceGeneratorTask>(
+          buildName("kxb", "Generate", targetName, "Benchmarks")
+        ) {
+          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
+          description = "Generate benchmark sources for Kotlin/Native target '${targetName}'"
+          this.targetName.convention(this@Native.targetName)
+          this.title.convention(this@Native.title)
+        }
     }
 
     abstract class WasmWasi

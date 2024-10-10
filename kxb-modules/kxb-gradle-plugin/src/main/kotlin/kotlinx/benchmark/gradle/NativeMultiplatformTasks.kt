@@ -44,7 +44,7 @@ private fun Project.createNativeBenchmarkGenerateSourceTask(target: NativeBenchm
         group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
         description = "Generate Native source files for '${target.name}'"
         val compilation = target.compilation
-        this.nativeTarget = compilation.target.konanTarget.name
+        this.targetName = compilation.target.konanTarget.name
 //        title = target.name
 //        inputClassesDirs = compilation.output.allOutputs
 
@@ -110,7 +110,6 @@ private fun Project.createNativeBenchmarkCompileTask(target: NativeBenchmarkTarg
     return benchmarkCompilation
 }
 
-@OptIn(ExperimentalPathApi::class)
 @KotlinxBenchmarkPluginInternalApi
 fun Project.createNativeBenchmarkExecTask(
     config: BenchmarkConfiguration,
@@ -126,14 +125,14 @@ fun Project.createNativeBenchmarkExecTask(
 
         val binary =
             benchmarkCompilation.target.binaries.getExecutable(benchmarkCompilation.name, target.buildType)
-        val linkTask = binary.linkTask
+        val linkTask = binary.linkTaskProvider
 
         dependsOn(linkTask)
 
-        val executableFile = linkTask.outputFile.get()
-        onlyIf { executableFile.exists() }
+        val executableFile = linkTask.flatMap { it.outputFile }
+        onlyIf { executableFile.get().exists() }
 
-        this.executable = executableFile
+        this.executable = executableFile.get()
         this.nativeFork = config.advanced["nativeFork"] as? String
 //        this.workingDir = target.workingDir
         this.benchProgressPath = createTempFile("bench", ".txt").absolutePath
