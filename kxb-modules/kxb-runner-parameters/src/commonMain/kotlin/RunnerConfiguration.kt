@@ -1,5 +1,7 @@
 package kotlinx.benchmark
 
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration
 import kotlinx.benchmark.RunnerConfiguration.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -207,6 +209,12 @@ sealed interface RunnerConfiguration {
         is RunnerConfigurationBuilder -> this.build()
       }
       return json.encodeToString(RunnerConfigurationData.serializer(), data)
+    }
+
+    fun decodeFromBase64Json(content: String): RunnerConfiguration {
+      @OptIn(ExperimentalEncodingApi::class)
+      val decoded = Base64.decode(content)
+      return decodeFromJson(decoded.decodeToString())
     }
 
     fun decodeFromJson(content: String): RunnerConfiguration =

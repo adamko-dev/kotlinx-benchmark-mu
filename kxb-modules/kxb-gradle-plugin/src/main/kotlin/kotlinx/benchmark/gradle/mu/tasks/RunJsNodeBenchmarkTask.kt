@@ -1,7 +1,8 @@
 package kotlinx.benchmark.gradle.mu.tasks
 
-import java.io.File
 import javax.inject.Inject
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec
@@ -92,7 +93,7 @@ constructor() : RunBenchmarkBaseTask() {
 
   private fun buildArgs(): List<String> {
 
-    val benchmarkParameters = createBenchmarkParametersFile()
+    val benchmarkParameters = encodeBenchmarkParameters()
 
     return buildList {
       addAll(requiredJsFiles.flatMap {
@@ -113,13 +114,39 @@ constructor() : RunBenchmarkBaseTask() {
 
       addAll(module.map { it.absoluteFile.canonicalFile.invariantSeparatorsPath })
 
-      add(benchmarkParameters.invariantSeparatorsPath)
-
+      add(benchmarkParameters)
     }
   }
 
-  private fun createBenchmarkParametersFile(): File {
+//  private fun createBenchmarkParametersFile(): File {
+//
+//    val benchmarkParameters = benchmarkParameters.get()
+//
+//    val reportFile = results.get().asFile.apply {
+//      parentFile.mkdirs()
+//    }
+//
+//    val runnerConfig = buildRunnerConfig(
+//      name = benchmarkParameters.name,
+//      reportFile = reportFile,
+//      config = benchmarkParameters,
+//      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
+//    )
+//
+//    val benchmarkParametersFile = cacheDir.get().asFile.resolve("benchmarkParameters.json").apply {
+//      parentFile.mkdirs()
+//      writeText(runnerConfig)
+//    }
+//
+//    logger.lifecycle(
+//      "[$path] benchmarkParameters ${benchmarkParametersFile.toURI()}: " +
+//          benchmarkParametersFile.useLines { it.joinToString(" / ") }
+//    )
+//
+//    return benchmarkParametersFile
+//  }
 
+  private fun encodeBenchmarkParameters(): String {
     val benchmarkParameters = benchmarkParameters.get()
 
     val reportFile = results.get().asFile.apply {
@@ -133,16 +160,7 @@ constructor() : RunBenchmarkBaseTask() {
       reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
     )
 
-    val benchmarkParametersFile = cacheDir.get().asFile.resolve("benchmarkParameters.json").apply {
-      parentFile.mkdirs()
-      writeText(runnerConfig)
-    }
-
-    logger.lifecycle(
-      "[$path] benchmarkParameters ${benchmarkParametersFile.toURI()}: " +
-          benchmarkParametersFile.useLines { it.joinToString(" / ") }
-    )
-
-    return benchmarkParametersFile
+    @OptIn(ExperimentalEncodingApi::class)
+    return Base64.encode(runnerConfig.encodeToByteArray())
   }
 }

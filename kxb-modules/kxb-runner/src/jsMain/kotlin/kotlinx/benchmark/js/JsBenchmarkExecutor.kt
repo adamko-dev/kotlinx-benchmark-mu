@@ -15,7 +15,8 @@ class JsBenchmarkExecutor(
 ) :
   SuiteExecutor(
     executionName = name,
-    configPath = jsEngineSupport.arguments().first(),
+    //configPath = jsEngineSupport.arguments().first(),
+    encodedBenchmarkParameters = jsEngineSupport.arguments().first(),
   ) {
 
   init {

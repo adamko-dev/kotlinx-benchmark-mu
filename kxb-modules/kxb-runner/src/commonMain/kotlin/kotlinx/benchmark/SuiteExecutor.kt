@@ -6,10 +6,13 @@ import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 @KotlinxBenchmarkRuntimeInternalApi
 abstract class SuiteExecutor(
   val executionName: String,
-  configPath: String,
+  encodedBenchmarkParameters: String,
   xmlReporter: (() -> BenchmarkProgress)? = null,
 ) {
-  private val config: RunnerConfiguration = RunnerConfiguration.decodeFromJson(configPath.readFile())
+  private val config: RunnerConfiguration =
+    RunnerConfiguration.decodeFromBase64Json(encodedBenchmarkParameters)
+
+//  private val config: RunnerConfiguration = RunnerConfiguration.decodeFromJson(configPath.readFile())
 
   val reporter: BenchmarkProgress =
     BenchmarkProgress.create(
