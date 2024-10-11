@@ -29,6 +29,7 @@ fun generateWasm(
   }
 }
 
+@KotlinxBenchmarkGeneratorInternalApi
 private fun generateSources(
   title: String,
   lib: File,

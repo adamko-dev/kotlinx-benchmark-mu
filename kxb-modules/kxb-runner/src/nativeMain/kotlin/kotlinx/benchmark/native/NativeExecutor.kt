@@ -14,10 +14,14 @@ import kotlinx.benchmark.native.BenchmarkRun.Companion.encodeToJson
 class NativeExecutor(
   name: String,
   args: Array<out String>,
-) : SuiteExecutor(name, args[0], { NativeIntelliJBenchmarkProgress(args[2]) }) {
+) : SuiteExecutor(
+  executionName = name,
+  encodedBenchmarkParameters = args[0],
+  xmlReporter = { NativeIntelliJBenchmarkProgress(args[2]) }
+) {
 
-  private val action = args[1]
-  private val additionalArguments = args.drop(3)
+  private val action: String = args[1]
+  private val additionalArguments: List<String> = args.drop(3)
 
 //  private val BenchmarkConfiguration.nativeFork: NativeFork
 //    get() = advanced["nativeFork"]
@@ -182,21 +186,17 @@ class NativeExecutor(
     val id = id(benchmark.name, benchmarkRun.parameters)
     val result =
       ReportBenchmarksStatistics.createResult(benchmark, benchmarkRun.parameters, benchmarkRun.config, samples)
-    val message = with(result) {
-      // TODO: metric
-      "  ~ ${
-        score.sampleToText(
-          benchmarkRun.config.mode,
-          benchmarkRun.config.outputTimeUnit
-        )
-      } ±${(error / score * 100).formatSignificant(2)}%"
-    }
+
+    val scoreText = result.score.sampleToText(benchmarkRun.config.mode, benchmarkRun.config.outputTimeUnit)
+    val scoreErrorMarginText = (result.error / result.score * 100).formatSignificant(2)
+    // TODO: metric
+    val message = "  ~ $scoreText ±${scoreErrorMarginText}%"
 
     reporter.endBenchmark(
-      executionName,
-      id,
-      BenchmarkProgress.FinishStatus.Success,
-      message
+      suite = executionName,
+      benchmark = id,
+      status = BenchmarkProgress.FinishStatus.Success,
+      message = message,
     )
     result(result)
   }
@@ -223,6 +223,7 @@ class NativeExecutor(
     start: () -> Unit,
     complete: () -> Unit
   ) {
+    println("Running Native benchmarks $action")
     when (action) {
       "--list"          -> outputBenchmarks(runnerConfiguration, benchmarks, start)
       "--store-results" -> storeResults(benchmarks, complete)

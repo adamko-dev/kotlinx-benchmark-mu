@@ -7,6 +7,7 @@ import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.BENCHMARK_PLU
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.JMH_DEFAULT_VERSION
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
+import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget.Kotlin.Native.ForkMode
 import kotlinx.benchmark.gradle.mu.config.tools.D8ToolSpec
 import kotlinx.benchmark.gradle.mu.internal.KxbDependencies
 import kotlinx.benchmark.gradle.mu.internal.KxbTasks
@@ -252,6 +253,14 @@ constructor(
       javaLauncher.convention(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) })
     }
 
+
+    project.tasks.withType<RunNativeBenchmarkTask>().configureEach {
+      this.workingDir.convention(temporaryDir.resolve("work"))
+      this.benchmarkDescriptionDir.convention(temporaryDir.resolve("descriptors"))
+      this.benchmarkProgress.convention(temporaryDir.resolve("progress.txt"))
+      this.reportFile.convention(temporaryDir.resolve("report.txt"))
+    }
+
     project.tasks.withType<RunJsNodeBenchmarkTask>().configureEach {
       sourceMapStackTraces.convention(true)
       //workingDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("work")))
@@ -303,7 +312,12 @@ constructor(
       ) {
         description = "Executes benchmark for JS target ${target.name} using NodeJS"
 
-        benchmarkParameters.set(runSpec)
+        this.benchmarkParameters.set(runSpec)
+        this.executable.convention(target.executable)
+//        this.executable.from(target.executable)
+//        this.dependsOn(target.executable.buildDependencies)
+
+        this.forkMode.convention(target.forkMode)
       }
     }
   }

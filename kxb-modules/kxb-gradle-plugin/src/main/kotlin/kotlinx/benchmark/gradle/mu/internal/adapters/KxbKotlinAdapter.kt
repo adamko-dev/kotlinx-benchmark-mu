@@ -21,16 +21,14 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.kotlin.dsl.*
-import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
+import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation.Companion.MAIN_COMPILATION_NAME
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.js
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.wasm
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+import org.jetbrains.kotlin.gradle.plugin.mpp.Executable
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
@@ -140,57 +138,77 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
     kxbExtension: BenchmarkExtension,
     target: KotlinNativeTarget,
   ) {
-    val compilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
+    val mainCompilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
 
     val benchmarkCompilation = target.compilations.create(
       buildName("benchmark", target.name, BENCHMARK_COMPILATION_SUFFIX)
     ) {
-      val sourceSet = kotlinSourceSets.single()
+      defaultSourceSet {
+        // benchmarks compilations don't need resources, so remove resource srcDirs to avoid unnecessary dirs
+        resources.setSrcDirs(emptyList<File>())
 
-      sourceSet.resources.setSrcDirs(emptyList<File>())
-
-      sourceSet.dependencies {
-        implementation(compilation.output.allOutputs)
+        dependencies {
+          implementation(mainCompilation.output.allOutputs)
+          //{ mainCompilation.compileDependencyFiles }
+        }
       }
     }
 
     val benchmarkCompilationCompileDependencyConfiguration =
       target.project.configurations.named(benchmarkCompilation.implementationConfigurationName)
     val compilationCompileDependencyConfiguration =
-      target.project.configurations.named(compilation.compileDependencyConfigurationName)
-
+      target.project.configurations.named(mainCompilation.compileDependencyConfigurationName)
     benchmarkCompilationCompileDependencyConfiguration.configure {
       extendsFrom(compilationCompileDependencyConfiguration.get())
     }
 
     benchmarkCompilation.compileTaskProvider.configure {
       compilerOptions.freeCompilerArgs.addAll(
-        compilation.compileTaskProvider.flatMap { it.compilerOptions.freeCompilerArgs }
+        mainCompilation.compileTaskProvider.flatMap { it.compilerOptions.freeCompilerArgs }
       )
     }
 
     val nativeBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.Native>(
       target.targetName
     ) {
-      this.title.convention(target.targetName)
+      this.title.convention("${target.project.displayName} ${target.targetName}")
+      this.forkMode.convention(BenchmarkTarget.Kotlin.Native.ForkMode.PerBenchmark)
     }
 
-    target.binaries.executable(
+    benchmarkCompilation.defaultSourceSet {
+      kotlin.srcDir(nativeBenchmarkTarget.generatorTask)
+    }
+
+    val binary = target.binaries.createExecutable(
       namePrefix = benchmarkCompilation.name,
-      buildTypes = listOf(NativeBuildType.RELEASE),
-    ) {
-      this.compilation = benchmarkCompilation
-      linkTaskProvider.configure {
-//        group = "benchmark"
-//        description = "Compile benchmark sources for Kotlin/Native target '${target.name}'"
-        entryPoint("kotlinx.benchmark.generated.main")
+      buildType =
+//    NativeBuildType.RELEASE, // TODO change build type to RELEASE
+      NativeBuildType.DEBUG, // TODO change build type to RELEASE
+    ) { exe ->
+      exe.compilation = benchmarkCompilation
+      exe.entryPoint("kotlinx.benchmark.generated.main")
+      exe.linkTaskProvider.configure {
         dependsOn(nativeBenchmarkTarget.generatorTask)
       }
+
+//      nativeBenchmarkTarget.executable.convention(
+//        objects.fileProperty().fileProvider(
+//          exe.linkTaskProvider.flatMap { it.outputFile }
+//        )
+//      )
     }
 
+    nativeBenchmarkTarget.executable.set(
+      binary.linkTaskProvider.map {
+        layout.file(it.outputFile).get()
+      }
+    )
+//    nativeBenchmarkTarget.executable.from(binary.linkTaskProvider.map { it.outputFile })
+//    nativeBenchmarkTarget.executable.builtBy(binary.linkTaskProvider)
+
     nativeBenchmarkTarget.generatorTask.configure {
-      this.inputClasses.from(compilation.output.allOutputs)
-      this.inputDependencies.from({ compilation.compileDependencyFiles })
+      this.inputClasses.from(mainCompilation.output.allOutputs)
+      this.inputDependencies.from({ mainCompilation.compileDependencyFiles })
     }
   }
 
@@ -215,8 +233,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
       target.compilations.create(buildName("benchmark", target.name, BENCHMARK_COMPILATION_SUFFIX)) {
 
         defaultSourceSet {
-
-          // TODO why set resources to empty?
+          // benchmarks compilations don't need resources, so remove resource srcDirs to avoid unnecessary dirs         // TODO why set resources to empty?
           resources.setSrcDirs(emptyList<File>())
 
           dependencies {
@@ -247,7 +264,8 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
       }
 
     val binary = target.binaries.executable(benchmarkCompilation)
-      .first { it.mode == KotlinJsBinaryMode.PRODUCTION }
+      .firstOrNull { it.mode == KotlinJsBinaryMode.PRODUCTION }
+      ?: error("Failed to get Kotlin/JS executable production binary for target ${target.name}")
 
     val outputFileName = binary.linkTask.flatMap { task ->
       task.compilerOptions.moduleName.map { "${it}.js" }
@@ -345,7 +363,26 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 }
 
 /**
- * Create an npm dependency, with a lazily evaluated version.
+ * Create an executable and return it.
+ */
+private fun KotlinNativeBinaryContainer.createExecutable(
+  namePrefix: String,
+  buildType: NativeBuildType,
+  configure: (executable: Executable) -> Unit,
+): Executable {
+  executable(
+    namePrefix = namePrefix,
+    buildTypes = listOf(buildType),
+    configure = { configure(this) },
+  )
+  return getExecutable(
+    namePrefix = namePrefix,
+    buildType = buildType,
+  )
+}
+
+/**
+ * Create a npm dependency, with a lazily evaluated version.
  */
 private fun KotlinDependencyHandler.npm(
   dependency: String,

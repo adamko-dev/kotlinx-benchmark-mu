@@ -30,6 +30,7 @@ fun generateJs(
   }
 }
 
+@KotlinxBenchmarkGeneratorInternalApi
 private fun generateSources(
   title: String,
   lib: File,

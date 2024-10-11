@@ -5,7 +5,6 @@ import kotlin.collections.set
 import kotlinx.benchmark.gradle.BenchmarksPlugin
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.internal.utils.buildName
-import kotlinx.benchmark.gradle.mu.internal.utils.uppercaseFirstChar
 import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
 import kotlinx.benchmark.gradle.mu.tasks.NativeSourceGeneratorTask
@@ -13,8 +12,10 @@ import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.assign
@@ -33,9 +34,6 @@ constructor(
 ) : Named {
   @get:Input
   abstract val enabled: Property<Boolean>
-//  var workingDir: String? = null
-
-//  internal abstract val named: String
 
   @Input
   override fun getName(): String = name
@@ -77,13 +75,15 @@ constructor(
       abstract val runtimeClasspath: ConfigurableFileCollection
 
       val generateBenchmarkTask: TaskProvider<GenerateJvmBenchmarkTask> =
-        project.tasks.register<GenerateJvmBenchmarkTask>("kxbGenerate${targetName.uppercaseFirstChar()}") {
+        project.tasks.register<GenerateJvmBenchmarkTask>(
+          buildName("kxbGenerate", targetName)
+        ) {
           description = "Generate JVM source files for '${targetName}'"
         }
 
       val compileTask: TaskProvider<JavaCompile> =
         project.tasks.register<JavaCompile>(
-          "kxbCompile${targetName.uppercaseFirstChar()}",
+          buildName("kxbCompile", targetName)
         ) {
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
           description = "Compile JMH source files for '${targetName}'"
@@ -100,7 +100,7 @@ constructor(
 
       val jarTask: TaskProvider<Jar> =
         project.tasks.register<Jar>(
-          "kxbJar${targetName.uppercaseFirstChar()}",
+          buildName("kxbJar", targetName)
         ) {
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
           description = "Build JAR for JMH compiled files for '${targetName}'"
@@ -176,13 +176,21 @@ constructor(
       final override val targetName: String,
       project: Project,
     ) : Kotlin(targetName) {
-      @get:Input
       abstract val title: Property<String>
 
-      @get:Internal
+      abstract val forkMode: Property<ForkMode>
+
+      abstract val executable: RegularFileProperty
+//      abstract val executable: ConfigurableFileCollection
+
+      enum class ForkMode {
+        PerTest,
+        PerBenchmark
+      }
+
       val generatorTask =
         project.tasks.register<NativeSourceGeneratorTask>(
-          buildName("kxb", "Generate", targetName, "Benchmarks")
+          buildName("kxbGenerate", targetName, "Benchmarks")
         ) {
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
           description = "Generate benchmark sources for Kotlin/Native target '${targetName}'"

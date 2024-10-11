@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.resolve.scopes.*
 import org.jetbrains.kotlin.types.*
 import java.io.*
 
-////@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 enum class Platform(
     val executorClass: String,
     val suiteDescriptorClass: String,
@@ -47,10 +47,10 @@ enum class Platform(
 }
 
 
-////@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 class SuiteSourceGenerator(val title: String, val module: ModuleDescriptor, val output: File, val platform: Platform) {
 
-////    @KotlinxBenchmarkPluginInternalApi
+  @KotlinxBenchmarkGeneratorInternalApi
     companion object {
         val setupFunctionName = "setUp"
         val teardownFunctionName = "tearDown"
@@ -314,33 +314,33 @@ class SuiteSourceGenerator(val title: String, val module: ModuleDescriptor, val 
     }
 }
 
-//@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 inline fun codeBlock(builderAction: CodeBlock.Builder.() -> Unit): CodeBlock {
     return CodeBlock.builder().apply(builderAction).build()
 }
 
-//@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 inline fun FileSpec.Builder.declareObject(name: ClassName, builderAction: TypeSpec.Builder.() -> Unit): TypeSpec {
     return TypeSpec.objectBuilder(name).apply(builderAction).build().also {
         addType(it)
     }
 }
 
-//@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 inline fun FileSpec.Builder.declareClass(name: String, builderAction: TypeSpec.Builder.() -> Unit): TypeSpec {
     return TypeSpec.classBuilder(name).apply(builderAction).build().also {
         addType(it)
     }
 }
 
-//@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 inline fun FileSpec.Builder.declareClass(name: ClassName, builderAction: TypeSpec.Builder.() -> Unit): TypeSpec {
     return TypeSpec.classBuilder(name).apply(builderAction).build().also {
         addType(it)
     }
 }
 
-//@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 inline fun TypeSpec.Builder.property(
     name: String,
     type: ClassName,
@@ -351,7 +351,7 @@ inline fun TypeSpec.Builder.property(
     }
 }
 
-//@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 inline fun TypeSpec.Builder.function(
     name: String,
     builderAction: FunSpec.Builder.() -> Unit
@@ -361,7 +361,7 @@ inline fun TypeSpec.Builder.function(
     }
 }
 
-//@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 inline fun FileSpec.Builder.function(
     name: String,
     builderAction: FunSpec.Builder.() -> Unit
@@ -371,6 +371,6 @@ inline fun FileSpec.Builder.function(
     }
 }
 
-//@KotlinxBenchmarkPluginInternalApi
+@KotlinxBenchmarkGeneratorInternalApi
 val KotlinType.nameIfStandardType: Name?
     get() = constructor.declarationDescriptor?.name
