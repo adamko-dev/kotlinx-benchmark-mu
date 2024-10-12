@@ -1,6 +1,5 @@
 package kotlinx.benchmark.generator.internal
 
-//import kotlinx.benchmark.generator.SuiteSourceGenerator.Companion.paramAnnotationFQN
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.UnsignedTypes
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
