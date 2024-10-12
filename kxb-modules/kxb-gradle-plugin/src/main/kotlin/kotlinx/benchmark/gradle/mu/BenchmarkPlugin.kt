@@ -29,6 +29,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
@@ -246,6 +247,12 @@ constructor(
         "idea.internal.test",
         providers.systemProperty("idea.active").getOrElse("false").toBoolean(),
       )
+
+      report.convention(
+        benchmarkParameters.flatMap { it.resultFormat }
+          .map { format -> "result.${format.extension}" }
+          .map { filename -> temporaryDir.resolve("output/$filename") }
+      )
     }
 
     project.tasks.withType<RunJvmBenchmarkTask>().configureEach {
@@ -255,24 +262,20 @@ constructor(
       javaLauncher.convention(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) })
     }
 
-
     project.tasks.withType<RunNativeBenchmarkTask>().configureEach {
-      this.workingDir.convention(temporaryDir.resolve("work"))
-      this.benchmarkDescriptionDir.convention(temporaryDir.resolve("descriptors"))
-      this.benchmarkProgress.convention(temporaryDir.resolve("progress.txt"))
-      this.reportFile.convention(temporaryDir.resolve("report.txt"))
+      workingDir.convention(temporaryDir.resolve("work"))
+      benchmarkDescriptionDir.convention(temporaryDir.resolve("descriptors"))
+      benchmarkProgress.convention(temporaryDir.resolve("progress.txt"))
+      report.convention(temporaryDir.resolve("report.txt"))
     }
 
     project.tasks.withType<RunJsNodeBenchmarkTask>().configureEach {
       sourceMapStackTraces.convention(true)
-      //workingDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("work")))
       cacheDir.convention(temporaryDir.resolve("cache"))
-      results.convention(temporaryDir.resolve("output/results.json"))
     }
 
     project.tasks.withType<RunJsD8BenchmarkTask>().configureEach {
       workingDir.convention(temporaryDir.resolve("work"))
-      //cacheDir.convention(objects.directoryProperty().fileValue(temporaryDir.resolve("cache")))
     }
   }
 
@@ -363,6 +366,9 @@ constructor(
   //region workaround for https://github.com/gradle/gradle/issues/23708
   private fun RegularFileProperty.convention(value: File): RegularFileProperty =
     convention(objects.fileProperty().fileValue(value))
+
+  private fun RegularFileProperty.convention(value: Provider<File>): RegularFileProperty =
+    convention(layout.file(value))
 
   private fun DirectoryProperty.convention(value: File): DirectoryProperty =
     convention(objects.directoryProperty().fileValue(value))

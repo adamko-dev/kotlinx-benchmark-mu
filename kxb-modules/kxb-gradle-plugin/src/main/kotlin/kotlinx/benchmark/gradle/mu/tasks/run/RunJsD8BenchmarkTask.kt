@@ -38,18 +38,7 @@ constructor() : RunBenchmarkBaseTask() {
 
   @get:InputFile
   @get:PathSensitive(RELATIVE)
-//  @get:Optional
-  //@get:NormalizeLineEndings
   abstract val module: RegularFileProperty
-
-//  @get:Classpath
-//  abstract val runtimeClasspath: ConfigurableFileCollection
-
-  @get:Nested
-  abstract val benchmarkParameters: Property<BenchmarkRunSpec>
-
-//  @get:Input
-//  abstract val mainClass: Property<String>
 
   @TaskAction
   protected fun action() {

@@ -22,9 +22,6 @@ constructor() : RunBenchmarkBaseTask() {
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
 
-  @get:Nested
-  abstract val benchmarkParameters: Property<BenchmarkRunSpec>
-
   @get:Input
   abstract val mainClass: Property<String>
 
@@ -32,6 +29,8 @@ constructor() : RunBenchmarkBaseTask() {
 //  abstract val javaLauncher: Property<JavaLauncher>
 
   // TODO add jmh.ignoreLock Boolean option
+  //@get:Input
+  //abstract val ignoreJmhLock: Property<Boolean>
 
   // TODO pass java launcher to JMH
   @get:Nested
@@ -39,19 +38,19 @@ constructor() : RunBenchmarkBaseTask() {
 
   @TaskAction
   protected fun action() {
-    val benchmarkParameters = benchmarkParameters.get()
+    val encodedBenchmarkParameters = encodeBenchmarkParameters()
 
-    val reportFile = temporaryDir.resolve("report.${benchmarkParameters.resultFormat.get().extension}")
-
-    val runnerConfig = buildRunnerConfig(
-      name = benchmarkParameters.name,
-      reportFile = reportFile,
-      config = benchmarkParameters,
-      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
-    )
-
-    logger.info("[$path] runnerConfig: ${runnerConfig.lines().joinToString(" / ")}")
-
+//    val reportFile = temporaryDir.resolve("report.${benchmarkParameters.resultFormat.get().extension}")
+//
+//    val runnerConfig = buildRunnerConfig(
+//      name = benchmarkParameters.name,
+//      reportFile = reportFile,
+//      config = benchmarkParameters,
+//      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
+//    )
+//
+//    logger.info("[$path] runnerConfig: ${runnerConfig.lines().joinToString(" / ")}")
+//
 //    val parametersFile = temporaryDir.resolve("parameters.txt").apply {
 //      writeText(encodedParameters)
 //    }
@@ -63,7 +62,7 @@ constructor() : RunBenchmarkBaseTask() {
       }
 
     workQueue.submit(RunJvmBenchmarkWorker::class) {
-      this.config = runnerConfig
+      this.encodedBenchmarkParameters = encodedBenchmarkParameters
       this.classpath = runtimeClasspath
       this.enableDemoMode = this@RunJvmBenchmarkTask.enableDemoMode
     }

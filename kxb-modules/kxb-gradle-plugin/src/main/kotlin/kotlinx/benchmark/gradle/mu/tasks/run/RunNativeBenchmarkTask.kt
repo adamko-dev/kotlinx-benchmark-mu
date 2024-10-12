@@ -24,9 +24,6 @@ abstract class RunNativeBenchmarkTask
 @Inject
 constructor() : RunBenchmarkBaseTask() {
 
-  @get:Nested
-  abstract val benchmarkParameters: Property<BenchmarkRunSpec>
-
   @get:InputFile
   @get:PathSensitive(RELATIVE)
   abstract val executable: RegularFileProperty
@@ -45,9 +42,6 @@ constructor() : RunBenchmarkBaseTask() {
   @get:Input
   @get:Optional
   abstract val forkMode: Property<ForkMode>
-
-  @get:OutputFile
-  abstract val reportFile: RegularFileProperty
 
   @get:Internal
   abstract val benchmarkDescriptionDir: DirectoryProperty
@@ -215,24 +209,6 @@ constructor() : RunBenchmarkBaseTask() {
       StoreResults,
       listOf(benchmarkProgressPath, samplesFile.absolutePath)
     )
-  }
-
-  private fun encodeBenchmarkParameters(): String {
-    val benchmarkParameters = benchmarkParameters.get()
-
-    val reportFile = reportFile.get().asFile.apply {
-      parentFile.mkdirs()
-    }
-
-    val runnerConfig = buildRunnerConfig(
-      name = benchmarkParameters.name,
-      reportFile = reportFile,
-      config = benchmarkParameters,
-      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
-    )
-
-    @OptIn(ExperimentalEncodingApi::class)
-    return Base64.encode(runnerConfig.encodeToByteArray())
   }
 }
 
