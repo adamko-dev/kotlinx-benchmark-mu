@@ -14,12 +14,10 @@ enum class BenchmarkMode(private val shortLabel: String, private val longLabel: 
   Throughput("thrpt", "Throughput, ops/time"),
 
   /**
-   *
    * Average time: average time per operation.
    *
-   *
    * Runs by continuously calling [Benchmark] methods,
-   * counting the average time to call over all worker threads. This is the inverse of [Mode.Throughput],
+   * counting the average time to call over all worker threads. This is the inverse of [BenchmarkMode.Throughput],
    * but with different aggregation policy. This mode is time-based, and it will run until the iteration time
    * expires.
    */
@@ -40,7 +38,6 @@ enum class BenchmarkMode(private val shortLabel: String, private val longLabel: 
   /**
    *
    * Single shot time: measures the time for a single operation.
-   *
    *
    * Runs by calling [Benchmark] once and measuring its time.
    * This mode is useful to estimate the "cold" performance when you don't want to hide the warmup invocations, or
