@@ -22,7 +22,7 @@ sealed interface RunnerConfiguration {
    *
    * This property is only valid for JavaScript targets.
    */
-  val enableJsBridges: Boolean?
+  val enableJsBridge: Boolean?
 
   /**
    * Which benchmarks to execute?
@@ -239,7 +239,7 @@ internal data class RunnerConfigurationData(
   override val threads: Int? = null,
   override val threadGroups: List<Int> = emptyList(),
   override val enableSyncIterations: Boolean? = null,
-  override val enableJsBridges: Boolean? = null,
+  override val enableJsBridge: Boolean? = null,
   override val warmupIterations: Int? = null,
   override val warmupDuration: Duration? = null,
   override val warmupBatchSize: Int? = null,
@@ -291,7 +291,7 @@ class RunnerConfigurationBuilder internal constructor(
   override var enableGcPerIteration: Boolean? = null
   override var verbosity: VerboseMode? = null
   override var failOnError: Boolean? = null
-  override var enableJsBridges: Boolean? = null
+  override var enableJsBridge: Boolean? = null
   override var threads: Int? = null
   override val threadGroups: MutableList<Int> = mutableListOf()
   override var enableSyncIterations: Boolean? = null
@@ -346,7 +346,7 @@ class RunnerConfigurationBuilder internal constructor(
     jvmArgs = jvmArgs.toList(),
     jvmArgsAppend = jvmArgsAppend.toList(),
     jvmArgsPrepend = jvmArgsPrepend.toList(),
-    enableJsBridges = enableJsBridges,
+    enableJsBridge = enableJsBridge,
     timeout = timeout,
     warmupMode = warmupMode,
     parameters = parameters.toMap(),

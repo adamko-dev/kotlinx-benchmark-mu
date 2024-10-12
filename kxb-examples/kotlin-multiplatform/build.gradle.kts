@@ -89,7 +89,7 @@ benchmark {
       iterations = 1
       iterationDuration = 50.milliseconds
       advanced.put("jvmForks", "3")
-      enableJsBridges = true
+      enableJsBridge = true
     }
 
 //        params {

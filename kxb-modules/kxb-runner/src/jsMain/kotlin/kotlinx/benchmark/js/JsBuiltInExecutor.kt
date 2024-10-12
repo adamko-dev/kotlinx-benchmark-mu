@@ -38,6 +38,6 @@ class JsBuiltInExecutor(
     cycles: Int
   ): () -> Long {
     val measurer = super.createIterationMeasurer(instance, benchmark, configuration, cycles)
-    return if (!configuration.enableJsBridges) measurer else createJsMeasurerBridge(measurer)
+    return if (!configuration.enableJsBridge) measurer else createJsMeasurerBridge(measurer)
   }
 }

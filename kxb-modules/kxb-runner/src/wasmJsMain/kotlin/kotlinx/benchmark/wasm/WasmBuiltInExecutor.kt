@@ -35,6 +35,6 @@ class WasmBuiltInExecutor(
         cycles: Int
     ): () -> Long {
         val measurer = super.createIterationMeasurer(instance, benchmark, configuration, cycles)
-        return if (configuration.jsUseBridge) measurer else createJsMeasurerBridge(measurer)
+        return if (configuration.enableJsBridge) measurer else createJsMeasurerBridge(measurer)
     }
 }

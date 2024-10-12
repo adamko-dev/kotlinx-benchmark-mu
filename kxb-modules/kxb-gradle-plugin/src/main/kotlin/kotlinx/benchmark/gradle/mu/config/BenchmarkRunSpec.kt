@@ -160,7 +160,7 @@ constructor(private val name: String) : Named {
    */
   @get:Input
   @get:Optional
-  abstract val enableJsBridges: Property<Boolean>
+  abstract val enableJsBridge: Property<Boolean>
 
 
   companion object {
@@ -236,7 +236,7 @@ constructor(private val name: String) : Named {
         jvmArgs += config.jvmArgs.orNull.orEmpty()
         parameters += config.parameters.orNull.orEmpty()
 //    advanced = config.advanced.orNull.orEmpty(),
-        enableJsBridges = config.enableJsBridges.orNull
+        enableJsBridge = config.enableJsBridge.orNull
       }.encodeToJson()
 
 ////  val file = Files.createTempFile("benchmarks", "txt").toFile()

@@ -17,7 +17,7 @@ data class BenchmarkConfiguration(
   val outputTimeUnit: BenchmarkTimeUnit,
   val mode: Mode,
 //  val advanced: Map<String, String>,
-  val enableJsBridges: Boolean,
+  val enableJsBridge: Boolean,
   val nativeFork: RunnerConfiguration.NativeFork?,
   val enableGcPerIteration: Boolean,
 ) {
@@ -34,7 +34,7 @@ data class BenchmarkConfiguration(
 //    if (runner.measurementDuration == null) BenchmarkTimeUnit.MILLISECONDS else suite.iterationTime.timeUnit,
     outputTimeUnit = runner.resultTimeUnit?.convert() ?: suite.outputTimeUnit,
     mode = runner.mode?.convert() ?: suite.mode,
-    enableJsBridges = runner.enableJsBridges ?: false,
+    enableJsBridge = runner.enableJsBridge ?: false,
     nativeFork = runner.nativeFork ?: RunnerConfiguration.NativeFork.PerBenchmark,
     enableGcPerIteration = runner.enableGcPerIteration ?: false,
 //    advanced = runner.advanced
