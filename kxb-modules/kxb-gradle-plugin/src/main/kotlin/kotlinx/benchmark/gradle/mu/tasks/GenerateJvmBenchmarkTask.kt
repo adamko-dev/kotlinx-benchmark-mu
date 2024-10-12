@@ -2,7 +2,7 @@ package kotlinx.benchmark.gradle.mu.tasks
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.workers.JmhBytecodeGeneratorWorker
+import kotlinx.benchmark.gradle.mu.workers.GenerateJvmJmhSourceWorker
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
@@ -38,7 +38,7 @@ constructor() : BaseBenchmarkTask() {
       classpath.from(runtimeClasspath)
     }
 
-    workQueue.submit(JmhBytecodeGeneratorWorker::class) {
+    workQueue.submit(GenerateJvmJmhSourceWorker::class) {
       this.inputClasses.from(this@GenerateJvmBenchmarkTask.inputClasses)
       this.inputClasspath.from(this@GenerateJvmBenchmarkTask.inputCompileClasspath)
       this.outputSourceDir.set(this@GenerateJvmBenchmarkTask.generatedSources)

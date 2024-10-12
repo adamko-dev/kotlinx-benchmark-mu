@@ -8,7 +8,7 @@ import org.gradle.api.provider.Property
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 
-internal abstract class NativeSourceGeneratorWorker : WorkAction<NativeSourceGeneratorWorker.Parameters> {
+internal abstract class GenerateNativeSourceWorker : WorkAction<GenerateNativeSourceWorker.Parameters> {
 
   internal interface Parameters : WorkParameters {
     val title: Property<String>

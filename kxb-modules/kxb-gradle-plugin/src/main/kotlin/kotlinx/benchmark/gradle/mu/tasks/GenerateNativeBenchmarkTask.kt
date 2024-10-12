@@ -2,7 +2,7 @@ package kotlinx.benchmark.gradle.mu.tasks
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.workers.NativeSourceGeneratorWorker
+import kotlinx.benchmark.gradle.mu.workers.GenerateNativeSourceWorker
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -42,7 +42,7 @@ constructor() : BaseBenchmarkTask() {
       classpath.from(runtimeClasspath)
     }
 
-    workQueue.submit(NativeSourceGeneratorWorker::class) {
+    workQueue.submit(GenerateNativeSourceWorker::class) {
       this.title.set(this@GenerateNativeBenchmarkTask.title)
       this.target.set(this@GenerateNativeBenchmarkTask.targetName)
       this.inputClasses.from(this@GenerateNativeBenchmarkTask.inputClasses)

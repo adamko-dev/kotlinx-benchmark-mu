@@ -2,7 +2,6 @@ package kotlinx.benchmark.gradle.mu.workers
 
 import kotlinx.benchmark.generator.generateJvm
 import kotlinx.benchmark.generator.internal.KotlinxBenchmarkGeneratorInternalApi
-import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logger
@@ -10,11 +9,9 @@ import org.gradle.api.logging.Logging
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 
-@KotlinxBenchmarkPluginInternalApi
-internal abstract class JmhBytecodeGeneratorWorker : WorkAction<JmhBytecodeGeneratorWorker.Parameters> {
+internal abstract class GenerateJvmJmhSourceWorker : WorkAction<GenerateJvmJmhSourceWorker.Parameters> {
 
-  @KotlinxBenchmarkPluginInternalApi
-  interface Parameters : WorkParameters {
+  internal interface Parameters : WorkParameters {
     val inputClasses: ConfigurableFileCollection
     val inputClasspath: ConfigurableFileCollection
     val outputSourceDir: DirectoryProperty
@@ -45,6 +42,6 @@ internal abstract class JmhBytecodeGeneratorWorker : WorkAction<JmhBytecodeGener
   }
 
   companion object {
-    private val logger: Logger = Logging.getLogger(JmhBytecodeGeneratorWorker::class.java)
+    private val logger: Logger = Logging.getLogger(GenerateJvmJmhSourceWorker::class.java)
   }
 }
