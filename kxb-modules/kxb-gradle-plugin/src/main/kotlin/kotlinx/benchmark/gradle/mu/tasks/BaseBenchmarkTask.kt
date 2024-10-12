@@ -14,7 +14,7 @@ import org.gradle.workers.WorkerExecutor
 
 
 @DisableCachingByDefault(because = "wip")
-abstract class KxbBaseTask
+abstract class BaseBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
 constructor() : DefaultTask() {

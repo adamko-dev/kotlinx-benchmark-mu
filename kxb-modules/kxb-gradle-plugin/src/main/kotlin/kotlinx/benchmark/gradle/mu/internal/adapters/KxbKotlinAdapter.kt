@@ -181,9 +181,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
     val binary = target.binaries.createExecutable(
       namePrefix = benchmarkCompilation.name,
-      buildType =
-//    NativeBuildType.RELEASE, // TODO change build type to RELEASE
-      NativeBuildType.DEBUG, // TODO change build type to RELEASE
+      buildType = NativeBuildType.RELEASE,
     ) { exe ->
       exe.compilation = benchmarkCompilation
       exe.entryPoint("kotlinx.benchmark.generated.main")

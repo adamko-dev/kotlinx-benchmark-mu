@@ -12,7 +12,7 @@ import org.gradle.kotlin.dsl.submit
 abstract class GenerateWasmBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : KxbBaseTask() {
+constructor() : BaseBenchmarkTask() {
 
   @get:OutputDirectory
   abstract val generatedSources: DirectoryProperty

@@ -4,7 +4,7 @@ import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.internal.utils.dropDirectories
 import kotlinx.benchmark.gradle.mu.internal.utils.get
-import kotlinx.benchmark.gradle.mu.tasks.KxbBaseTask
+import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
@@ -15,7 +15,7 @@ import org.gradle.api.tasks.*
 abstract class NodeJsSetupTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : KxbBaseTask() {
+constructor() : BaseBenchmarkTask() {
 //  @get:Input
 //  abstract val version: Property<String>
 

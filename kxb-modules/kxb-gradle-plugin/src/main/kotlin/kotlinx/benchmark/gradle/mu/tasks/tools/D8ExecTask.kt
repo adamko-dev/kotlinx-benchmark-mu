@@ -3,7 +3,7 @@ package kotlinx.benchmark.gradle.mu.tasks.tools
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.tools.D8ToolSpec
-import kotlinx.benchmark.gradle.mu.tasks.KxbBaseTask
+import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
@@ -16,7 +16,7 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 abstract class D8ExecTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : KxbBaseTask() {
+constructor() : BaseBenchmarkTask() {
 
   /** Arguments for D8. Will be passed first, before [runArguments]. */
   @get:Input

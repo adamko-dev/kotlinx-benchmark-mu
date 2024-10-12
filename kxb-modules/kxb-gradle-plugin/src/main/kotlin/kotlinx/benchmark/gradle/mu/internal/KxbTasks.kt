@@ -1,6 +1,6 @@
 package kotlinx.benchmark.gradle.mu.internal
 
-import kotlinx.benchmark.gradle.mu.tasks.KxbBaseTask
+import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.tools.D8SetupTask
 import kotlinx.benchmark.gradle.mu.tasks.tools.NodeJsSetupTask
 import org.gradle.api.Project
@@ -14,7 +14,7 @@ internal class KxbTasks(
   private val project: Project,
   private val kxbDependencies: KxbDependencies,
 ) {
-  val benchmarks: TaskProvider<KxbBaseTask> by project.tasks.registering(KxbBaseTask::class) {
+  val benchmarks: TaskProvider<BaseBenchmarkTask> by project.tasks.registering(BaseBenchmarkTask::class) {
     group = BenchmarksTaskGroup
     description = "Lifecycle task for running all benchmarks."
   }
@@ -36,5 +36,4 @@ internal class KxbTasks(
     @Suppress("ConstPropertyName")
     const val BenchmarksTaskGroup = "benchmark"
   }
-
 }

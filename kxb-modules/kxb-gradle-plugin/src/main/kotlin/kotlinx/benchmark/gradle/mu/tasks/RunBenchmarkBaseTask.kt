@@ -4,7 +4,6 @@ import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.work.DisableCachingByDefault
 
@@ -12,7 +11,7 @@ import org.gradle.work.DisableCachingByDefault
 @DisableCachingByDefault(because = "wip")
 abstract class RunBenchmarkBaseTask
 @KotlinxBenchmarkPluginInternalApi
-protected constructor() : KxbBaseTask() {
+protected constructor() : BaseBenchmarkTask() {
 
   @KotlinxBenchmarkPluginInternalApi
   @get:Console // only affects stdout logging

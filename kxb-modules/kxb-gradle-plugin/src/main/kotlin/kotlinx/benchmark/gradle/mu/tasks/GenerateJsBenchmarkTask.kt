@@ -15,7 +15,7 @@ import org.gradle.kotlin.dsl.submit
 abstract class GenerateJsBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : KxbBaseTask() {
+constructor() : BaseBenchmarkTask() {
 
   @get:OutputDirectory
   abstract val generatedSources: DirectoryProperty
