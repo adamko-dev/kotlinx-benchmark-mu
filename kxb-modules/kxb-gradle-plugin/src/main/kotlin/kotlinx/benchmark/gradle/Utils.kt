@@ -19,18 +19,6 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
 
-@KotlinxBenchmarkPluginInternalApi
-fun cleanup(file: File) {
-    if (file.exists()) {
-        val listing = file.listFiles()
-        if (listing != null) {
-            for (sub in listing) {
-                cleanup(sub)
-            }
-        }
-        file.delete()
-    }
-}
 
 @KotlinxBenchmarkPluginInternalApi
 inline fun <reified T : Task> Project.task(
