@@ -228,38 +228,48 @@ internal data class RunnerConfigurationData(
   override val name: String,
   override val resultFilePath: String,
   override val progressReporting: ProgressReporting? = null,
-//  override val progressReporting: ProgressReporting? = null,
+
   override val includes: List<String> = emptyList(),
   override val excludes: List<String> = emptyList(),
+
   override val resultFormat: ResultFormat = ResultFormat.Text,
-//  override val result: String? = null,
-  override val enableGcPerIteration: Boolean? = null,
   override val verbosity: VerboseMode? = null,
   override val failOnError: Boolean? = null,
+
   override val threads: Int? = null,
   override val threadGroups: List<Int> = emptyList(),
+
   override val enableSyncIterations: Boolean? = null,
-  override val enableJsBridge: Boolean? = null,
+
+  override val warmupForks: Int? = null,
+  override val warmupMode: WarmupMode? = null,
   override val warmupIterations: Int? = null,
   override val warmupDuration: Duration? = null,
   override val warmupBatchSize: Int? = null,
   override val warmupIncludes: List<String> = emptyList(),
+
+  override val enableGcPerIteration: Boolean? = null,
   override val measurementIterations: Int? = null,
   override val measurementDuration: Duration? = null,
   override val measurementBatchSize: Int? = null,
+
   override val mode: Mode? = null,
   override val resultTimeUnit: ReportTimeUnit? = null,
   override val operationsPerInvocation: Int? = null,
   override val forks: Int? = null,
-  override val warmupForks: Int? = null,
+
+  override val timeout: Duration? = null,
+  override val parameters: Map<String, List<String>> = emptyMap(),
+
   override val jvm: String? = null,
   override val jvmArgs: List<String> = emptyList(),
   override val jvmArgsAppend: List<String> = emptyList(),
   override val jvmArgsPrepend: List<String> = emptyList(),
-  override val timeout: Duration? = null,
-  override val warmupMode: WarmupMode? = null,
-  override val parameters: Map<String, List<String>> = emptyMap(),
+
   override val nativeFork: NativeFork? = null,
+
+  override val enableJsBridge: Boolean? = null,
+
 ///**
 // * Profilers to use for the run.
 // * Profilers will start in the order specified by collection, and will stop in the reverse order.
@@ -354,145 +364,3 @@ class RunnerConfigurationBuilder internal constructor(
     progressReporting = progressReporting,
   )
 }
-
-
-//import kotlin.time.Duration
-//import kotlinx.serialization.Serializable
-//
-////import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
-//
-//@Serializable
-//class RunnerConfiguration(
-//  val name: String,
-//  val reportFile: String,
-//  val traceFormat: String,
-//
-//  val includes: Set<String>,
-//  val excludes: Set<String>,
-//  val iterations: Int,
-//  val batchSize: Int,
-//  val runTime: Duration,
-////  val warmupMode: Property<WarmupMode>,
-//  val warmupBenchmarks: Set<String>,
-//  val warmupIterations: Int,
-//  val warmupBatchSize: Int,
-//  val warmupForks: Int,
-//  val warmupTime: Duration,
-//  val timeout: Duration,
-//  val threads: Int,
-//  val synchronizeIterations: Boolean,
-//  val gcEachIteration: Boolean,
-//  val failOnError: Boolean,
-//  val fork: Int,
-//  val threadGroups: List<Int>,
-//  val opsPerInvocation: Int,
-//  val resultTimeUnit: ReportTimeUnit,
-//  val mode: BenchmarkMode,
-//  val verbosity: VerboseMode,
-//  val profilers: Set<String>,
-//  val resultFormat: ResultFormat,
-////  val parameters: NamedDomainObjectContainer<BenchmarkParameter>,
-//  val jvmArgs: List<String>,
-//)
-//
-////enum class TraceFormat { XML, Text, }
-//
-//////@KotlinxBenchmarkRuntimeInternalApi
-////class RunnerConfiguration(config: String) {
-////
-////  private val values// = config.lines().groupBy({
-////    it.substringBefore(":")
-////  }, { it.substringAfter(":", "") })
-////
-////  val name// = singleValue("name")
-////  val reportFile// = singleValue("reportFile")
-////  val traceFormat// = singleValue("traceFormat")
-////  val reportFormat// = singleValue("reportFormat", "json")
-////
-////  val params// = mapValues(
-////    "param", "="
-////  )
-////
-////  val include// = listValues("include")
-////  val exclude// = listValues("exclude")
-////
-////  val iterations// = singleValueOrNull("iterations") { it.toInt() }
-////  val warmups// = singleValueOrNull("warmups") { it.toInt() }
-////  val iterationTime// = singleValueOrNull("iterationTime") { it.toLong() }
-////  val iterationTimeUnit// = singleValueOrNull("iterationTimeUnit") { parseTimeUnit(it) }
-////  val advanced// = mapSingleValues("advanced", "=")
-////
-////  val outputTimeUnit// = singleValueOrNull(
-////    "outputTimeUnit"
-////  ) { parseTimeUnit(it) }
-////
-////  private fun <T> singleValueOrNull(name: String, map: (String) -> T): T? =
-////    singleValueOrNull(name)?.let(map)
-////
-////  private fun singleValueOrNull(name: String): String? {
-////    val values// = values[name] ?: return null
-////    return values.single()
-////  }
-////
-////  private fun singleValue(name: String): String {
-////    return singleValueOrNull(name) ?: throw NoSuchElementException("Parameter `$name` is required.")
-////  }
-////
-////  private fun singleValue(name: String, default: String): String {
-////    return singleValueOrNull(name) ?: default
-////  }
-////
-////  private fun mapValues(name: String, delimiter: String): Map<String, List<String>> {
-////    val values// = values[name] ?: return emptyMap()
-////    return values.groupBy({ it.substringBefore(delimiter) }, { it.substringAfter(delimiter) })
-////  }
-////
-////  private fun mapSingleValues(name: String, delimiter: String): Map<String, String>// = values[name]
-////    ?.associate {
-////      val splitted// = it.split(delimiter)
-////      check(splitted.size == 2) { "Parameter name and value format is required for $name." }
-////      splitted[0] to splitted[1]
-////    } ?: emptyMap()
-////
-////  private fun listValues(name: String): List<String> {
-////    return this.values[name] ?: emptyList()
-////  }
-////
-////  val mode// = singleValueOrNull(
-////    "mode"
-////  ) { it.toMode() }
-////
-////  override fun toString(): String {
-////    return """$name -> $reportFile ($traceFormat, $reportFormat)
-////params: ${params.entries.joinToString(prefix// = "{", postfix// = "}") { "${it.key}: ${it.value}" }}
-////include: $include
-////exclude: $exclude
-////iterations: $iterations
-////warmups: $warmups
-////iterationTime: $iterationTime
-////iterationTimeUnit: $iterationTimeUnit
-////outputTimeUnit: $outputTimeUnit
-////mode: $mode
-////advanced: $advanced
-////"""
-////  }
-////}
-//
-////internal fun parseTimeUnit(text: String)// = when (text) {
-////  BenchmarkTimeUnit.SECONDS.name, "s", "sec"          -> BenchmarkTimeUnit.SECONDS
-////  BenchmarkTimeUnit.MICROSECONDS.name, "us", "micros" -> BenchmarkTimeUnit.MICROSECONDS
-////  BenchmarkTimeUnit.MILLISECONDS.name, "ms", "millis" -> BenchmarkTimeUnit.MILLISECONDS
-////  BenchmarkTimeUnit.NANOSECONDS.name, "ns", "nanos"   -> BenchmarkTimeUnit.NANOSECONDS
-////  BenchmarkTimeUnit.MINUTES.name, "m", "min"          -> BenchmarkTimeUnit.MINUTES
-////  else                                                -> throw UnsupportedOperationException("Unknown time unit: $text")
-////}
-//
-////enum class BenchmarkTimeUnit {
-////  Nanoseconds,
-////  Microseconds,
-////  Milliseconds,
-////  Seconds,
-////  Minutes,
-////}
-////
-////
