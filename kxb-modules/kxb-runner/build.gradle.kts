@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 plugins {
   id("kxb.build.conventions.kotlin-multiplatform")
   id("kxb.build.conventions.publishing")
-  kotlin("plugin.serialization") version "2.0.0"
+  alias(libs.plugins.kotlinx.serialization)
 }
 
 kotlin {
@@ -79,7 +79,7 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.kxbRunnerParameters)
-        api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+        api(libs.kotlinxSerialization.json)
       }
     }
     commonTest {

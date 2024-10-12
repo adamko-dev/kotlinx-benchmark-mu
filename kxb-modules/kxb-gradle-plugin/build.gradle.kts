@@ -40,7 +40,7 @@ kotlin {
 }
 
 dependencies {
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+  implementation(libs.kotlinxSerialization.json)
 //  implementation(libs.kotlin.reflect)
 
   implementation(projects.kxbRunnerParameters)
