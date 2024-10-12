@@ -1,7 +1,7 @@
 plugins {
   idea
   base
-  kotlin("multiplatform") version "2.0.0" apply false
+  //kotlin("multiplatform") version "2.0.0" apply false
 }
 
 idea {
@@ -129,3 +129,8 @@ tasks.check {
 //tasks.check {
 //    dependsOn(tasks.named("checkReadme"))
 //}
+
+tasks.updateDaemonJvm {
+  @Suppress("UnstableApiUsage")
+  jvmVersion = JavaVersion.VERSION_21
+}
