@@ -156,11 +156,7 @@ class NativeExecutor(
         val nanosecondsPerOperation = measure(instance, benchmark, cycles, benchmarkRun.config.enableGcPerIteration)
         val text = nanosecondsPerOperation.nanosToText(benchmarkRun.config.mode, benchmarkRun.config.outputTimeUnit)
         val iterationNumber = currentIteration ?: iteration
-        reporter.output(
-          executionName,
-          id,
-          "Iteration #$iterationNumber: $text"
-        )
+        reporter.output(executionName, id, "Iteration #$iterationNumber: $text")
         nanosecondsPerOperation.nanosToSample(benchmarkRun.config.mode, benchmarkRun.config.outputTimeUnit)
       }
     } catch (e: Throwable) {
@@ -203,9 +199,9 @@ class NativeExecutor(
 
   private fun storeResults(benchmarks: List<BenchmarkDescriptor<Any?>>, complete: () -> Unit) {
     val resultsContent = additionalArguments[0].readFile()
-    resultsContent.takeIf(String::isNotEmpty)?.lines()?.forEach {
-      val (configFileName, samplesList) = it.split(": ")
-      val samples = samplesList.split(", ").map { it.toDouble() }.toDoubleArray()
+    resultsContent.takeIf(String::isNotEmpty)?.lines()?.forEach { line ->
+      val (configFileName, samplesList) = line.split(": ")
+      val samples = samplesList.split(", ").map(String::toDouble).toDoubleArray()
       val benchmarkRun = configFileName.parseBenchmarkConfig()
       val benchmark = benchmarks.getBenchmark(benchmarkRun.benchmarkName)
       val result = ReportBenchmarksStatistics.createResult(
@@ -223,7 +219,7 @@ class NativeExecutor(
     start: () -> Unit,
     complete: () -> Unit
   ) {
-    println("Running Native benchmarks $action")
+    //println("Running Native benchmarks $action")
     when (action) {
       "--list"          -> outputBenchmarks(runnerConfiguration, benchmarks, start)
       "--store-results" -> storeResults(benchmarks, complete)
