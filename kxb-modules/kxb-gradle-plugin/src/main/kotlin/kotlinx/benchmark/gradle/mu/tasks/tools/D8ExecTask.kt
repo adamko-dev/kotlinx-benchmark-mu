@@ -10,9 +10,11 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.NAME_ONLY
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
+import org.gradle.work.DisableCachingByDefault
 
 
 @KotlinxBenchmarkPluginInternalApi
+@DisableCachingByDefault(because = "wip")
 abstract class D8ExecTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
