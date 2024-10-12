@@ -201,75 +201,14 @@ constructor(private val name: String) : Named {
 //        threadGroups = config.threadGroups,
 //        opsPerInvocation = config.opsPerInvocation,
         resultTimeUnit = config.resultTimeUnit.orNull
-//      ?.let {
-//      when (it) {
-//        ResultTimeUnit.Minutes      -> RunnerConfiguration.ReportTimeUnit.Minutes
-//        ResultTimeUnit.Microseconds -> RunnerConfiguration.ReportTimeUnit.Microseconds
-//        ResultTimeUnit.Milliseconds -> RunnerConfiguration.ReportTimeUnit.Milliseconds
-//        ResultTimeUnit.Nanoseconds  -> RunnerConfiguration.ReportTimeUnit.Nanoseconds
-//        ResultTimeUnit.Seconds      -> RunnerConfiguration.ReportTimeUnit.Seconds
-//        is ResultTimeUnit.Custom    -> TODO()
-//      }
-//    }
         mode = config.mode.orNull
-        /*?.let {
-        when (it) {
-          BenchmarkMode.All            -> RunnerConfiguration.Mode.All
-          BenchmarkMode.AverageTime    -> RunnerConfiguration.Mode.AverageTime
-          is BenchmarkMode.Custom      -> TODO()
-          BenchmarkMode.SampleTime     -> RunnerConfiguration.Mode.SampleTime
-          BenchmarkMode.SingleShotTime -> RunnerConfiguration.Mode.SingleShotTime
-          BenchmarkMode.Throughput     -> RunnerConfiguration.Mode.Throughput
-        }
-      }*/
-//    profilers = config.profilers.orNull,
+//    profilers = config.profilers.orNull
         resultFormat = config.resultFormat.get()
-//      .let {
-//      when (it) {
-//        ResultFormat.CSV       -> RunnerConfiguration.ResultFormat.CSV
-//        ResultFormat.JSON      -> RunnerConfiguration.ResultFormat.JSON
-//        ResultFormat.SCSV      -> RunnerConfiguration.ResultFormat.SCSV
-//        ResultFormat.Text      -> RunnerConfiguration.ResultFormat.Text
-//        is ResultFormat.Custom -> TODO()
-//      }
-//    }
         jvmArgs += config.jvmArgs.orNull.orEmpty()
         parameters += config.parameters.orNull.orEmpty()
 //    advanced = config.advanced.orNull.orEmpty(),
         enableJsBridge = config.enableJsBridge.orNull
       }.encodeToJson()
-
-////  val file = Files.createTempFile("benchmarks", "txt").toFile()
-//  return buildString {
-//    appendLine("name:$name")
-//    appendLine("reportFile:$reportFile")
-//    appendLine("traceFormat:$traceFormat")
-//    config.reportFormat.orNull?.let { appendLine("reportFormat:${it.format}") }
-//    config.iterations.orNull?.let { appendLine("iterations:$it") }
-//    config.warmups.orNull?.let { appendLine("warmups:$it") }
-//    config.iterationDuration.orNull?.let {
-//      appendLine("iterationTime:${it.inWholeMilliseconds}")
-//      appendLine("iterationTimeUnit:${DurationUnit.MILLISECONDS}")
-//    }
-//    config.reportTimeUnit.orNull?.let { appendLine("outputTimeUnit:${it.unit}") }
-//
-//    config.mode.orNull?.let { appendLine("mode:${it.id}") }
-//
-//    config.includes.orNull?.forEach {
-//      appendLine("include:$it")
-//    }
-//    config.excludes.orNull?.forEach {
-//      appendLine("exclude:$it")
-//    }
-//    config.params.orNull?.forEach { (param, values) ->
-//      values.forEach { value ->
-//        appendLine("param:$param=$value")
-//      }
-//    }
-//    config.advanced.orNull?.forEach { (param, value) ->
-//      appendLine("advanced:$param=$value")
-//    }
-//  }
     }
 
     private fun validateConfig(config: BenchmarkRunSpec) {
