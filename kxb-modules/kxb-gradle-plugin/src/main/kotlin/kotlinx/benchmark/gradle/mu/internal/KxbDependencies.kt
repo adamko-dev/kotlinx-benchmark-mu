@@ -75,13 +75,6 @@ internal class KxbDependencies(
             )
           }
         )
-//        addLater(
-//          benchmarksExtension.versions.benchmarksGenerator.map { version ->
-//            project.dependencies.create(
-//              "dev.adamko.kotlinx-benchmark-mu:kxb-runner-jvm:$version"
-//            )
-//          }
-//        )
         addLater(
           benchmarksExtension.versions.benchmarksGenerator.map { version ->
             project.dependencies.create(
@@ -96,13 +89,6 @@ internal class KxbDependencies(
             )
           }
         )
-//        addLater(
-//          benchmarksExtension.versions.jmh.map { version ->
-//            project.dependencies.create(
-//              "org.openjdk.jmh:jmh-core:$version"
-//            )
-//          }
-//        )
       }
     }
 
@@ -122,11 +108,13 @@ internal class KxbDependencies(
     private fun ConfigurationContainer.createResolver(
       name: String,
       configure: Configuration.() -> Unit
-    ): Configuration =
-      // The name has a dot, to prevent Gradle from generating a Kotlin DSL accessor.
-      create("$name.internal") {
+    ): Configuration {
+      // The name has a tilde ~, so generated accessors require backticks to escape the name,
+      // to discourage users from using it.
+      return create("$name~internal") {
         resolvable()
         configure()
       }
+    }
   }
 }

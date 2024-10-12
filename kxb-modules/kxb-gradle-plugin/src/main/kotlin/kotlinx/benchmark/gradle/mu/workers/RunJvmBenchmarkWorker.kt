@@ -1,8 +1,6 @@
 package kotlinx.benchmark.gradle.mu.workers
 
 import kotlinx.benchmark.RunnerConfiguration
-import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
-import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlinx.benchmark.jvm.runJvmBenchmark
 import org.gradle.api.file.ConfigurableFileCollection
@@ -12,11 +10,9 @@ import org.gradle.api.provider.Property
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 
-@KotlinxBenchmarkPluginInternalApi
 internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker.Parameters> {
 
-  @KotlinxBenchmarkPluginInternalApi
-  interface Parameters : WorkParameters {
+  internal interface Parameters : WorkParameters {
     val config: Property<String>
     val classpath: ConfigurableFileCollection
     val enableDemoMode: Property<Boolean>
@@ -92,7 +88,6 @@ internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker
 //      }
 //  }
 
-  @KotlinxBenchmarkPluginInternalApi
   companion object {
     private val logger: Logger = Logging.getLogger(RunJvmBenchmarkWorker::class.java)
   }

@@ -50,7 +50,12 @@ enum class Platform(
 
 
 @KotlinxBenchmarkGeneratorInternalApi
-class SuiteSourceGenerator(val title: String, val module: ModuleDescriptor, val output: File, val platform: Platform) {
+class SuiteSourceGenerator(
+  val title: String,
+  val module: ModuleDescriptor,
+  val output: File,
+  val platform: Platform,
+) {
 
   @KotlinxBenchmarkGeneratorInternalApi
   @Suppress("ConstPropertyName")

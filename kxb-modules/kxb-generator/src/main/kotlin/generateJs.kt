@@ -45,10 +45,10 @@ private fun generateSources(
   )
   modules.forEach { module ->
     val generator = SuiteSourceGenerator(
-      title,
-      module,
-      outputSourcesDir,
-      if (useBenchmarkJs) Platform.JsBenchmarkJs else Platform.JsBuiltIn
+      title = title,
+      module = module,
+      output = outputSourcesDir,
+      platform = if (useBenchmarkJs) Platform.JsBenchmarkJs else Platform.JsBuiltIn
     )
     generator.generate()
   }

@@ -16,10 +16,8 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.Logging
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation.Companion.MAIN_COMPILATION_NAME
@@ -27,7 +25,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.js
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.wasm
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
-import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.plugin.mpp.Executable
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
@@ -36,15 +33,12 @@ import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrCompilation
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.npm.npmProject
 import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
-import org.jetbrains.kotlin.tooling.core.KotlinToolingVersion
 
 
 /**
  * Automatically register Kotlin source sets as Benchmark targets.
  */
 internal abstract class KxbKotlinAdapter @Inject constructor(
-  private val objects: ObjectFactory,
-  private val providers: ProviderFactory,
   private val layout: ProjectLayout,
 ) : Plugin<Project> {
 
@@ -94,7 +88,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
         val jsTargets = kotlinExtension.targets.withType<KotlinJsIrTarget>()
           .matching { it.platformType == js }
         jsTargets.all target@{
-          createKotlinJsBenchmarkTarget(kxbExtension, kotlinExtension, this@target)
+          createKotlinJsBenchmarkTarget(kxbExtension, this@target)
         }
 
         val wasmJsTargets = kotlinExtension.targets.withType<KotlinJsIrTarget>()
@@ -212,7 +206,6 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
   private fun createKotlinJsBenchmarkTarget(
     kxbExtension: BenchmarkExtension,
-    kotlinExtension: KotlinMultiplatformExtension,
     target: KotlinJsIrTarget,
   ) {
     val mainCompilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
@@ -231,7 +224,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
       target.compilations.create(buildName("benchmark", target.name, BENCHMARK_COMPILATION_SUFFIX)) {
 
         defaultSourceSet {
-          // benchmarks compilations don't need resources, so remove resource srcDirs to avoid unnecessary dirs         // TODO why set resources to empty?
+          // benchmarks compilations don't need resources, so remove resource srcDirs to avoid unnecessary dirs
           resources.setSrcDirs(emptyList<File>())
 
           dependencies {
@@ -322,6 +315,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
   private fun registerWasmTarget(kotlinTarget: KotlinTarget) {
     val mainCompilation = kotlinTarget.compilations.getByName(MAIN_COMPILATION_NAME)
+    println("TODO implement wasm... $mainCompilation")
   }
 
 
@@ -351,12 +345,12 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
         }
       }
 
-    /** Get the version of the Kotlin Gradle Plugin currently used to compile the project */
-    // Must be lazy, else tests fail (because the KGP plugin isn't accessible)
-    internal val currentKotlinToolingVersion: KotlinToolingVersion by lazy {
-      val kgpVersion = getKotlinPluginVersion(logger)
-      KotlinToolingVersion(kgpVersion)
-    }
+//    /** Get the version of the Kotlin Gradle Plugin currently used to compile the project */
+//    // Must be lazy, else tests fail (because the KGP plugin isn't accessible)
+//    internal val currentKotlinToolingVersion: KotlinToolingVersion by lazy {
+//      val kgpVersion = getKotlinPluginVersion(logger)
+//      KotlinToolingVersion(kgpVersion)
+//    }
   }
 }
 

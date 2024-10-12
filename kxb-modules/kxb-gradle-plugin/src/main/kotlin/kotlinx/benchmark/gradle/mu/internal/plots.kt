@@ -2,39 +2,39 @@ package kotlinx.benchmark.gradle.mu.internal
 
 import java.util.*
 import kotlin.math.roundToInt
-import kotlin.random.Random
-import kotlin.random.nextInt
-
-fun main() {
-  val data = mapOf(
-    "A" to 10.0,
-    "B" to 20.5,
-    "C" to 15.75,
-    "D" to 30.0,
-    "E" to 25.3,
-  )
-
-  val plot = barPlot(
-    data = data,
-  )
-  println(plot)
-
-
-  println("\n" + "-".repeat(10) + "\n")
-
-  val bins =
-    List(Random.nextInt(5..50)) { Random.nextInt(5..50) }.let {
-      KBins(it, avg = Random.nextInt(5..50), peak = 50)
-    }
-//    KBins(listOf(1, 3, 5, 7, 9, 11, 13, 15), avg = 3, peak = 15)
-//  val result = histogram(bins)
-  println(histogram(bins))
-
-  println("\n" + "-".repeat(10) + "\n")
-
-  println(histogram(KBins(listOf(1, 3, 5, 7, 9, 11, 13, 15), avg = 3, peak = 15)))
-//  result.forEach { println(it) }
-}
+//import kotlin.random.Random
+//import kotlin.random.nextInt
+//
+//fun main() {
+//  val data = mapOf(
+//    "A" to 10.0,
+//    "B" to 20.5,
+//    "C" to 15.75,
+//    "D" to 30.0,
+//    "E" to 25.3,
+//  )
+//
+//  val plot = barPlot(
+//    data = data,
+//  )
+//  println(plot)
+//
+//
+//  println("\n" + "-".repeat(10) + "\n")
+//
+//  val bins =
+//    List(Random.nextInt(5..50)) { Random.nextInt(5..50) }.let {
+//      KBins(it, avg = Random.nextInt(5..50), peak = 50)
+//    }
+////    KBins(listOf(1, 3, 5, 7, 9, 11, 13, 15), avg = 3, peak = 15)
+////  val result = histogram(bins)
+//  println(histogram(bins))
+//
+//  println("\n" + "-".repeat(10) + "\n")
+//
+//  println(histogram(KBins(listOf(1, 3, 5, 7, 9, 11, 13, 15), avg = 3, peak = 15)))
+////  result.forEach { println(it) }
+//}
 
 internal class KBins(val bins: List<Int>, val avg: Int, val peak: Int)
 

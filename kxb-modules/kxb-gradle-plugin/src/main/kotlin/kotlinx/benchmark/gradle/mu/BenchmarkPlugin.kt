@@ -356,9 +356,12 @@ constructor(
     }
   }
 
+
+  //region workaround for https://github.com/gradle/gradle/issues/23708
   private fun RegularFileProperty.convention(value: File): RegularFileProperty =
     convention(objects.fileProperty().fileValue(value))
 
   private fun DirectoryProperty.convention(value: File): DirectoryProperty =
     convention(objects.directoryProperty().fileValue(value))
+  //endregion
 }
