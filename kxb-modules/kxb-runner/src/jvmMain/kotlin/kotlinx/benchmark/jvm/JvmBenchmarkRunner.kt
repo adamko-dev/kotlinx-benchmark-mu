@@ -16,10 +16,7 @@ import kotlinx.benchmark.readFile
 import org.openjdk.jmh.annotations.Mode
 import org.openjdk.jmh.infra.BenchmarkParams
 import org.openjdk.jmh.infra.IterationParams
-import org.openjdk.jmh.results.BenchmarkResult
-import org.openjdk.jmh.results.IterationResult
-import org.openjdk.jmh.results.IterationResultMetaData
-import org.openjdk.jmh.results.RunResult
+import org.openjdk.jmh.results.*
 import org.openjdk.jmh.results.format.ResultFormatFactory
 import org.openjdk.jmh.results.format.ResultFormatType
 import org.openjdk.jmh.runner.IterationType
@@ -180,11 +177,7 @@ fun runJvmBenchmark(
   val reporter = BenchmarkProgress.create(config.progressReporting ?: ProgressReporting.Stdout)
   val output = JmhOutputFormat(reporter, config.name)
   try {
-    val runner = if (demoMode) {
-      FakeRunner(jmhOptions.build(), output)
-    } else {
-      Runner(jmhOptions.build(), output)
-    }
+    val runner = jmhRunner(jmhOptions, output, demoMode)
     runner.list()
     val results = runner.run()
     val resultFormat = ResultFormatFactory.getInstance(reportFormat, PrintStream(File(config.resultFilePath)))
@@ -199,6 +192,17 @@ fun runJvmBenchmark(
     )
   }
 }
+
+private fun jmhRunner(
+  jmhOptions: OptionsBuilder,
+  output: OutputFormat,
+  demoMode: Boolean,
+): Runner =
+  if (demoMode) {
+    FakeRunner(jmhOptions.build(), output)
+  } else {
+    Runner(jmhOptions.build(), output)
+  }
 
 /*
 private fun Collection<RunResult>.toReportBenchmarkResult(): Collection<ReportBenchmarkResult> = map { result ->
@@ -243,6 +247,10 @@ internal class FakeRunner private constructor(
 
   constructor(options: Options, out: OutputFormat) : this(options, Out(out))
 
+  /**
+   * JMH [OutputFormat] that wraps an existing [format],
+   * and intercepts all printed data and stores it in [captured].
+   */
   class Out(val format: OutputFormat) : OutputFormat by format {
     val captured = mutableListOf<String>()
     override fun println(s: String) {
@@ -256,7 +264,7 @@ internal class FakeRunner private constructor(
 //    format.captured.clear()
     super.list()
     super.listWithParams(CommandLineOptions())
-    println(format.captured.joinToString("\n") { " - $it" })
+    println("captured: \n" + format.captured.joinToString("\n") { " - $it" })
 //    val res = super.run()
 //    println(res.joinToString("\n") {
 //      "result -- $it - ${it.primaryResult.extendedInfo()} - "
@@ -290,16 +298,51 @@ internal class FakeRunner private constructor(
     return listOf(
       RunResult(
         params,
-        format.captured.map { c ->
-          BenchmarkResult(
-            params,
-            listOf(
-              IterationResult(
+        buildList {
+//          add(
+//            BenchmarkResult(
+//              params,
+//              listOf(
+//                IterationResult(
+//                  params,
+//                  IterationParams(IterationType.MEASUREMENT, 1, TimeValue.nanoseconds(1), 1),
+//                  IterationResultMetaData(0, 0),
+//                )
+//              )
+//            )
+//          )
+          addAll(
+            format.captured.map { c ->
+              BenchmarkResult(
                 params,
-                IterationParams(IterationType.MEASUREMENT, 1, TimeValue.nanoseconds(1), 1),
-                IterationResultMetaData(0, 0),
+                listOf(
+                  IterationResult(
+                    params,
+                    IterationParams(IterationType.MEASUREMENT, 1, TimeValue.nanoseconds(1), 1),
+                    IterationResultMetaData(0, 0),
+                  ).apply {
+                    addResult(
+                      ThroughputResult(
+                        ResultRole.PRIMARY,
+                        "result label",
+                        100.0,
+                        50,
+                        TimeUnit.MILLISECONDS,
+                      )
+                    )
+                    addResult(
+                      ThroughputResult(
+                        ResultRole.SECONDARY,
+                        "sec result label",
+                        100.0,
+                        50,
+                        TimeUnit.MILLISECONDS,
+                      )
+                    )
+                  }
+                )
               )
-            )
+            }
           )
         }
       )
