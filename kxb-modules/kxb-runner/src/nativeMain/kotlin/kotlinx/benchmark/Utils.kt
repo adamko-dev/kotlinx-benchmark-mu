@@ -10,18 +10,21 @@ import platform.posix.*
 internal actual fun Double.format(precision: Int, useGrouping: Boolean): String {
   val longPart = toLong()
   val fractional = this - longPart
-  val thousands =
-    if (useGrouping) longPart.toString().replace(Regex("\\B(?=(\\d{3})+(?!\\d))"), ",")
-    else longPart.toString()
-  if (precision == 0)
-    return thousands
-
-  return memScoped {
-    val bytes = allocArray<ByteVar>(100)
-    sprintf(bytes, "%.${precision}f", fractional)
-    val fractionText = bytes.toKString()
-    thousands + fractionText.removePrefix("0")
+  val thousands = if (useGrouping) {
+    longPart.toString().replace(Regex("\\B(?=(\\d{3})+(?!\\d))"), ",")
+  } else {
+    longPart.toString()
   }
+  if (precision == 0) {
+    return thousands
+  }
+
+  val fractionText = memScoped {
+    val bytes = allocArray<ByteVar>(length = precision * Char.SIZE_BYTES + 2)
+    sprintf(bytes, "%.${precision}f", fractional)
+    bytes.toKString()
+  }
+  return thousands + fractionText.removePrefix("0")
 }
 
 internal actual fun String.writeFile(text: String) {
