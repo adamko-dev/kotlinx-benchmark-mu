@@ -1,6 +1,7 @@
-package kotlinx.benchmark.gradle.mu.tasks
+package kotlinx.benchmark.gradle.mu.tasks.run
 
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
+import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input

@@ -1,7 +1,8 @@
-package kotlinx.benchmark.gradle.mu.tasks
+package kotlinx.benchmark.gradle.mu.tasks.generate
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
+import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import kotlinx.benchmark.gradle.mu.workers.GenerateWasmSourceWorker
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty

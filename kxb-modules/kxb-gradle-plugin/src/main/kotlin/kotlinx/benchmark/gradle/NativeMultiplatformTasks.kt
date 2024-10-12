@@ -12,7 +12,7 @@ import java.nio.file.Path
 import javax.inject.Inject
 import kotlin.io.path.*
 import kotlinx.benchmark.gradle.mu.config.NativeBenchmarkTarget
-import kotlinx.benchmark.gradle.mu.tasks.GenerateNativeBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateNativeBenchmarkTask
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.assign
 import org.gradle.work.DisableCachingByDefault

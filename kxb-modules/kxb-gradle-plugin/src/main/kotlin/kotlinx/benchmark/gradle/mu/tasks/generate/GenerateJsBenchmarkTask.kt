@@ -1,16 +1,19 @@
-package kotlinx.benchmark.gradle.mu.tasks
+package kotlinx.benchmark.gradle.mu.tasks.generate
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.workers.GenerateNativeSourceWorker
+import kotlinx.benchmark.gradle.mu.config.JsBenchmarksExecutor
+import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
+import kotlinx.benchmark.gradle.mu.workers.GenerateJsSourceWorker
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.submit
 
 @CacheableTask
-abstract class GenerateNativeBenchmarkTask
+abstract class GenerateJsBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
 constructor() : BaseBenchmarkTask() {
@@ -21,12 +24,6 @@ constructor() : BaseBenchmarkTask() {
   @get:OutputDirectory
   abstract val generatedResources: DirectoryProperty
 
-  @get:Input
-  abstract val title: Property<String>
-
-  @get:Input
-  abstract val targetName: Property<String>
-
   @get:Classpath
   abstract val inputClasses: ConfigurableFileCollection
 
@@ -36,19 +33,25 @@ constructor() : BaseBenchmarkTask() {
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
 
+  @get:Input
+  abstract val benchmarksExecutor: Property<JsBenchmarksExecutor>
+
+  @get:Input
+  abstract val title: Property<String>
+
   @TaskAction
   protected fun generate() {
     val workQueue = workers.classLoaderIsolation {
       classpath.from(runtimeClasspath)
     }
 
-    workQueue.submit(GenerateNativeSourceWorker::class) {
-      this.title.set(this@GenerateNativeBenchmarkTask.title)
-      this.target.set(this@GenerateNativeBenchmarkTask.targetName)
-      this.inputClasses.from(this@GenerateNativeBenchmarkTask.inputClasses)
-      this.inputDependencies.from(this@GenerateNativeBenchmarkTask.inputDependencies)
-      this.outputSourcesDir.set(this@GenerateNativeBenchmarkTask.generatedSources)
-      this.outputResourcesDir.set(this@GenerateNativeBenchmarkTask.generatedResources)
+    workQueue.submit(GenerateJsSourceWorker::class) {
+      this.title = this@GenerateJsBenchmarkTask.title
+      this.benchmarksExecutor = this@GenerateJsBenchmarkTask.benchmarksExecutor
+      this.inputClasses.from(this@GenerateJsBenchmarkTask.inputClasses)
+      this.inputDependencies = this@GenerateJsBenchmarkTask.inputDependencies
+      this.outputResourcesDir = this@GenerateJsBenchmarkTask.generatedResources
+      this.outputSourcesDir = this@GenerateJsBenchmarkTask.generatedSources
     }
 
     workQueue.await()

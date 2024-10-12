@@ -14,7 +14,10 @@ import kotlinx.benchmark.gradle.mu.internal.adapters.KxbJavaAdapter
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbKotlinAdapter
 import kotlinx.benchmark.gradle.mu.internal.utils.buildName
 import kotlinx.benchmark.gradle.mu.internal.utils.toBoolean
-import kotlinx.benchmark.gradle.mu.tasks.*
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJsBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJvmBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateNativeBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.run.*
 import kotlinx.benchmark.gradle.mu.tasks.tools.D8SetupTask
 import kotlinx.benchmark.gradle.mu.tasks.tools.NodeJsSetupTask
 import kotlinx.benchmark.gradle.mu.tooling.Platform

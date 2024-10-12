@@ -1,4 +1,4 @@
-package kotlinx.benchmark.gradle.mu.tasks
+package kotlinx.benchmark.gradle.mu.tasks.run
 
 import javax.inject.Inject
 import kotlin.io.encoding.Base64

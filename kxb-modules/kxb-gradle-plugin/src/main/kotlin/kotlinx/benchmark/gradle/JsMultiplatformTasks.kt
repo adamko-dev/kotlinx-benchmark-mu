@@ -2,7 +2,7 @@ package kotlinx.benchmark.gradle
 
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.JsBenchmarkTarget
-import kotlinx.benchmark.gradle.mu.tasks.GenerateJsBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJsBenchmarkTask
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.assign
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind

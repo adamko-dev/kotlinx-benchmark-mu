@@ -8,7 +8,7 @@ import org.gradle.api.tasks.compile.*
 import org.gradle.jvm.tasks.*
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
 import kotlinx.benchmark.gradle.mu.config.JvmBenchmarkTarget
-import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJvmBenchmarkTask
 import org.gradle.kotlin.dsl.register
 
 internal fun Project.createJvmBenchmarkCompileTask(target: JvmBenchmarkTarget, compileClasspath: FileCollection) {

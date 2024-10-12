@@ -2,7 +2,7 @@ package kotlinx.benchmark.gradle
 
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.WasmBenchmarkTarget
-import kotlinx.benchmark.gradle.mu.tasks.GenerateWasmBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateWasmBenchmarkTask
 import org.gradle.api.*
 import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.ir.*

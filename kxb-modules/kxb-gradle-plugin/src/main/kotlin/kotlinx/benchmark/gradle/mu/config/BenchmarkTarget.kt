@@ -5,9 +5,9 @@ import kotlin.collections.set
 import kotlinx.benchmark.gradle.BenchmarksPlugin
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.internal.utils.buildName
-import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
-import kotlinx.benchmark.gradle.mu.tasks.GenerateJsBenchmarkTask
-import kotlinx.benchmark.gradle.mu.tasks.GenerateNativeBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJvmBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJsBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateNativeBenchmarkTask
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
