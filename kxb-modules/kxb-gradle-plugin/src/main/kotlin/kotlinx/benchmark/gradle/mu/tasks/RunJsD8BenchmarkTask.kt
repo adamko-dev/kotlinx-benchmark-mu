@@ -52,7 +52,7 @@ constructor() : RunBenchmarkBaseTask() {
 //  abstract val mainClass: Property<String>
 
   @TaskAction
-  fun action() {
+  protected fun action() {
 
   }
 }

@@ -7,7 +7,6 @@ import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.BENCHMARK_PLU
 import kotlinx.benchmark.gradle.internal.BenchmarksPluginConstants.JMH_DEFAULT_VERSION
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
-import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget.Kotlin.Native.ForkMode
 import kotlinx.benchmark.gradle.mu.config.tools.D8ToolSpec
 import kotlinx.benchmark.gradle.mu.internal.KxbDependencies
 import kotlinx.benchmark.gradle.mu.internal.KxbTasks
@@ -214,13 +213,13 @@ constructor(
       generatedSources.convention(temporaryDir.resolve("generated-sources"))
     }
 
-    project.tasks.withType<JsSourceGeneratorTask>().configureEach {
+    project.tasks.withType<GenerateJsBenchmarkTask>().configureEach {
       runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
       generatedResources.convention(temporaryDir.resolve("generated-resources"))
       generatedSources.convention(temporaryDir.resolve("generated-sources"))
     }
 
-    project.tasks.withType<NativeSourceGeneratorTask>().configureEach {
+    project.tasks.withType<GenerateNativeBenchmarkTask>().configureEach {
       runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
       generatedResources.convention(temporaryDir.resolve("generated-resources"))
       generatedSources.convention(temporaryDir.resolve("generated-sources"))

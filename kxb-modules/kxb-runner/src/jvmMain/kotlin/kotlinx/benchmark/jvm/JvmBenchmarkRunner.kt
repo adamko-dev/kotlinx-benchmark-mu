@@ -264,28 +264,28 @@ internal class FakeRunner private constructor(
 
     val params = BenchmarkParams(
       //@formatter:off
-        /*         benchmark = */ "benchmark...",
-        /*   generatedTarget = */ "generatedTarget",
-        /*   synchIterations = */ options.shouldSyncIterations().orElse(false),
-        /*           threads = */ 1,
-        /*      threadGroups = */ intArrayOf(),
-        /* threadGroupLabels = */ emptyList(),
-        /*             forks = */ 1,
-        /*       warmupForks = */ 0,
-        /*            warmup = */ IterationParams(IterationType.WARMUP, 0, TimeValue.nanoseconds(0), 0),
-        /*       measurement = */ IterationParams(IterationType.MEASUREMENT, 1, TimeValue.nanoseconds(1), 1),
-        /*              mode = */ Mode.AverageTime,
-        /*            params = */ WorkloadParams(),
-        /*          timeUnit = */ TimeUnit.MINUTES,
-        /*  opsPerInvocation = */ 1,
-        /*               jvm = */ "",
-        /*           jvmArgs = */ emptyList(),
-        /*        jdkVersion = */ "1",
-        /*            vmName = */ "vmName",
-        /*         vmVersion = */ "vmVersion",
-        /*        jmhVersion = */ "jmhVersion",
-        /*           timeout = */ TimeValue.minutes(1),
-        //@formatter:on
+      /*         benchmark = */ "benchmark...",
+      /*   generatedTarget = */ "generatedTarget",
+      /*   synchIterations = */ options.shouldSyncIterations().orElse(false),
+      /*           threads = */ 1,
+      /*      threadGroups = */ intArrayOf(),
+      /* threadGroupLabels = */ emptyList(),
+      /*             forks = */ 1,
+      /*       warmupForks = */ 0,
+      /*            warmup = */ IterationParams(IterationType.WARMUP, 0, TimeValue.nanoseconds(0), 0),
+      /*       measurement = */ IterationParams(IterationType.MEASUREMENT, 1, TimeValue.nanoseconds(1), 1),
+      /*              mode = */ Mode.AverageTime,
+      /*            params = */ WorkloadParams(),
+      /*          timeUnit = */ TimeUnit.MINUTES,
+      /*  opsPerInvocation = */ 1,
+      /*               jvm = */ "",
+      /*           jvmArgs = */ emptyList(),
+      /*        jdkVersion = */ "1",
+      /*            vmName = */ "vmName",
+      /*         vmVersion = */ "vmVersion",
+      /*        jmhVersion = */ "jmhVersion",
+      /*           timeout = */ TimeValue.minutes(1),
+      //@formatter:on
     )
     return listOf(
       RunResult(
@@ -301,7 +301,8 @@ internal class FakeRunner private constructor(
               )
             )
           )
-        })
+        }
+      )
     )
   }
 }

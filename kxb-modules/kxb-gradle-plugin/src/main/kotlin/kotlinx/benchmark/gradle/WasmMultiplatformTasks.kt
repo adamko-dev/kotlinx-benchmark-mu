@@ -2,7 +2,7 @@ package kotlinx.benchmark.gradle
 
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.WasmBenchmarkTarget
-import kotlinx.benchmark.gradle.mu.tasks.WasmSourceGeneratorTask
+import kotlinx.benchmark.gradle.mu.tasks.GenerateWasmBenchmarkTask
 import org.gradle.api.*
 import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.ir.*
@@ -60,7 +60,7 @@ private fun Project.createWasmBenchmarkGenerateSourceTask(
     compilationOutput: KotlinJsIrCompilation
 ) {
 //    val benchmarkBuildDir = benchmarkBuildDir(target)
-    task<WasmSourceGeneratorTask>("${target.name}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}") {
+    task<GenerateWasmBenchmarkTask>("${target.name}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}") {
         group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
         description = "Generate Wasm source files for '${target.name}'"
 //        title = target.name

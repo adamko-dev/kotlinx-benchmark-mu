@@ -9,10 +9,16 @@ import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.submit
 
 @CacheableTask
-abstract class WasmSourceGeneratorTask
+abstract class GenerateWasmBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
 constructor() : KxbBaseTask() {
+
+  @get:OutputDirectory
+  abstract val generatedSources: DirectoryProperty
+
+  @get:OutputDirectory
+  abstract val generatedResources: DirectoryProperty
 
   @get:Input
   abstract val title: String
@@ -23,27 +29,21 @@ constructor() : KxbBaseTask() {
   @get:Classpath
   abstract val inputDependencies: ConfigurableFileCollection
 
-  @get:OutputDirectory
-  abstract val outputResourcesDir: DirectoryProperty
-
-  @get:OutputDirectory
-  abstract val outputSourcesDir: DirectoryProperty
-
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
 
   @TaskAction
-  fun generate() {
+  protected fun generate() {
     val workQueue = workers.classLoaderIsolation {
       classpath.from(runtimeClasspath)
     }
 
     workQueue.submit(GenerateWasmSourceWorker::class) {
-      title.set(this@WasmSourceGeneratorTask.title)
-      inputClasses.from(this@WasmSourceGeneratorTask.inputClasses)
-      inputDependencies.from(this@WasmSourceGeneratorTask.inputDependencies)
-      outputSourcesDir.set(this@WasmSourceGeneratorTask.outputSourcesDir)
-      outputResourcesDir.set(this@WasmSourceGeneratorTask.outputResourcesDir)
+      title.set(this@GenerateWasmBenchmarkTask.title)
+      inputClasses.from(this@GenerateWasmBenchmarkTask.inputClasses)
+      inputDependencies.from(this@GenerateWasmBenchmarkTask.inputDependencies)
+      outputSourcesDir.set(this@GenerateWasmBenchmarkTask.generatedSources)
+      outputResourcesDir.set(this@GenerateWasmBenchmarkTask.generatedResources)
     }
   }
 }

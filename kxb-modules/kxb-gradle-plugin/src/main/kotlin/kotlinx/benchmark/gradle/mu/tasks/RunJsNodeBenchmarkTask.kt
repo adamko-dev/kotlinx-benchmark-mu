@@ -84,8 +84,6 @@ constructor() : RunBenchmarkBaseTask() {
     exec.exec {
       executable(nodeExecutable)
       args(benchmarkArgs)
-//      standardOutput = System.out
-//      errorOutput = System.err
     }
 
     logger.lifecycle("[$path] Finished running benchmark with Node")
@@ -117,34 +115,6 @@ constructor() : RunBenchmarkBaseTask() {
       add(benchmarkParameters)
     }
   }
-
-//  private fun createBenchmarkParametersFile(): File {
-//
-//    val benchmarkParameters = benchmarkParameters.get()
-//
-//    val reportFile = results.get().asFile.apply {
-//      parentFile.mkdirs()
-//    }
-//
-//    val runnerConfig = buildRunnerConfig(
-//      name = benchmarkParameters.name,
-//      reportFile = reportFile,
-//      config = benchmarkParameters,
-//      reporting = if (ideaActive.getOrElse(false)) ProgressReporting.IntelliJ else ProgressReporting.Stdout
-//    )
-//
-//    val benchmarkParametersFile = cacheDir.get().asFile.resolve("benchmarkParameters.json").apply {
-//      parentFile.mkdirs()
-//      writeText(runnerConfig)
-//    }
-//
-//    logger.lifecycle(
-//      "[$path] benchmarkParameters ${benchmarkParametersFile.toURI()}: " +
-//          benchmarkParametersFile.useLines { it.joinToString(" / ") }
-//    )
-//
-//    return benchmarkParametersFile
-//  }
 
   private fun encodeBenchmarkParameters(): String {
     val benchmarkParameters = benchmarkParameters.get()

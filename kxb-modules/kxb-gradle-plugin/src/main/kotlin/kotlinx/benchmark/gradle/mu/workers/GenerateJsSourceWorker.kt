@@ -14,7 +14,7 @@ import org.gradle.workers.WorkParameters
  *
  * This worker requires `kotlin-compiler-embeddable` and *must* be run in an isolated classpath.
  *
- * @see kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
+ * @see kotlinx.benchmark.gradle.mu.tasks.GenerateJsBenchmarkTask
  */
 internal abstract class GenerateJsSourceWorker : WorkAction<GenerateJsSourceWorker.Params> {
 

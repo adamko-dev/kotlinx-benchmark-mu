@@ -12,7 +12,7 @@ import java.nio.file.Path
 import javax.inject.Inject
 import kotlin.io.path.*
 import kotlinx.benchmark.gradle.mu.config.NativeBenchmarkTarget
-import kotlinx.benchmark.gradle.mu.tasks.NativeSourceGeneratorTask
+import kotlinx.benchmark.gradle.mu.tasks.GenerateNativeBenchmarkTask
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.kotlin.dsl.assign
 import org.gradle.work.DisableCachingByDefault
@@ -40,7 +40,7 @@ private fun generateSourceTaskName(target: NativeBenchmarkTarget) =
 
 private fun Project.createNativeBenchmarkGenerateSourceTask(target: NativeBenchmarkTarget) {
 //    val benchmarkBuildDir = benchmarkBuildDir(target)
-    task<NativeSourceGeneratorTask>(generateSourceTaskName(target)) {
+    task<GenerateNativeBenchmarkTask>(generateSourceTaskName(target)) {
         group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
         description = "Generate Native source files for '${target.name}'"
         val compilation = target.compilation

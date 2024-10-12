@@ -6,8 +6,8 @@ import kotlinx.benchmark.gradle.BenchmarksPlugin
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.internal.utils.buildName
 import kotlinx.benchmark.gradle.mu.tasks.GenerateJvmBenchmarkTask
-import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
-import kotlinx.benchmark.gradle.mu.tasks.NativeSourceGeneratorTask
+import kotlinx.benchmark.gradle.mu.tasks.GenerateJsBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.GenerateNativeBenchmarkTask
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -15,7 +15,6 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
-import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.assign
@@ -153,7 +152,7 @@ constructor(
 
       //    val benchmarkBuildDir = benchmarkBuildDir(target)
       val generatorTask =
-        project.tasks.register<JsSourceGeneratorTask>(
+        project.tasks.register<GenerateJsBenchmarkTask>(
           buildName("kxb", "Generate", targetName, "Benchmarks")
         ) {
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
@@ -189,7 +188,7 @@ constructor(
       }
 
       val generatorTask =
-        project.tasks.register<NativeSourceGeneratorTask>(
+        project.tasks.register<GenerateNativeBenchmarkTask>(
           buildName("kxbGenerate", targetName, "Benchmarks")
         ) {
           group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP

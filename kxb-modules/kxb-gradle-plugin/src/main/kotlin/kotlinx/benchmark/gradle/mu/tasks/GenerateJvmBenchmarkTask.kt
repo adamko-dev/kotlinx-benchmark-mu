@@ -32,17 +32,10 @@ constructor() : KxbBaseTask() {
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
 
-//    @Optional
-//    @Input
-//    var executableProvider: Provider<String> = project.provider { null }
-
   @TaskAction
-  fun generate() {
+  protected fun generate() {
     val workQueue = workers.classLoaderIsolation {
       classpath.from(runtimeClasspath)
-//            if (executableProvider.isPresent) {
-//              forkOptions.executable = executableProvider.get()
-//            }
     }
 
     workQueue.submit(JmhBytecodeGeneratorWorker::class) {

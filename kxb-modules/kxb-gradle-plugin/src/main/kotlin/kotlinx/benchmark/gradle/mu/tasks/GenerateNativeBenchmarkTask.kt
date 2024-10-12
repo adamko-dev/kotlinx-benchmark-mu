@@ -10,10 +10,16 @@ import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.submit
 
 @CacheableTask
-abstract class NativeSourceGeneratorTask
+abstract class GenerateNativeBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
 constructor() : KxbBaseTask() {
+
+  @get:OutputDirectory
+  abstract val generatedSources: DirectoryProperty
+
+  @get:OutputDirectory
+  abstract val generatedResources: DirectoryProperty
 
   @get:Input
   abstract val title: Property<String>
@@ -27,30 +33,22 @@ constructor() : KxbBaseTask() {
   @get:Classpath
   abstract val inputDependencies: ConfigurableFileCollection
 
-  @get:OutputDirectory
-  abstract val generatedResources: DirectoryProperty
-
-  @get:OutputDirectory
-  abstract val generatedSources: DirectoryProperty
-
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
 
   @TaskAction
-  fun generate() {
-//    val benchmarkTarget = benchmarkTarget.get()
-
+  protected fun generate() {
     val workQueue = workers.classLoaderIsolation {
       classpath.from(runtimeClasspath)
     }
 
     workQueue.submit(NativeSourceGeneratorWorker::class) {
-      this.title.set(this@NativeSourceGeneratorTask.title)
-      this.target.set(this@NativeSourceGeneratorTask.targetName)
-      this.inputClasses.from(this@NativeSourceGeneratorTask.inputClasses)
-      this.inputDependencies.from(this@NativeSourceGeneratorTask.inputDependencies)
-      this.outputSourcesDir.set(this@NativeSourceGeneratorTask.generatedSources)
-      this.outputResourcesDir.set(this@NativeSourceGeneratorTask.generatedResources)
+      this.title.set(this@GenerateNativeBenchmarkTask.title)
+      this.target.set(this@GenerateNativeBenchmarkTask.targetName)
+      this.inputClasses.from(this@GenerateNativeBenchmarkTask.inputClasses)
+      this.inputDependencies.from(this@GenerateNativeBenchmarkTask.inputDependencies)
+      this.outputSourcesDir.set(this@GenerateNativeBenchmarkTask.generatedSources)
+      this.outputResourcesDir.set(this@GenerateNativeBenchmarkTask.generatedResources)
     }
 
     workQueue.await()

@@ -12,31 +12,22 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.submit
 
 @CacheableTask
-abstract class JsSourceGeneratorTask
+abstract class GenerateJsBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
 constructor() : KxbBaseTask() {
 
-//  @get:Nested
-//  abstract val benchmarkTarget: Property<BenchmarkTarget.Kotlin.JS>
+  @get:OutputDirectory
+  abstract val generatedSources: DirectoryProperty
 
-//  @get:Input
-//  abstract val title: String
-
-//  @get:Input
-//  abstract val useBenchmarkJs: Boolean
+  @get:OutputDirectory
+  abstract val generatedResources: DirectoryProperty
 
   @get:Classpath
   abstract val inputClasses: ConfigurableFileCollection
 
   @get:Classpath
   abstract val inputDependencies: ConfigurableFileCollection
-
-  @get:OutputDirectory
-  abstract val generatedResources: DirectoryProperty
-
-  @get:OutputDirectory
-  abstract val generatedSources: DirectoryProperty
 
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection
@@ -48,20 +39,18 @@ constructor() : KxbBaseTask() {
   abstract val title: Property<String>
 
   @TaskAction
-  fun generate() {
-//    val benchmarkTarget = benchmarkTarget.get()
-
+  protected fun generate() {
     val workQueue = workers.classLoaderIsolation {
       classpath.from(runtimeClasspath)
     }
 
     workQueue.submit(GenerateJsSourceWorker::class) {
-      this.title = this@JsSourceGeneratorTask.title
-      this.benchmarksExecutor = this@JsSourceGeneratorTask.benchmarksExecutor
-      this.inputClasses.from(this@JsSourceGeneratorTask.inputClasses)
-      this.inputDependencies = this@JsSourceGeneratorTask.inputDependencies
-      this.outputResourcesDir = this@JsSourceGeneratorTask.generatedResources
-      this.outputSourcesDir = this@JsSourceGeneratorTask.generatedSources
+      this.title = this@GenerateJsBenchmarkTask.title
+      this.benchmarksExecutor = this@GenerateJsBenchmarkTask.benchmarksExecutor
+      this.inputClasses.from(this@GenerateJsBenchmarkTask.inputClasses)
+      this.inputDependencies = this@GenerateJsBenchmarkTask.inputDependencies
+      this.outputResourcesDir = this@GenerateJsBenchmarkTask.generatedResources
+      this.outputSourcesDir = this@GenerateJsBenchmarkTask.generatedSources
     }
 
     workQueue.await()

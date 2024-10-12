@@ -13,7 +13,7 @@ import org.gradle.workers.WorkParameters
  *
  * This worker requires `kotlin-compiler-embeddable` and *must* be run in an isolated classpath.
  *
- * @see kotlinx.benchmark.gradle.mu.tasks.WasmSourceGeneratorTask
+ * @see kotlinx.benchmark.gradle.mu.tasks.GenerateWasmBenchmarkTask
  */
 internal abstract class GenerateWasmSourceWorker : WorkAction<GenerateWasmSourceWorker.Params> {
 

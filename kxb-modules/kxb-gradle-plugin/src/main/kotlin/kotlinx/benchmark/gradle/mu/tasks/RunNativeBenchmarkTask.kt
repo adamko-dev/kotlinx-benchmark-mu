@@ -4,10 +4,7 @@ import java.nio.file.Path
 import javax.inject.Inject
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.io.path.bufferedWriter
-import kotlin.io.path.createTempFile
-import kotlin.io.path.readLines
-import kotlin.io.path.readText
+import kotlin.io.path.*
 import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
 import kotlinx.benchmark.gradle.absolutePath
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
@@ -95,7 +92,7 @@ constructor() : RunBenchmarkBaseTask() {
         this.errorOutput = System.err
       }
     } catch (ex: Exception) {
-      logger.error("[$path] allArgs: $allArgs")
+      logger.error("[$path] failed to run ${executable.get().asFile}, allArgs: $allArgs")
       throw ex
     }
   }
@@ -210,9 +207,9 @@ constructor() : RunBenchmarkBaseTask() {
     }
     // Merge results
     val samplesFile = createTempFile("bench_results")
-    samplesFile.bufferedWriter().use { out ->
-      out.write(runResults.toList().joinToString("\n") { "${it.first}: ${it.second}" })
-    }
+    samplesFile.writeText(
+      runResults.entries.joinToString("\n") { (k, v) -> "$k: $v" }
+    )
     execute(
       encodedBenchmarkParameters,
       StoreResults,

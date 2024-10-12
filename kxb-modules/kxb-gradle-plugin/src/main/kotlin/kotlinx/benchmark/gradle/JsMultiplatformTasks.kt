@@ -2,11 +2,10 @@ package kotlinx.benchmark.gradle
 
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.JsBenchmarkTarget
-import kotlinx.benchmark.gradle.mu.tasks.JsSourceGeneratorTask
+import kotlinx.benchmark.gradle.mu.tasks.GenerateJsBenchmarkTask
 import org.gradle.api.*
 import org.gradle.kotlin.dsl.assign
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
-import org.jetbrains.kotlin.gradle.targets.js.dsl.*
 import org.jetbrains.kotlin.gradle.targets.js.ir.*
 
 @KotlinxBenchmarkPluginInternalApi
@@ -74,7 +73,7 @@ private fun Project.createJsBenchmarkGenerateSourceTask(
     compilationOutput: KotlinJsIrCompilation
 ) {
 //    val benchmarkBuildDir = benchmarkBuildDir(target)
-    task<JsSourceGeneratorTask>("${target.name}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}") {
+    task<GenerateJsBenchmarkTask>("${target.name}${BenchmarksPlugin.BENCHMARK_GENERATE_SUFFIX}") {
         group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
         description = "Generate JS source files for '${target.name}'"
 //        title = target.name

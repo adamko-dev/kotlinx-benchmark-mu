@@ -25,7 +25,6 @@ constructor() : RunBenchmarkBaseTask() {
   @get:Nested
   abstract val benchmarkParameters: Property<BenchmarkRunSpec>
 
-  @KotlinxBenchmarkPluginInternalApi
   @get:Input
   abstract val mainClass: Property<String>
 
@@ -39,7 +38,7 @@ constructor() : RunBenchmarkBaseTask() {
   abstract val javaLauncher: Property<JavaLauncher>
 
   @TaskAction
-  fun action() {
+  protected fun action() {
     val benchmarkParameters = benchmarkParameters.get()
 
     val reportFile = temporaryDir.resolve("report.${benchmarkParameters.resultFormat.get().extension}")
