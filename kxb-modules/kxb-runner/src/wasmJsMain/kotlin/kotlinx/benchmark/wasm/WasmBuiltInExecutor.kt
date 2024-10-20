@@ -1,7 +1,10 @@
 package kotlinx.benchmark.wasm
 
-import kotlinx.benchmark.*
+import kotlinx.benchmark.BenchmarkConfiguration
+import kotlinx.benchmark.BenchmarkDescriptor
+import kotlinx.benchmark.CommonSuiteExecutor
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
+import kotlinx.benchmark.jsEngineSupport
 
 
 private external interface JsAny
@@ -10,31 +13,34 @@ private external interface JsAny
 private external fun jsId(p: JsAny): JsAny
 
 private fun id(p: Any): Any {
-    // TODO: Use dedicated type for passing Kotlin references to JS when it is available
-    @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
-    return jsId(p as JsAny)
+  // TODO: Use dedicated type for passing Kotlin references to JS when it is available
+  @Suppress("UNCHECKED_CAST_TO_EXTERNAL_INTERFACE")
+  return jsId(p as JsAny)
 }
 
 @KotlinxBenchmarkRuntimeInternalApi
 class WasmBuiltInExecutor(
-    name: String,
-    @Suppress("UNUSED_PARAMETER") dummy_args: Array<out String>
-) : CommonSuiteExecutor(name, jsEngineSupport.arguments()[0]) {
+  name: String,
+  @Suppress("UNUSED_PARAMETER") dummyArgs: Array<out String>
+) : CommonSuiteExecutor(
+  executionName = name,
+  encodedBenchmarkParameters = jsEngineSupport.arguments().firstOrNull() ?: error("Missing encodedBenchmarkParameters"),
+) {
 
 //    private val BenchmarkConfiguration.notUseJsBridge: Boolean
 //        get() = "false".equals(advanced["jsUseBridge"], ignoreCase = true)
 
-    @Suppress("UNCHECKED_CAST")
-    private fun createJsMeasurerBridge(originalMeasurer: () -> Long): () -> Long =
-        id(originalMeasurer) as (() -> Long)
+  @Suppress("UNCHECKED_CAST")
+  private fun createJsMeasurerBridge(originalMeasurer: () -> Long): () -> Long =
+    id(originalMeasurer) as (() -> Long)
 
-    override fun <T> createIterationMeasurer(
-        instance: T,
-        benchmark: BenchmarkDescriptor<T>,
-        configuration: BenchmarkConfiguration,
-        cycles: Int
-    ): () -> Long {
-        val measurer = super.createIterationMeasurer(instance, benchmark, configuration, cycles)
-        return if (configuration.enableJsBridge) measurer else createJsMeasurerBridge(measurer)
-    }
+  override fun <T> createIterationMeasurer(
+    instance: T,
+    benchmark: BenchmarkDescriptor<T>,
+    configuration: BenchmarkConfiguration,
+    cycles: Int
+  ): () -> Long {
+    val measurer = super.createIterationMeasurer(instance, benchmark, configuration, cycles)
+    return if (configuration.enableJsBridge) measurer else createJsMeasurerBridge(measurer)
+  }
 }

@@ -5,14 +5,12 @@ import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 @KotlinxBenchmarkRuntimeInternalApi
 abstract class CommonSuiteExecutor(
   executionName: String,
-  //configPath: String,
   encodedBenchmarkParameters: String,
   xmlReporter: (() -> BenchmarkProgress)? = null,
 ) : SuiteExecutor(
   executionName = executionName,
-  //configPath = configPath,
   encodedBenchmarkParameters = encodedBenchmarkParameters,
-  xmlReporter = xmlReporter
+  xmlReporter = xmlReporter,
 ) {
 
   private fun runBenchmark(

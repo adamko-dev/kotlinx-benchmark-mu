@@ -10,7 +10,7 @@ class JsBuiltInExecutor(
   dummyArgs: Array<out String>,
 ) : CommonSuiteExecutor(
   executionName = name,
-  encodedBenchmarkParameters = jsEngineSupport.arguments().first(),
+  encodedBenchmarkParameters = jsEngineSupport.arguments().firstOrNull() ?: error("Missing encodedBenchmarkParameters"),
 ) {
 
 //  private val BenchmarkConfiguration.notUseJsBridge: Boolean
