@@ -9,8 +9,8 @@ internal class ConsoleAndFilesOutputStream : OutputStream() {
     private var currentStream: OutputStream = System.out
     private val fileTag = "<FILE:"
     private val endFileTag = "<ENDFILE>"
-    private val openTag = '<'.toInt()
-    private val closeTag = '>'.toInt()
+    private val openTag = '<'.code
+    private val closeTag = '>'.code
     private var tagOpened = false
 
     private fun processTag(tag: String) {
