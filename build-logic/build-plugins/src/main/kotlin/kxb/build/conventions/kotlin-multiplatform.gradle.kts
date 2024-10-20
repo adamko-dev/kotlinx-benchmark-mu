@@ -15,19 +15,19 @@ kotlin {
   targets.withType<KotlinJvmTarget>().configureEach {
     @OptIn(ExperimentalKotlinGradlePluginApi::class)
     compilerOptions {
-      jvmTarget = JvmTarget.JVM_1_8
-      freeCompilerArgs.add("-Xjdk-release=1.8")
+      jvmTarget = JvmTarget.JVM_11
+      freeCompilerArgs.add("-Xjdk-release=11")
     }
   }
 }
 
 tasks.withType<KotlinJvmCompile>().configureEach {
   compilerOptions {
-    jvmTarget = JvmTarget.JVM_1_8
-    freeCompilerArgs.add("-Xjdk-release=1.8")
+    jvmTarget = JvmTarget.JVM_11
+    freeCompilerArgs.add("-Xjdk-release=11")
   }
 }
 
 tasks.withType<JavaCompile>().configureEach {
-  options.release = 8
+  options.release = 11
 }

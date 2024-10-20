@@ -2,8 +2,8 @@ package kotlinx.benchmark.gradle.mu.tasks.tools
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
+import kotlinx.benchmark.gradle.mu.internal.utils.Http
 import kotlinx.benchmark.gradle.mu.internal.utils.dropDirectories
-import kotlinx.benchmark.gradle.mu.internal.utils.get
 import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -34,12 +34,13 @@ constructor() : BaseBenchmarkTask() {
   @get:OutputDirectory
   abstract val installationDir: DirectoryProperty
 
-  @get:LocalState
+  @get:Internal
   abstract val cacheDir: DirectoryProperty
 
   @TaskAction
   protected fun action() {
-    fs.delete { delete(cacheDir) }
+    val downloadDir = cacheDir.get().asFile.resolve("download")
+    val cacheDir = cacheDir.get().asFile
 
     // https://nodejs.org/dist/v20.18.0/node-v20.18.0-darwin-arm64.tar.gz
     // https://nodejs.org/dist/v20.18.0/node-v20.18.0-win-x86.zip
@@ -51,22 +52,23 @@ constructor() : BaseBenchmarkTask() {
 //      URLEncoder.encode("v$version/node-v$version-$system-$arch.$archiveExtension", Charsets.UTF_8.name())
 
     val src = distDownloadUrl.get()
-    val dest = cacheDir.get().asFile.resolve(src.substringAfterLast("/"))
-    dest.parentFile.mkdirs()
+    val dest = downloadDir.resolve(src.substringAfterLast("/"))
+    val etagFile = cacheDir.resolve("etag.txt")
 
     logger.lifecycle("[$path] downloading NodeJS from $src into $dest")
 
-    ant.get(
+    val downloadedFile = Http.download(
       src = src,
       dest = dest,
+      etagFile = etagFile
     )
 
     fs.sync {
       from(
         when {
-          dest.name.endsWith(".zip")    -> archives.zipTree(dest)
-          dest.name.endsWith(".tar.gz") -> archives.tarTree(dest)
-          else                          -> error("Unsupported archive extension: $dest")
+          dest.name.endsWith(".zip")    -> archives.zipTree(downloadedFile)
+          dest.name.endsWith(".tar.gz") -> archives.tarTree(downloadedFile)
+          else                          -> error("Unsupported archive extension: $downloadedFile")
         }
       )
       into(installationDir)
@@ -81,6 +83,7 @@ constructor() : BaseBenchmarkTask() {
           }
         }
       }
+      includeEmptyDirs = false
     }
 
     @Suppress("UnstableApiUsage")

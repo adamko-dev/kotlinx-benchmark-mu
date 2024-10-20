@@ -4,7 +4,7 @@ import java.net.URI
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.config.tools.D8ToolSpec
-import kotlinx.benchmark.gradle.mu.internal.utils.get
+import kotlinx.benchmark.gradle.mu.internal.utils.Http
 import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -32,27 +32,31 @@ constructor() : BaseBenchmarkTask() {
   @get:OutputDirectory
   abstract val installationDir: DirectoryProperty
 
-  @get:LocalState
+  @get:Internal
   abstract val cacheDir: DirectoryProperty
 
   @TaskAction
   protected fun action() {
-    fs.delete { delete(cacheDir) }
+    val downloadDir = cacheDir.get().asFile.resolve("download")
+    val cacheDir = cacheDir.get().asFile
 
     // https://storage.googleapis.com/chromium-v8/official/canary/v8-win64-rel-11.4.28.zip
     val zipFilename = "v8-${platform.get()}-${edition.get()}-${version.get()}.zip"
     val src = downloadBaseUrl.get().resolve(zipFilename)
 
-    val dest = cacheDir.get().asFile.resolve(zipFilename)
+    val dest = downloadDir.resolve(zipFilename)
+    val etagFile = cacheDir.resolve("etag.txt")
 
-    ant.get(
+    val downloadedFile = Http.download(
       src = src.toASCIIString(),
       dest = dest,
+      etagFile = etagFile
     )
 
     fs.sync {
-      from(archives.zipTree(dest))
+      from(archives.zipTree(downloadedFile))
       into(installationDir)
+      includeEmptyDirs = false
     }
   }
 
