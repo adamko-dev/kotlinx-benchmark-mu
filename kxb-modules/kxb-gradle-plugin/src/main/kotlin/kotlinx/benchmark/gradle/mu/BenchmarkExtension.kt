@@ -34,15 +34,16 @@ constructor(
    * Benchmark source targets. E.g. for JVM, JS, or custom.
    */
   val targets: BenchmarkTargetsContainer =
-    extensions.adding(
-      "targets",
-      objects.benchmarkTargetsContainer()
-    )
+    extensions.adding("targets", objects.benchmarkTargetsContainer())
 
-  val versions: Versions = extensions.adding("versions", objects.newInstance())
+  val versions: Versions =
+    extensions.adding("versions", objects.newInstance())
 
   val jsTools: JsToolsExtension =
     extensions.adding("tools", objects.newInstance<JsToolsExtension>())
+
+  @KotlinxBenchmarkPluginInternalApi
+  abstract val kotlinJsNodeModulesDir: DirectoryProperty
 
   @KotlinxBenchmarkPluginInternalApi
   abstract val enableDemoMode: Property<Boolean>

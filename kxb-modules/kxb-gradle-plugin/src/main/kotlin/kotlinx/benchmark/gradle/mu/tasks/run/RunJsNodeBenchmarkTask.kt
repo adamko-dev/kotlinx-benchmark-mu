@@ -36,15 +36,9 @@ constructor() : RunBenchmarkBaseTask() {
   @get:PathSensitive(RELATIVE)
   abstract val nodeExecutable: RegularFileProperty
 
-//  @get:InputFile
-//  @get:PathSensitive(RELATIVE)
-////  @get:Optional
-//  //@get:NormalizeLineEndings
-//  abstract val module: RegularFileProperty
-
-  @get:InputFiles
+  @get:InputFile
   @get:PathSensitive(RELATIVE)
-  abstract val module: ConfigurableFileCollection
+  abstract val module: RegularFileProperty
 
   @get:Input
   abstract val sourceMapStackTraces: Property<Boolean>
@@ -66,7 +60,7 @@ constructor() : RunBenchmarkBaseTask() {
         [$path] running benchmark with Node...
             nodeExecutable:${nodeExecutable}
             benchmarkArgs:${benchmarkArgs}
-            module:${module.files}
+            module:${module.orNull}
       """.trimIndent()
     )
 
@@ -97,8 +91,7 @@ constructor() : RunBenchmarkBaseTask() {
       //}
 
       addAll(nodeJsArgs.orNull.orEmpty())
-
-      addAll(module.map { it.absoluteFile.canonicalFile.invariantSeparatorsPath })
+      add(module.get().asFile.canonicalFile.invariantSeparatorsPath)
 
       add(encodedBenchmarkParameters)
     }

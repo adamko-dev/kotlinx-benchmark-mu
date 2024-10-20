@@ -19,6 +19,14 @@ internal fun Configuration.resolvable() {
   isVisible = false
 }
 
+/** Mark this [Configuration] as one that will be used to provide dependencies. */
+internal fun Configuration.consumable() {
+  isCanBeDeclaredCompat = false
+  isCanBeResolved = false
+  isCanBeConsumed = true
+  isVisible = false
+}
+
 @Suppress("UnstableApiUsage")
 /** `true` if [Configuration.isCanBeDeclared] is supported by the current Gradle version. */
 private val isCanBeDeclaredSupported = CurrentGradleVersion >= "8.2"

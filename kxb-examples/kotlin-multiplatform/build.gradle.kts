@@ -1,4 +1,5 @@
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
@@ -28,8 +29,8 @@ kotlin {
   }
 //    wasm('wasmJs') { nodejs() }
 
-    // Native targets
-    macosX64()
+  // Native targets
+  macosX64()
 //    macosArm64()
 //    linuxX64()
 //    mingwX64()
@@ -137,9 +138,13 @@ benchmark {
 ////            jmhVersion = "1.21"
 //    }
 
+    named<BenchmarkTarget.Kotlin.JS>("js") {
+
+    }
 //        registerJs("js") {
 //
 //        }
+
 
 //        // This one matches source set name, e.g. 'jvmMain', 'jvmTest', etc
 //        // and register the corresponding compilation (here the 'benchmark' compilation declared in the 'jvm' target)

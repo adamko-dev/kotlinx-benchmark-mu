@@ -12,6 +12,7 @@ import kotlinx.benchmark.gradle.mu.internal.KxbDependencies
 import kotlinx.benchmark.gradle.mu.internal.KxbTasks
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbJavaAdapter
 import kotlinx.benchmark.gradle.mu.internal.adapters.KxbKotlinAdapter
+import kotlinx.benchmark.gradle.mu.internal.fetchKotlinJsNodeModulesDir
 import kotlinx.benchmark.gradle.mu.internal.utils.buildName
 import kotlinx.benchmark.gradle.mu.internal.utils.toBoolean
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJsBenchmarkTask
@@ -121,6 +122,8 @@ constructor(
         benchmarkJs.convention("2.1.4")
         jsSourceMapSupport.convention("0.5.21")
       }
+
+      kotlinJsNodeModulesDir.convention(fetchKotlinJsNodeModulesDir(project))
     }
   }
 
@@ -350,8 +353,7 @@ constructor(
 //          )
 //        )
 
-//        module.convention(target.compiledExecutableModule)
-        module.from(target.compiledExecutableModule)
+        module.convention(target.compiledExecutableModule)
 
         nodeExecutable.convention(
           kxbTasks.setupNodeJsBenchmarkRunner.map { it.installationDir.get().file("bin/node") }
@@ -372,5 +374,8 @@ constructor(
 
   private fun DirectoryProperty.convention(value: File): DirectoryProperty =
     convention(objects.directoryProperty().fileValue(value))
+
+  private fun DirectoryProperty.convention(value: Provider<File>): DirectoryProperty =
+    convention(layout.dir(value))
   //endregion
 }

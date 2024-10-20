@@ -151,7 +151,7 @@ constructor(
       abstract val requiredJsFiles: ConfigurableFileCollection
 
       //    val benchmarkBuildDir = benchmarkBuildDir(target)
-      val generatorTask =
+      val generatorTask: TaskProvider<GenerateJsBenchmarkTask> =
         project.tasks.register<GenerateJsBenchmarkTask>(
           buildName("kxb", "Generate", targetName, "Benchmarks")
         ) {
