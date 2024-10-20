@@ -19,8 +19,8 @@ internal object NodeJsEngineSupport : JsEngineSupport() {
     override fun readFile(path: String): String =
         nodeJsReadFile(path)
 
-    override fun arguments(): Array<out String> =
-        nodeJsArguments().split(' ').toTypedArray()
+    override fun arguments(): List<String> =
+        nodeJsArguments().split(' ')
 }
 
 private fun hrTimeToNs(hrTime: ExternalInterfaceType): Long {

@@ -14,7 +14,7 @@ internal abstract class JsEngineSupport {
 
     abstract fun readFile(path: String): String
 
-    abstract fun arguments(): Array<out String>
+    abstract fun arguments(): List<String>
 }
 
 @JsFun("() => typeof d8 !== 'undefined'")

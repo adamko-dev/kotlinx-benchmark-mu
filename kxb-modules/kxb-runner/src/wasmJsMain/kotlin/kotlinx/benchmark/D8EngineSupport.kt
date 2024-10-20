@@ -33,8 +33,8 @@ internal object D8EngineSupport : JsEngineSupport() {
     override fun readFile(path: String): String =
         d8ReadFile(path)
 
-    override fun arguments(): Array<out String> =
-        d8Arguments().split(' ').toTypedArray()
+    override fun arguments(): List<String> =
+        d8Arguments().split(' ')
 }
 
 @JsFun("() => (typeof self !== 'undefined' ? self : globalThis).performance")
