@@ -52,7 +52,7 @@ constructor() : RunBenchmarkBaseTask() {
     val nodeExecutable = nodeExecutable.get().asFile
     val benchmarkArgs = buildArgs()
 
-    logger.lifecycle(
+    logger.info(
       """
         [$path] running benchmark with Node...
             nodeExecutable:${nodeExecutable}

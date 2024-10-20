@@ -101,28 +101,8 @@ constructor(
       }
 
       enableDemoMode.convention(
-        providers.gradleProperty("kotlinx.benchmark.demoMode").map { it.toBoolean() }
+        providers.gradleProperty("kotlinx.benchmark.demoMode").toBoolean()
       )
-
-      targets.apply {
-        registerFactory(BenchmarkTarget.Kotlin.JVM::class.java) { name ->
-          objects.newInstance(name, project)
-        }
-
-        registerBinding(BenchmarkTarget.Kotlin.JS::class, BenchmarkTarget.Kotlin.JS::class)
-        registerBinding(BenchmarkTarget.Kotlin.Native::class, BenchmarkTarget.Kotlin.Native::class)
-        registerBinding(BenchmarkTarget.Kotlin.WasmJs::class, BenchmarkTarget.Kotlin.WasmJs::class)
-        registerBinding(BenchmarkTarget.Kotlin.WasmWasi::class, BenchmarkTarget.Kotlin.WasmWasi::class)
-        registerBinding(BenchmarkTarget.Java::class, BenchmarkTarget.Java::class)
-      }
-
-      targets.configureEach {
-        enabled.convention(false)
-      }
-
-      targets.withType<BenchmarkTarget.Kotlin.WasmJs>().configureEach {
-        title.convention(targetName)
-      }
 
       versions.apply {
         jmh.convention(JMH_DEFAULT_VERSION)
@@ -132,6 +112,31 @@ constructor(
       }
 
       kotlinJsNodeModulesDir.convention(fetchKotlinJsNodeModulesDir(project))
+
+      configureBenchmarkTargetConventions()
+    }
+  }
+
+  private fun BenchmarkExtension.configureBenchmarkTargetConventions() {
+    targets.apply {
+      registerBinding(BenchmarkTarget.Kotlin.JVM::class, BenchmarkTarget.Kotlin.JVM::class)
+      registerBinding(BenchmarkTarget.Kotlin.JS::class, BenchmarkTarget.Kotlin.JS::class)
+      registerBinding(BenchmarkTarget.Kotlin.Native::class, BenchmarkTarget.Kotlin.Native::class)
+      registerBinding(BenchmarkTarget.Kotlin.WasmJs::class, BenchmarkTarget.Kotlin.WasmJs::class)
+      registerBinding(BenchmarkTarget.Kotlin.WasmWasi::class, BenchmarkTarget.Kotlin.WasmWasi::class)
+      registerBinding(BenchmarkTarget.Java::class, BenchmarkTarget.Java::class)
+
+      configureEach {
+        enabled.convention(false)
+      }
+
+      withType<BenchmarkTarget.Kotlin.JS>().configureEach {
+        title.convention(targetName)
+      }
+
+      withType<BenchmarkTarget.Kotlin.WasmJs>().configureEach {
+        title.convention(targetName)
+      }
     }
   }
 
@@ -180,7 +185,7 @@ constructor(
               Linux   -> "linux"
               MacOS   -> "darwin"
               Windows -> "win"
-              SunOS   -> error("Unsupported platform: $p")
+              SunOS   -> error("Unsupported Node.js platform: $p")
             }
 
             val arch = when (p.arch) {
@@ -201,12 +206,16 @@ constructor(
 
     project.tasks.withType<NodeJsSetupTask>().configureEach {
       this.installationDir.convention(extension.jsTools.nodeJs.installationDir)
-//      this.arch.convention(extension.jsTools.hostPlatform.map { it.arch })
       this.distDownloadUrl.convention(extension.jsTools.nodeJs.distDownloadUrl)
       this.cacheDir.set(temporaryDir.resolve("cache"))
     }
   }
 
+  /**
+   * Configure the Kotlin all-open plugin, so
+   * [@State][org.openjdk.jmh.annotations.State]
+   * annotated classes are automatically registered.
+   */
   private fun configureAllOpenPlugin(project: Project) {
     project.pluginManager.withPlugin("org.jetbrains.kotlin.plugin.allopen") {
       project.extensions.configure<AllOpenExtension> {
@@ -249,6 +258,8 @@ constructor(
 
   /**
    * Configure all tasks used to run benchmarks.
+   *
+   * @see RunBenchmarkBaseTask
    */
   private fun configureRunBenchmarkTasks(
     project: Project,
@@ -334,8 +345,6 @@ constructor(
 
         this.benchmarkParameters.set(runSpec)
         this.executable.convention(target.executable)
-//        this.executable.from(target.executable)
-//        this.dependsOn(target.executable.buildDependencies)
 
         this.forkMode.convention(target.forkMode)
       }
