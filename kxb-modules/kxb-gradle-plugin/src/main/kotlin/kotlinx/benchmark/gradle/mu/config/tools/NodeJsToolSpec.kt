@@ -1,10 +1,8 @@
 package kotlinx.benchmark.gradle.mu.config.tools
 
-import java.net.URI
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
-import org.intellij.lang.annotations.Language
 
 @KotlinxBenchmarkPluginInternalApi
 abstract class NodeJsToolSpec

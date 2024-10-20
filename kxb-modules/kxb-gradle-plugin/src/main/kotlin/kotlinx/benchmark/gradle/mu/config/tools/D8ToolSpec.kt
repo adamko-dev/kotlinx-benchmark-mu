@@ -7,6 +7,9 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.intellij.lang.annotations.Language
 
+/**
+ * Specification for downloading and running [D8](https://v8.dev/docs/d8).
+ */
 @KotlinxBenchmarkPluginInternalApi
 abstract class D8ToolSpec
 @KotlinxBenchmarkPluginInternalApi

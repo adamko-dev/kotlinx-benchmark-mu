@@ -28,12 +28,15 @@ constructor(private val name: String) : Named {
   @get:Input
   @get:Optional
   abstract val iterations: Property<Int>
+
   @get:Input
   @get:Optional
   abstract val forks: Property<Int>
+
   @get:Input
   @get:Optional
   abstract val warmupIterations: Property<Int>
+
   @get:Input
   @get:Optional
   abstract val threads: Property<Int>
@@ -41,9 +44,11 @@ constructor(private val name: String) : Named {
   @get:Input
   @get:Optional
   abstract val failOnError: Property<Boolean>
+
   @get:Input
   @get:Optional
   abstract val gcEachIteration: Property<Boolean>
+
   @get:Input
   @get:Optional
   abstract val synchronizeIterations: Property<Boolean>
@@ -94,9 +99,11 @@ constructor(private val name: String) : Named {
   @get:Input
   @get:Optional
   abstract val excludes: SetProperty<String>
+
   @get:Input
   @get:Optional
   abstract val profilers: SetProperty<String>
+
   @get:Input
   @get:Optional
   abstract val jvmArgs: ListProperty<String>
@@ -110,8 +117,8 @@ constructor(private val name: String) : Named {
   @get:Optional
   abstract val parameters: MapProperty<String, List<String>>
 
-  @get:Input
   // todo typesafe advanced...
+  @get:Input
   @get:Optional
   abstract val advanced: MapProperty<String, String>
 

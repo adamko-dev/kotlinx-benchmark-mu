@@ -5,8 +5,8 @@ import kotlin.collections.set
 import kotlinx.benchmark.gradle.BenchmarksPlugin
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
 import kotlinx.benchmark.gradle.mu.internal.utils.buildName
-import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJsBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateNativeBenchmarkTask
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -14,7 +14,10 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.assign
@@ -125,18 +128,16 @@ constructor(
     @KotlinxBenchmarkPluginInternalApi
     @Inject
     constructor(
-      @get:Input
       final override val targetName: String,
       project: Project,
 //      internal val compilationTask: TaskProvider<Task>,
 //      internal val linkTask: TaskProvider<Task>,
 //      internal val linkSyncTask: TaskProvider<Task>,
     ) : Kotlin(targetName) {
-      @get:Input
       abstract val title: Property<String>
 
-      //      abstract val compiledExecutableModule: RegularFileProperty
-      abstract val compiledExecutableModule: ConfigurableFileCollection
+      abstract val compiledExecutableModule: RegularFileProperty
+//      abstract val compiledExecutableModule: ConfigurableFileCollection
 
 //      abstract val runner: Property<JsRunner>
 //
@@ -145,7 +146,6 @@ constructor(
 //        NodeJs,
 //      }
 
-      @get:Input
       abstract val benchmarksExecutor: Property<JsBenchmarksExecutor>
 
       abstract val requiredJsFiles: ConfigurableFileCollection
