@@ -58,7 +58,7 @@ fun Project.createJsEngineBenchmarkExecTask(
 private fun Project.getExecutableFile(compilation: KotlinJsIrCompilation): Provider<RegularFile> {
     val kotlinTarget = compilation.target as KotlinJsIrTarget
     val binary = kotlinTarget.binaries.executable(compilation)
-        .first { it.mode == KotlinJsBinaryMode.PRODUCTION } as JsIrBinary
+        .first { it.mode == KotlinJsBinaryMode.PRODUCTION }
     val extension = if (kotlinTarget.platformType == KotlinPlatformType.wasm) "mjs" else "js"
     val outputFileName = binary.linkTask.flatMap { task ->
         task.compilerOptions.moduleName.map { "$it.$extension" }

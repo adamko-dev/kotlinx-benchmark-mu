@@ -18,6 +18,7 @@ import kotlinx.benchmark.gradle.mu.internal.utils.toBoolean
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJsBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateNativeBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateWasmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.run.*
 import kotlinx.benchmark.gradle.mu.tasks.tools.D8SetupTask
 import kotlinx.benchmark.gradle.mu.tasks.tools.NodeJsSetupTask
@@ -66,11 +67,14 @@ constructor(
     kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JVM>().all {
       handleKotlinJvmTarget(project, kxbExtension, kxbDependencies, this)
     }
-    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JS>().all {
-      handleKotlinJsTarget(project, kxbExtension, kxbDependencies, kxbTasks, this)
-    }
     kxbExtension.targets.withType<BenchmarkTarget.Kotlin.Native>().all {
-      handleKotlinNativeTarget(project, kxbExtension, kxbDependencies, kxbTasks, this)
+      handleKotlinNativeTarget(project, kxbExtension, this)
+    }
+    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JS>().all {
+      handleKotlinJsTarget(project, kxbExtension, kxbTasks, this)
+    }
+    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.WasmJs>().all {
+      handleKotlinWasmJsTarget(project, kxbExtension, kxbTasks, this)
     }
   }
 
@@ -114,6 +118,10 @@ constructor(
 
       targets.configureEach {
         enabled.convention(false)
+      }
+
+      targets.withType<BenchmarkTarget.Kotlin.WasmJs>().configureEach {
+        title.convention(targetName)
       }
 
       versions.apply {
@@ -226,6 +234,12 @@ constructor(
       generatedSources.convention(temporaryDir.resolve("generated-sources"))
     }
 
+    project.tasks.withType<GenerateWasmBenchmarkTask>().configureEach {
+      runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
+      generatedResources.convention(temporaryDir.resolve("generated-resources"))
+      generatedSources.convention(temporaryDir.resolve("generated-sources"))
+    }
+
     project.tasks.withType<GenerateNativeBenchmarkTask>().configureEach {
       runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
       generatedResources.convention(temporaryDir.resolve("generated-resources"))
@@ -308,8 +322,6 @@ constructor(
   private fun handleKotlinNativeTarget(
     project: Project,
     kxbExtension: BenchmarkExtension,
-    kxbDependencies: KxbDependencies,
-    kxbTasks: KxbTasks,
     target: BenchmarkTarget.Kotlin.Native,
   ) {
 
@@ -333,7 +345,6 @@ constructor(
   private fun handleKotlinJsTarget(
     project: Project,
     kxbExtension: BenchmarkExtension,
-    kxbDependencies: KxbDependencies,
     kxbTasks: KxbTasks,
     target: BenchmarkTarget.Kotlin.JS,
   ) {
@@ -346,12 +357,31 @@ constructor(
 
         benchmarkParameters.set(runSpec)
 
-//        runArguments.convention(
-//          listOf(
-//            "-r",
-//            "source-map-support/register",
-//          )
-//        )
+        module.convention(target.compiledExecutableModule)
+
+        nodeExecutable.convention(
+          kxbTasks.setupNodeJsBenchmarkRunner.map { it.installationDir.get().file("bin/node") }
+        )
+
+        requiredJsFiles.from(target.requiredJsFiles)
+      }
+    }
+  }
+
+  private fun handleKotlinWasmJsTarget(
+    project: Project,
+    kxbExtension: BenchmarkExtension,
+    kxbTasks: KxbTasks,
+    target: BenchmarkTarget.Kotlin.WasmJs,
+  ) {
+    kxbExtension.benchmarkRuns.all {
+      val runSpec = this
+      project.tasks.register<RunJsNodeBenchmarkTask>(
+        name = buildName("benchmark", target.name, runSpec.name)
+      ) {
+        description = "Executes benchmark for WasmJS target ${target.name} using NodeJS"
+
+        benchmarkParameters.set(runSpec)
 
         module.convention(target.compiledExecutableModule)
 

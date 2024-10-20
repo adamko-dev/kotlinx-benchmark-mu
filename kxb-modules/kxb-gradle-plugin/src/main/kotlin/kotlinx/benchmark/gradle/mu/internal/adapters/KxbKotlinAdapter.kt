@@ -76,29 +76,25 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
       is KotlinMultiplatformExtension -> {
 
-        val jvmTargets = kotlinExtension.targets.withType<KotlinJvmTarget>()
-        jvmTargets.all target@{
+        kotlinExtension.targets.withType<KotlinJvmTarget>().all target@{
           createKotlinJvmBenchmarkTarget(kxbExtension, this@target)
         }
 
-        val nativeTargets = kotlinExtension.targets.withType<KotlinNativeTarget>()
-        nativeTargets.all target@{
+        kotlinExtension.targets.withType<KotlinNativeTarget>().all target@{
           createKotlinNativeBenchmarkTarget(kxbExtension, this@target)
         }
 
-        val jsTargets = kotlinExtension.targets.withType<KotlinJsIrTarget>()
+        kotlinExtension.targets.withType<KotlinJsIrTarget>()
           .matching { it.platformType == js }
-        jsTargets.all target@{
-          createKotlinJsBenchmarkTarget(kxbExtension, this@target, project = project)
-        }
-
-        val wasmJsTargets = kotlinExtension.targets.withType<KotlinJsIrTarget>()
-          .matching { it.platformType == wasm }
-        wasmJsTargets.all target@{
-          registerWasmTarget(this@target)
-          kxbExtension.targets.create<BenchmarkTarget.Kotlin.WasmJs>(this@target.targetName) {
+          .all target@{
+            createKotlinJsBenchmarkTarget(kxbExtension, this@target, project = project)
           }
-        }
+
+        kotlinExtension.targets.withType<KotlinJsIrTarget>()
+          .matching { it.platformType == wasm }
+          .all target@{
+            registerWasmTarget(kxbExtension, this@target, project = project)
+          }
       }
 
       else -> {
@@ -183,12 +179,6 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
       exe.linkTaskProvider.configure {
         dependsOn(nativeBenchmarkTarget.generatorTask)
       }
-
-//      nativeBenchmarkTarget.executable.convention(
-//        objects.fileProperty().fileProvider(
-//          exe.linkTaskProvider.flatMap { it.outputFile }
-//        )
-//      )
     }
 
     nativeBenchmarkTarget.executable.set(
@@ -196,8 +186,6 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
         layout.file(it.outputFile).get()
       }
     )
-//    nativeBenchmarkTarget.executable.from(binary.linkTaskProvider.map { it.outputFile })
-//    nativeBenchmarkTarget.executable.builtBy(binary.linkTaskProvider)
 
     nativeBenchmarkTarget.generatorTask.configure {
       this.inputClasses.from(mainCompilation.output.allOutputs)
@@ -229,7 +217,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 //      )
 
     val benchmarkCompilation: KotlinJsIrCompilation =
-      target.compilations.create(buildName("benchmark", target.name, BENCHMARK_COMPILATION_SUFFIX)) {
+      target.compilations.create(buildName(target.name, mainCompilation.name, "benchmark")) {
 
         this.compileTaskProvider.configure {
           dependsOn(mainCompilation.compileTaskProvider)
@@ -267,19 +255,19 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
         }
       }
 
-    val binary = target.binaries.executable(benchmarkCompilation)
+    val benchmarkBinary = target.binaries.executable(benchmarkCompilation)
       .firstOrNull { it.mode == KotlinJsBinaryMode.PRODUCTION }
       ?: error("Failed to get Kotlin/JS executable production binary for target ${target.name}")
 
     val moduleJs = providers.zip(
-      binary.linkTask,
-      binary.linkSyncTask,
+      benchmarkBinary.linkTask,
+      benchmarkBinary.linkSyncTask,
     ) { link, linkSync ->
       val moduleJsFileName = link.compilerOptions.moduleName.get() + ".js"
       linkSync.destinationDirectory.get().resolve(moduleJsFileName)
     }
 
-    val kxbJsTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.JS>(
+    val jsBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.JS>(
       target.targetName.ifBlank { "js" },
     ) {
 
@@ -299,13 +287,65 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
     }
 
     benchmarkCompilation.defaultSourceSet {
-      kotlin.srcDir(kxbJsTarget.generatorTask)
+      kotlin.srcDir(jsBenchmarkTarget.generatorTask)
     }
   }
 
-  private fun registerWasmTarget(kotlinTarget: KotlinTarget) {
-    val mainCompilation = kotlinTarget.compilations.getByName(MAIN_COMPILATION_NAME)
-    println("TODO implement wasm... $mainCompilation")
+  private fun registerWasmTarget(
+    kxbExtension: BenchmarkExtension,
+    target: KotlinJsIrTarget,
+    project: Project,
+  ) {
+    val mainCompilation: KotlinJsIrCompilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
+
+    val benchmarkCompilation =
+      target.compilations.create(buildName(target.name, mainCompilation.name, "benchmark")) {
+
+        defaultSourceSet {
+          // benchmarks compilations don't need resources, so remove resource srcDirs to avoid unnecessary dirs
+          resources.setSrcDirs(emptyList<File>())
+
+          dependencies {
+            implementation(mainCompilation.output.allOutputs)
+          }
+
+          project.configurations.named(implementationConfigurationName) {
+            extendsFrom(
+              project.configurations.getByName(mainCompilation.compileDependencyConfigurationName)
+            )
+          }
+        }
+      }
+
+    val benchmarkBinary = target.binaries.executable(benchmarkCompilation)
+      .firstOrNull { it.mode == KotlinJsBinaryMode.PRODUCTION }
+      ?: error("Failed to get Kotlin/WasmJS executable production binary for target ${target.name}")
+
+    val moduleJs = providers.zip(
+      benchmarkBinary.linkTask,
+      benchmarkBinary.linkSyncTask,
+    ) { link, linkSync ->
+      val moduleJsFileName = link.compilerOptions.moduleName.get() + ".mjs"
+      linkSync.destinationDirectory.get().resolve(moduleJsFileName)
+    }
+
+    val wasmJsBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.WasmJs>(
+      target.targetName.ifBlank { "wasm" },
+    ) {
+      compiledExecutableModule.convention(
+        layout.file(moduleJs)
+      )
+
+      generatorTask.configure {
+        inputClasses.from(mainCompilation.output.allOutputs)
+        inputDependencies.from({ mainCompilation.compileDependencyFiles })
+        inputDependencies.from({ benchmarkCompilation.compileDependencyFiles })
+      }
+    }
+
+    benchmarkCompilation.defaultSourceSet {
+      kotlin.srcDir(wasmJsBenchmarkTarget.generatorTask)
+    }
   }
 
 

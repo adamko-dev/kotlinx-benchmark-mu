@@ -6,6 +6,7 @@ import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import kotlinx.benchmark.gradle.mu.workers.GenerateWasmSourceWorker
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.submit
 
@@ -22,7 +23,7 @@ constructor() : BaseBenchmarkTask() {
   abstract val generatedResources: DirectoryProperty
 
   @get:Input
-  abstract val title: String
+  abstract val title: Property<String>
 
   @get:Classpath
   abstract val inputClasses: ConfigurableFileCollection

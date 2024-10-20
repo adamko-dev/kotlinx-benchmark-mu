@@ -29,9 +29,6 @@ constructor() : RunBenchmarkBaseTask() {
   @get:Optional
   abstract val runArguments: ListProperty<String> // TODO implement runArguments
 
-//  @get:OutputDirectory
-//  abstract val workingDir: DirectoryProperty
-
   @get:InputFile
   @get:PathSensitive(RELATIVE)
   abstract val nodeExecutable: RegularFileProperty
@@ -78,17 +75,10 @@ constructor() : RunBenchmarkBaseTask() {
     return buildList {
       addAll(requiredJsFiles.flatMap {
         listOf(
-          "-r",
+          "--require",
           it.absoluteFile.canonicalFile.invariantSeparatorsPath
         )
       })
-      //if (sourceMapStackTraces.get()) {
-      //        add("--require")
-      //        add("-r")
-      //        add("source-map-support/register")
-      //        add("source-map-support/register.js")
-      //        add(npmProject.require("source-map-support/register.js"))
-      //}
 
       addAll(nodeJsArgs.orNull.orEmpty())
       add(module.get().asFile.canonicalFile.invariantSeparatorsPath)

@@ -8,6 +8,7 @@ import kotlinx.benchmark.gradle.mu.internal.utils.buildName
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJsBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJvmBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateNativeBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateWasmBenchmarkTask
 import org.gradle.api.Named
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -124,50 +125,6 @@ constructor(
         }
     }
 
-    abstract class JS
-    @KotlinxBenchmarkPluginInternalApi
-    @Inject
-    constructor(
-      final override val targetName: String,
-      project: Project,
-//      internal val compilationTask: TaskProvider<Task>,
-//      internal val linkTask: TaskProvider<Task>,
-//      internal val linkSyncTask: TaskProvider<Task>,
-    ) : Kotlin(targetName) {
-      abstract val title: Property<String>
-
-      abstract val compiledExecutableModule: RegularFileProperty
-//      abstract val compiledExecutableModule: ConfigurableFileCollection
-
-//      abstract val runner: Property<JsRunner>
-//
-//      enum class JsRunner {
-////        D8,
-//        NodeJs,
-//      }
-
-      abstract val benchmarksExecutor: Property<JsBenchmarksExecutor>
-
-      abstract val requiredJsFiles: ConfigurableFileCollection
-
-      //    val benchmarkBuildDir = benchmarkBuildDir(target)
-      val generatorTask: TaskProvider<GenerateJsBenchmarkTask> =
-        project.tasks.register<GenerateJsBenchmarkTask>(
-          buildName("kxb", "Generate", targetName, "Benchmarks")
-        ) {
-          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
-          description = "Generate sources for running Kotlin/JS '${targetName}' benchmarks."
-          title.convention(targetName)
-          benchmarksExecutor.convention(JsBenchmarksExecutor.BenchmarkJs)
-//        title = target.name
-//        useBenchmarkJs = target.jsBenchmarksExecutor == JsBenchmarksExecutor.BenchmarkJs
-//        inputClassesDirs = compilationOutput.output.allOutputs
-//        inputDependencies = compilationOutput.compileDependencyFiles
-//        outputResourcesDir = file("$benchmarkBuildDir/resources")
-//        outputSourcesDir = file("$benchmarkBuildDir/sources")
-        }
-    }
-
     abstract class Native
     @KotlinxBenchmarkPluginInternalApi
     @Inject
@@ -180,14 +137,13 @@ constructor(
       abstract val forkMode: Property<ForkMode>
 
       abstract val executable: RegularFileProperty
-//      abstract val executable: ConfigurableFileCollection
 
       enum class ForkMode {
         PerTest,
         PerBenchmark
       }
 
-      val generatorTask =
+      val generatorTask: TaskProvider<GenerateNativeBenchmarkTask> =
         project.tasks.register<GenerateNativeBenchmarkTask>(
           buildName("kxbGenerate", targetName, "Benchmarks")
         ) {
@@ -198,33 +154,73 @@ constructor(
         }
     }
 
-    abstract class WasmWasi
+    abstract class JS
     @KotlinxBenchmarkPluginInternalApi
     @Inject
     constructor(
-      final override val targetName: String
+      final override val targetName: String,
+      project: Project,
     ) : Kotlin(targetName) {
+      abstract val title: Property<String>
 
-      enum class WasmRunner {
-        D8,
-        NodeJs,
-      }
+      abstract val compiledExecutableModule: RegularFileProperty
+
+      @Deprecated("KxB only supports Node.js for JS benchmarks.")
+      @Suppress("unused")
+      abstract val engine: Property<JsEngine>
+
+      abstract val benchmarksExecutor: Property<JsBenchmarksExecutor>
+
+      /**
+       * `--require` files
+       */
+      abstract val requiredJsFiles: ConfigurableFileCollection
+
+      val generatorTask: TaskProvider<GenerateJsBenchmarkTask> =
+        project.tasks.register<GenerateJsBenchmarkTask>(
+          buildName("kxb", "Generate", targetName, "Benchmarks")
+        ) {
+          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
+          description = "Generate sources for running Kotlin/JS '${targetName}' benchmarks."
+          title.convention(targetName)
+          benchmarksExecutor.convention(JsBenchmarksExecutor.BenchmarkJs)
+        }
     }
 
     abstract class WasmJs
     @KotlinxBenchmarkPluginInternalApi
     @Inject
     constructor(
-      final override val targetName: String
+      final override val targetName: String,
+      project: Project,
     ) : Kotlin(targetName) {
+      abstract val title: Property<String>
 
-      enum class WasmRunner {
-        D8,
-        NodeJs,
-      }
+      abstract val compiledExecutableModule: RegularFileProperty
+
+      abstract val requiredJsFiles: ConfigurableFileCollection
+
+      abstract val engine: Property<JsEngine>
+
+      val generatorTask: TaskProvider<GenerateWasmBenchmarkTask> =
+        project.tasks.register<GenerateWasmBenchmarkTask>(
+          buildName("kxb", "Generate", targetName, "Benchmarks")
+        ) {
+          group = BenchmarksPlugin.BENCHMARKS_TASK_GROUP
+          description = "Generate sources for running Kotlin/WasmJS '${targetName}' benchmarks."
+          title.convention(this@WasmJs.title)
+        }
     }
+
+    abstract class WasmWasi
+    @KotlinxBenchmarkPluginInternalApi
+    @Inject
+    constructor(
+      final override val targetName: String
+    ) : Kotlin(targetName)
   }
 }
+
 
 abstract class JvmBenchmarkTarget
 @KotlinxBenchmarkPluginInternalApi

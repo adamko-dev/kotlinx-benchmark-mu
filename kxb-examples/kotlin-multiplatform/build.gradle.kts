@@ -1,5 +1,6 @@
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
@@ -27,15 +28,19 @@ kotlin {
 //    compilations.create("defaultExecutor") { associateWith(mainCompilation) }
 //    compilations.create("builtInExecutor") { associateWith(mainCompilation) }
   }
-//    wasm('wasmJs') { nodejs() }
+
+  @OptIn(ExperimentalWasmDsl::class)
+  wasmJs {
+    nodejs()
+  }
 
   // Native targets
   macosX64()
-//    macosArm64()
-//    linuxX64()
-//    mingwX64()
-//
-//    applyDefaultHierarchyTemplate()
+  macosArm64()
+  linuxX64()
+  mingwX64()
+
+  applyDefaultHierarchyTemplate()
 //
 //    targets.configureEach {
 //        compilations.configureEach {

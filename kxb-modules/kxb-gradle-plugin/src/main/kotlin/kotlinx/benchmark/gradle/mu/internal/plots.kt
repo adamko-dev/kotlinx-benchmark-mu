@@ -2,6 +2,7 @@ package kotlinx.benchmark.gradle.mu.internal
 
 import java.util.*
 import kotlin.math.roundToInt
+
 //import kotlin.random.Random
 //import kotlin.random.nextInt
 //
@@ -36,7 +37,11 @@ import kotlin.math.roundToInt
 ////  result.forEach { println(it) }
 //}
 
-internal class KBins(val bins: List<Int>, val avg: Int, val peak: Int)
+internal data class KBins(
+  val bins: List<Int>,
+  val avg: Int,
+  val peak: Int,
+)
 
 internal fun histogram(
   bins: KBins,
