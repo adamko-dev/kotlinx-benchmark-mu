@@ -32,21 +32,24 @@ abstract class SuiteExecutor(
 
   fun run() {
     println("[SuiteExecutor] running with config: $config")
-    val includes = if (config.includes.isEmpty()) {
-      listOf(Regex(".*"))
-    } else {
-      config.includes.map { Regex(it) }
-    }
+//    val includes = if (config.includes.isEmpty()) {
+//      listOf(Regex(".*"))
+//    } else {
+//      config.includes.map { Regex(it) }
+//    }
+    val includes = config.includes.map { Regex(it) }
     val excludes = config.excludes.map { Regex(it) }
 
     val benchmarks = suites.flatMap { suite ->
       val matches = suite.benchmarks
         .filter { benchmark ->
           val fullName = "${suite.name}.${benchmark.name}"
-          includes.any { it.containsMatchIn(fullName) } && excludes.none { it.containsMatchIn(fullName) }
+
+          (includes.isEmpty() || includes.any { it.containsMatchIn(fullName) })
+              && excludes.none { it.containsMatchIn(fullName) }
         }
 
-      //@Suppress("UNCHECKED_CAST")
+      @Suppress("UNCHECKED_CAST")
       matches as List<BenchmarkDescriptor<Any?>>
     }
 
@@ -69,10 +72,11 @@ abstract class SuiteExecutor(
   )
 
   protected fun id(name: String, params: Map<String, String>): String {
-    val id = if (params.isEmpty())
+    val id = if (params.isEmpty()) {
       name
-    else
+    } else {
       name + params.entries.joinToString(prefix = " | ") { "${it.key}=${it.value}" }
+    }
     return id
   }
 }
@@ -110,11 +114,13 @@ fun runWithParameters(
     function(paramsVariant)
     for (index in valueIndices.indices) {
       valueIndices[index]++
-      if (valueIndices[index] < valueLimits[index])
+      if (valueIndices[index] < valueLimits[index]) {
         break
-      else
-        if (index == valueIndices.lastIndex)
+      } else {
+        if (index == valueIndices.lastIndex) {
           return
+        }
+      }
       valueIndices[index] = 0
     }
   }
