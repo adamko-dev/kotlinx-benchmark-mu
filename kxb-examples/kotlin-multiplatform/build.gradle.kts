@@ -32,6 +32,7 @@ kotlin {
   @OptIn(ExperimentalWasmDsl::class)
   wasmJs {
     nodejs()
+    //d8() // TODO support D8 benchmarks
   }
 
   // Native targets
