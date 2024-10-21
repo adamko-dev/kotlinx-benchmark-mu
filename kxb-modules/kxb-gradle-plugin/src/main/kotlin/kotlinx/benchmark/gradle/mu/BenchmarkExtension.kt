@@ -59,27 +59,27 @@ constructor(
 
   fun BenchmarkTargetsContainer.registerJvm(
     name: String,
-    configure: BenchmarkTarget.Kotlin.JVM.() -> Unit,
-  ): NamedDomainObjectProvider<BenchmarkTarget.Kotlin.JVM> =
-    register<BenchmarkTarget.Kotlin.JVM>(name, configure)
+    configure: BenchmarkTarget.KotlinJvm.() -> Unit,
+  ): NamedDomainObjectProvider<BenchmarkTarget.KotlinJvm> =
+    register<BenchmarkTarget.KotlinJvm>(name, configure)
 
   fun BenchmarkTargetsContainer.registerJs(
     name: String,
-    configure: BenchmarkTarget.Kotlin.JS.() -> Unit,
-  ): NamedDomainObjectProvider<BenchmarkTarget.Kotlin.JS> =
-    register<BenchmarkTarget.Kotlin.JS>(name, configure)
+    configure: BenchmarkTarget.KotlinJs.() -> Unit,
+  ): NamedDomainObjectProvider<BenchmarkTarget.KotlinJs> =
+    register<BenchmarkTarget.KotlinJs>(name, configure)
 
   fun BenchmarkTargetsContainer.registerWasmJs(
     name: String,
-    configure: BenchmarkTarget.Kotlin.WasmJs.() -> Unit,
-  ): NamedDomainObjectProvider<BenchmarkTarget.Kotlin.WasmJs> =
-    register<BenchmarkTarget.Kotlin.WasmJs>(name, configure)
+    configure: BenchmarkTarget.KotlinWasmJs.() -> Unit,
+  ): NamedDomainObjectProvider<BenchmarkTarget.KotlinWasmJs> =
+    register<BenchmarkTarget.KotlinWasmJs>(name, configure)
 
   fun BenchmarkTargetsContainer.registerNative(
     name: String,
-    configure: BenchmarkTarget.Kotlin.Native.() -> Unit,
-  ): NamedDomainObjectProvider<BenchmarkTarget.Kotlin.Native> =
-    register<BenchmarkTarget.Kotlin.Native>(name, configure)
+    configure: BenchmarkTarget.KotlinNative.() -> Unit,
+  ): NamedDomainObjectProvider<BenchmarkTarget.KotlinNative> =
+    register<BenchmarkTarget.KotlinNative>(name, configure)
 
   companion object
 }

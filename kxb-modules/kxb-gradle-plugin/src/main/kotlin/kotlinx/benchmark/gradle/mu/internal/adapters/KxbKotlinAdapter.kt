@@ -162,7 +162,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
     val compilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
 
-    kxbExtension.targets.create<BenchmarkTarget.Kotlin.JVM>(
+    kxbExtension.targets.create<BenchmarkTarget.KotlinJvm>(
       target.targetName.ifBlank { "jvm" },
     ) {
 
@@ -213,9 +213,9 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
       )
     }
 
-    val nativeBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.Native>(target.targetName) {
+    val nativeBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.KotlinNative>(target.targetName) {
       this.title.convention("${target.project.displayName} ${target.targetName}")
-      this.forkMode.convention(BenchmarkTarget.Kotlin.Native.ForkMode.PerBenchmark)
+      this.forkMode.convention(BenchmarkTarget.KotlinNative.ForkMode.PerBenchmark)
     }
 
     benchmarkCompilation.defaultSourceSet {
@@ -266,8 +266,8 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
 //      this.runner.convention(
 //        when {
-//          //target.isD8Configured     -> BenchmarkTarget.Kotlin.JS.JsRunner.D8
-//          target.isNodejsConfigured -> BenchmarkTarget.Kotlin.JS.JsRunner.NodeJs
+//          //target.isD8Configured     -> BenchmarkTarget.KotlinJs.JsRunner.D8
+//          target.isNodejsConfigured -> BenchmarkTarget.KotlinJs.JsRunner.NodeJs
 //          else                      -> error("kotlinx-benchmark only supports nodejs() environment for Kotlin/JS")
 //        }
 //      )
@@ -325,7 +325,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
       linkSync.destinationDirectory.get().resolve(moduleJsFileName)
     }
 
-    val jsBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.JS>(
+    val jsBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.KotlinJs>(
       target.targetName.ifBlank { "js" },
     ) {
 
@@ -389,7 +389,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
       linkSync.destinationDirectory.get().resolve(moduleJsFileName)
     }
 
-    val wasmJsBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.WasmJs>(
+    val wasmJsBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.KotlinWasmJs>(
       target.targetName.ifBlank { "wasm" },
     ) {
       compiledExecutableModule.convention(

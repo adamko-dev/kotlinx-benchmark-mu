@@ -23,7 +23,7 @@ constructor(private val name: String) : Named {
 
   @get:Input
   @get:Optional
-  abstract val enabled: Property<Boolean> // TODO enable/disable BenchmarkRun
+  abstract val enabled: Property<Boolean>
 
   @get:Input
   @get:Optional

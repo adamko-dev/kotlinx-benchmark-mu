@@ -60,7 +60,7 @@ constructor() : BaseRunBenchmarksTask() {
 
     workQueue.submit(RunJvmBenchmarkWorker::class) {
       this.encodedBenchmarkParameters = encodedBenchmarkParameters
-      this.classpath = runtimeClasspath
+      this.classpath = this@RunJvmBenchmarkTask.runtimeClasspath
       this.enableDemoMode = this@RunJvmBenchmarkTask.enableDemoMode
     }
   }

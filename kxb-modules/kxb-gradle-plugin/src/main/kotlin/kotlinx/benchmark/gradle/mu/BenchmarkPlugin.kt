@@ -63,16 +63,16 @@ constructor(
     configureGenerateBenchmarkTasks(project, kxbDependencies)
     configureRunBenchmarkTasks(project, kxbExtension)
 
-    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JVM>().all {
+    kxbExtension.targets.withType<BenchmarkTarget.KotlinJvm>().all {
       handleKotlinJvmTarget(project, kxbExtension, kxbDependencies, this)
     }
-    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.Native>().all {
+    kxbExtension.targets.withType<BenchmarkTarget.KotlinNative>().all {
       handleKotlinNativeTarget(project, kxbExtension, this)
     }
-    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.JS>().all {
+    kxbExtension.targets.withType<BenchmarkTarget.KotlinJs>().all {
       handleKotlinJsTarget(project, kxbExtension, kxbTasks, this)
     }
-    kxbExtension.targets.withType<BenchmarkTarget.Kotlin.WasmJs>().all {
+    kxbExtension.targets.withType<BenchmarkTarget.KotlinWasmJs>().all {
       handleKotlinWasmJsTarget(project, kxbExtension, kxbTasks, this)
     }
   }
@@ -119,23 +119,23 @@ constructor(
 
   private fun BenchmarkExtension.configureBenchmarkTargetConventions() {
     targets.apply {
-      registerBinding(BenchmarkTarget.Kotlin.JVM::class, BenchmarkTarget.Kotlin.JVM::class)
-      registerBinding(BenchmarkTarget.Kotlin.JS::class, BenchmarkTarget.Kotlin.JS::class)
-      registerBinding(BenchmarkTarget.Kotlin.Native::class, BenchmarkTarget.Kotlin.Native::class)
-      registerBinding(BenchmarkTarget.Kotlin.WasmJs::class, BenchmarkTarget.Kotlin.WasmJs::class)
-      registerBinding(BenchmarkTarget.Kotlin.WasmWasi::class, BenchmarkTarget.Kotlin.WasmWasi::class)
+      registerBinding(BenchmarkTarget.KotlinJvm::class, BenchmarkTarget.KotlinJvm::class)
+      registerBinding(BenchmarkTarget.KotlinJs::class, BenchmarkTarget.KotlinJs::class)
+      registerBinding(BenchmarkTarget.KotlinNative::class, BenchmarkTarget.KotlinNative::class)
+      registerBinding(BenchmarkTarget.KotlinWasmJs::class, BenchmarkTarget.KotlinWasmJs::class)
+      registerBinding(BenchmarkTarget.KotlinWasmWasi::class, BenchmarkTarget.KotlinWasmWasi::class)
       registerBinding(BenchmarkTarget.Java::class, BenchmarkTarget.Java::class)
 
       configureEach {
         enabled.convention(false)
       }
 
-      withType<BenchmarkTarget.Kotlin.JS>().configureEach {
-        title.convention(targetName)
+      withType<BenchmarkTarget.KotlinJs>().configureEach {
+        title.convention(name)
       }
 
-      withType<BenchmarkTarget.Kotlin.WasmJs>().configureEach {
-        title.convention(targetName)
+      withType<BenchmarkTarget.KotlinWasmJs>().configureEach {
+        title.convention(name)
       }
     }
   }
@@ -266,6 +266,12 @@ constructor(
     kxbExtension: BenchmarkExtension,
   ) {
     project.tasks.withType<BaseRunBenchmarksTask>().configureEach {
+
+      onlyIf("BenchmarkRunSpec.enabled") {
+        require(it is BaseRunBenchmarksTask)
+        it.benchmarkParameters.get().enabled.getOrElse(true)
+      }
+
       enableDemoMode.convention(kxbExtension.enableDemoMode)
       ideaActive.convention(providers.systemProperty("idea.active").toBoolean())
 
@@ -311,7 +317,7 @@ constructor(
     project: Project,
     kxbExtension: BenchmarkExtension,
     kxbDependencies: KxbDependencies,
-    target: BenchmarkTarget.Kotlin.JVM,
+    target: BenchmarkTarget.KotlinJvm,
   ) {
     kxbExtension.benchmarkRuns.all {
       val runSpec = this
@@ -333,7 +339,7 @@ constructor(
   private fun handleKotlinNativeTarget(
     project: Project,
     kxbExtension: BenchmarkExtension,
-    target: BenchmarkTarget.Kotlin.Native,
+    target: BenchmarkTarget.KotlinNative,
   ) {
 
     kxbExtension.benchmarkRuns.all {
@@ -355,7 +361,7 @@ constructor(
     project: Project,
     kxbExtension: BenchmarkExtension,
     kxbTasks: KxbTasks,
-    target: BenchmarkTarget.Kotlin.JS,
+    target: BenchmarkTarget.KotlinJs,
   ) {
     kxbExtension.benchmarkRuns.all {
       val runSpec = this
@@ -381,7 +387,7 @@ constructor(
     project: Project,
     kxbExtension: BenchmarkExtension,
     kxbTasks: KxbTasks,
-    target: BenchmarkTarget.Kotlin.WasmJs,
+    target: BenchmarkTarget.KotlinWasmJs,
   ) {
     kxbExtension.benchmarkRuns.all {
       val runSpec = this

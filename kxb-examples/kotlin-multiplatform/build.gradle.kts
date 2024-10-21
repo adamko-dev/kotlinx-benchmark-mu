@@ -121,49 +121,18 @@ benchmark {
 
   // Setup configurations
   targets {
-    // This one matches target name, e.g. 'jvm', 'js',
-    // and registers its 'main' compilation, so 'jvm' registers 'jvmMain'
-//    registerJvm("jvm") {
-////            jmhVersion = "1.21"
-//    }
 
-    named<BenchmarkTarget.Kotlin.JS>("js") {
+    named<BenchmarkTarget.KotlinJs>("js") {
 
     }
-//        registerJs("js") {
-//
-//        }
 
-
-//        // This one matches source set name, e.g. 'jvmMain', 'jvmTest', etc
-//        // and register the corresponding compilation (here the 'benchmark' compilation declared in the 'jvm' target)
-//        register("jvmBenchmark") {
-//            jmhVersion = "1.21"
-//        }
 //        register("jsDefaultExecutor")
 //        register("jsBuiltInExecutor") {
 //            jsBenchmarksExecutor = JsBenchmarksExecutor.BuiltIn
 //        }
-//        register("wasmJs")
-//
-//        // Native targets
-//        register("macosX64")
-//        register("macosArm64")
-//        register("linuxX64")
-//        register("mingwX64")
   }
 }
 
-//// Node.js with canary v8 that supports recent Wasm GC changes
-//rootProject.extensions.findByType(org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension.class).with {
-//    nodeVersion = "21.0.0-v8-canary202309167e82ab1fa2"
-//    nodeDownloadBaseUrl = "https://nodejs.org/download/v8-canary"
-//}
-//
-//// Drop this when node js version become stable
-//rootProject.tasks.withType(org.jetbrains.kotlin.gradle.targets.js.npm.tasks.KotlinNpmInstallTask.class).configureEach {
-//    args.add("--ignore-engines")
-//}
 
 rootProject.plugins.withType<YarnPlugin>().configureEach {
   rootProject.extensions.configure<YarnRootExtension> {
