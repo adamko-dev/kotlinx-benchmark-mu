@@ -49,6 +49,7 @@ constructor(
   abstract val enableDemoMode: Property<Boolean>
 
   abstract class Versions {
+    abstract val benchmarksRunner: Property<String>
     abstract val benchmarksGenerator: Property<String>
     abstract val jmh: Property<String>
 

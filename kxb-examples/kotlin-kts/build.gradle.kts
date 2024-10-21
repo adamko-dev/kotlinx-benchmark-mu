@@ -14,13 +14,6 @@ plugins {
 //  annotation("org.openjdk.jmh.annotations.State")
 //}
 
-dependencies {
-  implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runner")
-
-  // TODO auto-add jmh-core dependency...
-  implementation("org.openjdk.jmh:jmh-core:${benchmark.versions.jmh.get()}")
-}
-
 //tasks.withType<JavaCompile> {
 //    sourceCompatibility = "1.8"
 //    targetCompatibility = "1.8"

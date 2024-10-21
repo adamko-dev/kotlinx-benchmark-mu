@@ -21,6 +21,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.*
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation.Companion.MAIN_COMPILATION_NAME
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.js
@@ -71,30 +72,11 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
     when (kotlinExtension) {
       is KotlinJvmProjectExtension -> {
-        createKotlinJvmBenchmarkTarget(kxbExtension, kotlinExtension.target)
+        handleKotlinJvm(kxbExtension, kotlinExtension)
       }
 
       is KotlinMultiplatformExtension -> {
-
-        kotlinExtension.targets.withType<KotlinJvmTarget>().all target@{
-          createKotlinJvmBenchmarkTarget(kxbExtension, this@target)
-        }
-
-        kotlinExtension.targets.withType<KotlinNativeTarget>().all target@{
-          createKotlinNativeBenchmarkTarget(kxbExtension, this@target)
-        }
-
-        kotlinExtension.targets.withType<KotlinJsIrTarget>()
-          .matching { it.platformType == js }
-          .all target@{
-            createKotlinJsBenchmarkTarget(kxbExtension, this@target, project = project)
-          }
-
-        kotlinExtension.targets.withType<KotlinJsIrTarget>()
-          .matching { it.platformType == wasm }
-          .all target@{
-            registerWasmTarget(kxbExtension, this@target, project = project)
-          }
+        handleKotlinMultiplatform(kxbExtension, kotlinExtension, project)
       }
 
       else -> {
@@ -103,10 +85,81 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
     }
   }
 
+  private fun handleKotlinJvm(
+    kxbExtension: BenchmarkExtension,
+    kotlinExtension: KotlinJvmProjectExtension,
+  ) {
+    val jvmTarget = kotlinExtension.target
+
+    addKxbJvmDependencies(kxbExtension, jvmTarget)
+
+    createKotlinJvmBenchmarkTarget(kxbExtension, jvmTarget)
+  }
+
+  /**
+   * Add dependencies necessary for executing benchmarks on JVM targets.
+   */
+  private fun addKxbJvmDependencies(
+    kxbExtension: BenchmarkExtension,
+    target: KotlinTarget,
+  ) {
+    val compilation: KotlinCompilation<*> = target.compilations.getByName(MAIN_COMPILATION_NAME)
+
+    compilation.defaultSourceSet {
+      dependencies {
+        runtimeOnlyJmhCore(kxbExtension.versions.jmh)
+        implementationKxbRunner(kxbExtension.versions.benchmarksRunner)
+      }
+    }
+  }
+
+  private fun handleKotlinMultiplatform(
+    kxbExtension: BenchmarkExtension,
+    kotlinExtension: KotlinMultiplatformExtension,
+    project: Project,
+  ) {
+    addKxbKmpDependencies(kxbExtension, kotlinExtension)
+
+    kotlinExtension.targets.withType<KotlinJvmTarget>().all target@{
+      createKotlinJvmBenchmarkTarget(kxbExtension, this@target)
+    }
+
+    kotlinExtension.targets.withType<KotlinNativeTarget>().all target@{
+      createKotlinNativeBenchmarkTarget(kxbExtension, this@target)
+    }
+
+    kotlinExtension.targets.withType<KotlinJsIrTarget>()
+      .matching { it.platformType == js }
+      .all target@{
+        createKotlinJsBenchmarkTarget(kxbExtension, this@target, project = project)
+      }
+
+    kotlinExtension.targets.withType<KotlinJsIrTarget>()
+      .matching { it.platformType == wasm }
+      .all target@{
+        registerWasmTarget(kxbExtension, this@target, project = project)
+      }
+  }
+
+  private fun addKxbKmpDependencies(
+    kxbExtension: BenchmarkExtension,
+    kotlinExtension: KotlinMultiplatformExtension,
+  ) {
+    kotlinExtension.apply {
+      sourceSets.commonMain.configure {
+        dependencies {
+          implementationKxbRunner(kxbExtension.versions.benchmarksRunner)
+        }
+      }
+    }
+  }
+
   private fun createKotlinJvmBenchmarkTarget(
     kxbExtension: BenchmarkExtension,
     target: KotlinTarget,
   ) {
+    addKxbJvmDependencies(kxbExtension, target)
+
     val compilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
 
     kxbExtension.targets.create<BenchmarkTarget.Kotlin.JVM>(
@@ -132,7 +185,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
     val mainCompilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
 
     val benchmarkCompilation = target.compilations.create(
-      buildName("benchmark", target.name, BENCHMARK_COMPILATION_SUFFIX)
+      buildName(target.name, BENCHMARK_COMPILATION_SUFFIX)
     ) {
       defaultSourceSet {
         // benchmarks compilations don't need resources, so remove resource srcDirs to avoid unnecessary dirs
@@ -140,7 +193,8 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
         dependencies {
           implementation(mainCompilation.output.allOutputs)
-          //{ mainCompilation.compileDependencyFiles }
+
+          implementationKxbRunner(kxbExtension.versions.benchmarksRunner)
         }
       }
     }
@@ -159,15 +213,17 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
       )
     }
 
-    val nativeBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.Native>(
-      target.targetName
-    ) {
+    val nativeBenchmarkTarget = kxbExtension.targets.create<BenchmarkTarget.Kotlin.Native>(target.targetName) {
       this.title.convention("${target.project.displayName} ${target.targetName}")
       this.forkMode.convention(BenchmarkTarget.Kotlin.Native.ForkMode.PerBenchmark)
     }
 
     benchmarkCompilation.defaultSourceSet {
       kotlin.srcDir(nativeBenchmarkTarget.generatorTask)
+
+      dependencies {
+        implementationKxbRunner(kxbExtension.versions.benchmarksRunner)
+      }
     }
 
     val binary = target.binaries.createExecutable(
@@ -233,6 +289,8 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
             implementation(mainCompilation.output.allOutputs)
             implementation(npm("benchmark", version = kxbExtension.versions.benchmarkJs))
             implementation(npm("source-map-support", version = kxbExtension.versions.jsSourceMapSupport))
+
+            implementationKxbRunner(kxbExtension.versions.benchmarksRunner)
           }
         }
 
@@ -307,6 +365,8 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
           dependencies {
             implementation(mainCompilation.output.allOutputs)
+
+            implementationKxbRunner(kxbExtension.versions.benchmarksRunner)
           }
 
           project.configurations.named(implementationConfigurationName) {
@@ -348,7 +408,6 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
     }
   }
 
-
   private fun handleMissingKotlinExtension(project: Project) {
     if (project.extensions.findByName("kotlin") != null) {
       // uh oh - the Kotlin extension is present but findKotlinExtension() failed.
@@ -361,7 +420,7 @@ internal abstract class KxbKotlinAdapter @Inject constructor(
 
         /* language=TEXT */
         """
-        |$clsName failed to get KotlinProjectExtension in ${project.path}
+        |e: $clsName failed to get KotlinProjectExtension in ${project.path}
         |  Applied plugins: $allPlugins
         |  Available extensions: $allExtensions
         """.trimMargin()
@@ -433,4 +492,18 @@ private fun KotlinDependencyHandler.npm(
   version: Provider<String>,
 ): Provider<Dependency> {
   return version.map { npm(dependency, it) }
+}
+
+/**
+ * Add an `implementation` dependency on `dev.adamko.kotlinx-benchmark-mu:kxb-runner`.
+ */
+private fun KotlinDependencyHandler.implementationKxbRunner(version: Provider<String>) {
+  implementation(version.map { v -> "dev.adamko.kotlinx-benchmark-mu:kxb-runner:$v" })
+}
+
+/**
+ * Add a `runtimeOnly` dependency on `org.openjdk.jmh:jmh-core`.
+ */
+private fun KotlinDependencyHandler.runtimeOnlyJmhCore(version: Provider<String>) {
+  implementation(version.map { v -> "org.openjdk.jmh:jmh-core:$v" })
 }

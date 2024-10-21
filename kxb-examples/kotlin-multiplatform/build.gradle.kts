@@ -72,20 +72,6 @@ kotlin {
 
 //        nativeMain {}
   }
-
-  sourceSets {
-    commonMain {
-      dependencies {
-        implementation("dev.adamko.kotlinx-benchmark-mu:kxb-runner")
-      }
-    }
-    jvmMain {
-      dependencies {
-        // TODO auto-add jmh-core dependency...
-        implementation("org.openjdk.jmh:jmh-core:${benchmark.versions.jmh.get()}")
-      }
-    }
-  }
 }
 
 // Configure benchmark

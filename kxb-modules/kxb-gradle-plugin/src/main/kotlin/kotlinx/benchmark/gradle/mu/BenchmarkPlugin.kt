@@ -106,6 +106,7 @@ constructor(
 
       versions.apply {
         jmh.convention(JMH_DEFAULT_VERSION)
+        benchmarksRunner.convention(BENCHMARK_PLUGIN_VERSION)
         benchmarksGenerator.convention(BENCHMARK_PLUGIN_VERSION)
         benchmarkJs.convention("2.1.4")
         jsSourceMapSupport.convention("0.5.21")
