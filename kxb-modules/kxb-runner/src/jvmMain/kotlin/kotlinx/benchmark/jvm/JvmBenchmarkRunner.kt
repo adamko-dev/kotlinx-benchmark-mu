@@ -74,7 +74,7 @@ fun runJvmBenchmark(
     config.warmupIterations?.let { warmupIterations(it) }
     config.warmupDuration?.let { warmupTime(it.toTimeValue()) }
     config.warmupBatchSize?.let { warmupBatchSize(it) }
-    warmupIncludes += config.warmupIncludes
+    warmupIncludes += config.warmupIncludes.filter { it.isNotBlank() }
     config.measurementIterations?.let { measurementIterations(it) }
     config.measurementDuration?.let { measurementTime(it.toTimeValue()) }
     config.measurementBatchSize?.let { measurementBatchSize(it) }
@@ -113,9 +113,9 @@ fun runJvmBenchmark(
     config.forks?.let { forks(it) }
     config.warmupForks?.let { warmupForks(it) }
     config.jvm?.let { jvm(it) }
-    jvmArgs(*config.jvmArgs.toTypedArray())
-    jvmArgsAppend(*config.jvmArgsAppend.toTypedArray())
-    jvmArgsPrepend(*config.jvmArgsPrepend.toTypedArray())
+    config.jvmArgs.filter { it.isNotBlank() }.ifEmpty { null }?.let { jvmArgs(*it.toTypedArray()) }
+    config.jvmArgsAppend.filter { it.isNotBlank() }.ifEmpty { null }?.let { jvmArgsAppend(*it.toTypedArray()) }
+    config.jvmArgsPrepend.filter { it.isNotBlank() }.ifEmpty { null }?.let { jvmArgsPrepend(*it.toTypedArray()) }
     config.timeout?.let { timeout(it.toTimeValue()) }
   }
 
