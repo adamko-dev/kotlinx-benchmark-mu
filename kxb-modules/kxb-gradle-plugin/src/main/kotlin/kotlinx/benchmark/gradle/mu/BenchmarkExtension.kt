@@ -10,6 +10,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
+import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.kotlin.dsl.newInstance
 import org.gradle.kotlin.dsl.register
 
@@ -36,17 +37,18 @@ constructor(
   val targets: BenchmarkTargetsContainer =
     extensions.adding("targets", objects.benchmarkTargetsContainer())
 
-  val versions: Versions =
-    extensions.adding("versions", objects.newInstance())
-
   val jsTools: JsToolsExtension =
     extensions.adding("tools", objects.newInstance<JsToolsExtension>())
 
-  @KotlinxBenchmarkPluginInternalApi
-  abstract val kotlinJsNodeModulesDir: DirectoryProperty
+  /**
+   * Optional JDK used to launch the JVM Benchmarks.
+   *
+   * @see [kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec.jvmBenchmarkLauncher]
+   */
+  abstract val jvmBenchmarkLauncher: Property<JavaLauncher>
 
-  @KotlinxBenchmarkPluginInternalApi
-  abstract val enableDemoMode: Property<Boolean>
+  val versions: Versions =
+    extensions.adding("versions", objects.newInstance())
 
   abstract class Versions {
     abstract val benchmarksRunner: Property<String>
@@ -80,6 +82,12 @@ constructor(
     configure: BenchmarkTarget.KotlinNative.() -> Unit,
   ): NamedDomainObjectProvider<BenchmarkTarget.KotlinNative> =
     register<BenchmarkTarget.KotlinNative>(name, configure)
+
+  @KotlinxBenchmarkPluginInternalApi
+  abstract val kotlinJsNodeModulesDir: DirectoryProperty
+
+  @KotlinxBenchmarkPluginInternalApi
+  abstract val enableDemoMode: Property<Boolean>
 
   companion object
 }

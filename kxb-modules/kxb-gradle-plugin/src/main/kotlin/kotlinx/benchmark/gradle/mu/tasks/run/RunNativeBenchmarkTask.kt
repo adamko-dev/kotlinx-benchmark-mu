@@ -23,16 +23,8 @@ constructor() : BaseRunBenchmarksTask() {
   @get:PathSensitive(RELATIVE)
   abstract val executable: RegularFileProperty
 
-//  @get:InputFiles
-//  @get:PathSensitive(RELATIVE)
-//  abstract val executable: ConfigurableFileCollection
-
   @get:Internal
   abstract val workingDir: DirectoryProperty
-
-//  @get:InputFile
-//  @get:PathSensitive(RELATIVE)
-//  abstract val configFile: RegularFileProperty
 
   @get:Input
   @get:Optional
@@ -55,11 +47,8 @@ constructor() : BaseRunBenchmarksTask() {
 
     runOld()
   }
-//  private fun knBinary(): File = executable.singleOrNull()
-//    ?: error("[$path] missing Kotlin/Native binary")
 
   private fun execute(
-//    configFile: File,
     encodedBenchmarkParameters: String,
     operation: NativeBenchmarkOperation,
     args: List<String>,

@@ -14,7 +14,9 @@ import org.gradle.api.Named
 import org.gradle.api.provider.*
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
+import org.gradle.jvm.toolchain.JavaLauncher
 
 abstract class BenchmarkRunSpec
 @KotlinxBenchmarkPluginInternalApi
@@ -55,10 +57,6 @@ constructor(private val name: String) : Named {
 
   @get:Input
   @get:Optional
-  abstract val warmups: Property<Int>
-
-  @get:Input
-  @get:Optional
   abstract val warmupForks: Property<Int>
 
   @get:Input
@@ -92,10 +90,22 @@ constructor(private val name: String) : Named {
   @get:Optional
   abstract val resultTimeUnit: Property<RunnerConfiguration.ReportTimeUnit>
 
+  /**
+   * Regex patterns for benchmarks that will be included.
+   *
+   * If no patterns are provided then all benchmarks will be included.
+   *
+   * Inclusions have a lower priority than [excludes].
+   */
   @get:Input
   @get:Optional
   abstract val includes: SetProperty<String>
 
+  /**
+   * Regex patterns for benchmarks that will be excluded.
+   *
+   * Exclusions have a higher priority than [includes].
+   */
   @get:Input
   @get:Optional
   abstract val excludes: SetProperty<String>
@@ -104,9 +114,20 @@ constructor(private val name: String) : Named {
   @get:Optional
   abstract val profilers: SetProperty<String>
 
+  /**
+   * Optional JDK used to launch the JVM Benchmarks.
+   */
+  @get:Nested
+  @get:Optional
+  abstract val jvmBenchmarkLauncher: Property<JavaLauncher>
+
   @get:Input
   @get:Optional
   abstract val jvmArgs: ListProperty<String>
+
+  @get:Input
+  @get:Optional
+  abstract val jvmForks: Property<Int>
 
   @get:Input
   @get:Optional
@@ -142,23 +163,15 @@ constructor(private val name: String) : Named {
   @Input
   override fun getName(): String = name
 
-
+  /** Set the value of [iterationDuration]. */
   fun iterationDuration(duration: DurationJdk) {
     iterationDuration.set(duration.toKotlinDuration())
   }
 
+  /** Set the value of [iterationDuration]. */
   fun iterationDuration(duration: Provider<DurationJdk>) {
     iterationDuration.set(duration.map { it.toKotlinDuration() })
   }
-
-//  fun iterationDuration(duration: Duration) {
-//    iterationDuration.set(duration)
-//  }
-//
-//  @JvmName("iterationDurationKt")
-//  fun iterationDuration(duration: Provider<Duration>) {
-//    iterationDuration.set(duration.map { it })
-//  }
 
   /**
    * Generate special benchmark bridges to stop inlining optimizations.
@@ -187,14 +200,14 @@ constructor(private val name: String) : Named {
 //    reportFile = reportFile.invariantSeparatorsPath,
 //    traceFormat = traceFormat,
         progressReporting = reporting
-        includes += config.includes.orNull.orEmpty()
-        excludes += config.excludes.orNull.orEmpty()
+        includes += config.includes.orNull.orEmpty().filter(String::isNotBlank)
+        excludes += config.excludes.orNull.orEmpty().filter(String::isNotBlank)
         measurementIterations = config.iterations.orNull
         measurementDuration = config.iterationDuration.orNull
 //    iterationDuration = config.iterationDuration.orNull
 //        batchSize = config.batchSize,
 //        runTime = config.runTime,
-        warmupIncludes += config.warmupBenchmarks.orNull.orEmpty()
+        warmupIncludes += config.warmupBenchmarks.orNull.orEmpty().filter(String::isNotBlank)
         warmupIterations = config.warmupIterations.orNull
 //        warmupBatchSize = config.warmupBatchSize,
         warmupForks = config.warmupForks.orNull
@@ -211,7 +224,7 @@ constructor(private val name: String) : Named {
         mode = config.mode.orNull
 //    profilers = config.profilers.orNull
         resultFormat = config.resultFormat.get()
-        jvmArgs += config.jvmArgs.orNull.orEmpty()
+        jvmArgs += config.jvmArgs.orNull.orEmpty().filter(String::isNotBlank)
         parameters += config.parameters.orNull.orEmpty()
 //    advanced = config.advanced.orNull.orEmpty(),
         enableJsBridge = config.enableJsBridge.orNull
@@ -231,7 +244,7 @@ constructor(private val name: String) : Named {
         }
       }
 
-      config.warmups.orNull?.let {
+      config.warmupIterations.orNull?.let {
         require(it >= 0) {
           "Invalid warmups: '$it'. Expected a non-negative integer (e.g. warmups = 3)."
         }

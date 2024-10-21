@@ -10,6 +10,7 @@ import kotlinx.benchmark.RunnerConfiguration.Mode.*
 import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
 import kotlinx.benchmark.RunnerConfiguration.ReportTimeUnit.*
 import kotlinx.benchmark.RunnerConfiguration.ResultFormat.*
+import kotlinx.benchmark.RunnerConfiguration.WarmupMode.*
 import kotlinx.benchmark.VerboseMode
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlinx.benchmark.readFile
@@ -36,9 +37,75 @@ fun main(args: Array<String>) {
 fun runJvmBenchmark(
   config: RunnerConfiguration,
   demoMode: Boolean = false,
+  jdkExecutable: File? = null,
 ) {
-  val jmhOptions = OptionsBuilder().apply {
+  val jmhOptions = buildJmhOptions(config, jdkExecutable)
+
+//  if (demoMode) {
+//    jmhOptions
+//      .shouldFailOnError(false)
+//      .measurementTime(TimeValue.milliseconds(1))
+//      .warmupTime(TimeValue.milliseconds(1))
+////      .forks(1)
+//      .shouldDoGC(false)
+//      .syncIterations(false)
+//      .timeout(TimeValue.seconds(1))
+//  }
+
+
+//  val runtimeMXBean = ManagementFactory.getRuntimeMXBean()
+//  val jvmArgs = runtimeMXBean.inputArguments
+//  if (jvmArgs.any { it.contains("libasyncProfiler") }) {
+//    jmhOptions.forks(0)
+//  } else {
+//    when (val jvmForks = config.advanced["jvmForks"]) {
+//      null           -> jmhOptions.forks(1)
+//      "definedByJmh" -> { /* do not override */
+//      }
+//
+//      else           -> {
+//        val forks = jvmForks.toIntOrNull()?.takeIf { it >= 0 }
+//          ?: throw IllegalArgumentException("jvmForks: expected a non-negative integer or \"definedByJmh\" string literal")
+//        jmhOptions.forks(forks)
+//      }
+//    }
+//  }
+
+
+  val reportFormat = when (config.resultFormat) {
+    Text -> ResultFormatType.TEXT
+    CSV  -> ResultFormatType.CSV
+    SCSV -> ResultFormatType.SCSV
+    JSON -> ResultFormatType.JSON
+//    null -> ResultFormatType.TEXT
+  }
+  val reporter = BenchmarkProgress.create(config.progressReporting ?: ProgressReporting.Stdout)
+  val output = JmhOutputFormat(reporter, config.name)
+  try {
+    val runner = jmhRunner(jmhOptions, output, demoMode)
+    //runner.list()
+    val results = runner.run()
+    val resultFormat = ResultFormatFactory.getInstance(reportFormat, PrintStream(File(config.resultFilePath)))
+    resultFormat.writeOut(results)
+  } catch (e: Exception) {
+    e.printStackTrace()
+    reporter.endBenchmark(
+      suite = config.name,
+      benchmark = output.lastBenchmarkStart,
+      status = BenchmarkProgress.FinishStatus.Failure,
+      message = e.message ?: "<unknown error>",
+    )
+  }
+}
+
+private fun buildJmhOptions(
+  config: RunnerConfiguration,
+  jdkExecutable: File?,
+): Options {
+  return OptionsBuilder().apply {
     result(config.resultFilePath)
+
+    jdkExecutable?.let { jvm(it.invariantSeparatorsPath) }
 
     resultFormat(
       when (config.resultFormat) {
@@ -103,9 +170,9 @@ fun runJvmBenchmark(
     config.warmupMode?.let {
       warmupMode(
         when (it) {
-          RunnerConfiguration.WarmupMode.Individual     -> WarmupMode.INDI
-          RunnerConfiguration.WarmupMode.Bulk           -> WarmupMode.BULK
-          RunnerConfiguration.WarmupMode.BulkIndividual -> WarmupMode.BULK_INDI
+          Individual     -> WarmupMode.INDI
+          Bulk           -> WarmupMode.BULK
+          BulkIndividual -> WarmupMode.BULK_INDI
         }
       )
     }
@@ -117,91 +184,24 @@ fun runJvmBenchmark(
     config.jvmArgsAppend.filter { it.isNotBlank() }.ifEmpty { null }?.let { jvmArgsAppend(*it.toTypedArray()) }
     config.jvmArgsPrepend.filter { it.isNotBlank() }.ifEmpty { null }?.let { jvmArgsPrepend(*it.toTypedArray()) }
     config.timeout?.let { timeout(it.toTimeValue()) }
-  }
 
-  config.parameters.forEach { (key, value) ->
-    jmhOptions.param(key, *value.toTypedArray())
-  }
-
-//  if (demoMode) {
-//    jmhOptions
-//      .shouldFailOnError(false)
-//      .measurementTime(TimeValue.milliseconds(1))
-//      .warmupTime(TimeValue.milliseconds(1))
-////      .forks(1)
-//      .shouldDoGC(false)
-//      .syncIterations(false)
-//      .timeout(TimeValue.seconds(1))
-//  }
-
-
-//  val runtimeMXBean = ManagementFactory.getRuntimeMXBean()
-//  val jvmArgs = runtimeMXBean.inputArguments
-//  if (jvmArgs.any { it.contains("libasyncProfiler") }) {
-//    jmhOptions.forks(0)
-//  } else {
-//    when (val jvmForks = config.advanced["jvmForks"]) {
-//      null           -> jmhOptions.forks(1)
-//      "definedByJmh" -> { /* do not override */
-//      }
-//
-//      else           -> {
-//        val forks = jvmForks.toIntOrNull()?.takeIf { it >= 0 }
-//          ?: throw IllegalArgumentException("jvmForks: expected a non-negative integer or \"definedByJmh\" string literal")
-//        jmhOptions.forks(forks)
-//      }
-//    }
-//  }
-
-//    jmhOptions.jvmArgs(
-//        "-Djmh.executor=CUSTOM",
-//        "-Djmh.executor.class=kotlinx.benchmark.jvm.NoopExecutorService",
-//    )
-//
-//    System.setProperty("jmh.executor", "CUSTOM")
-//    System.setProperty("jmh.executor.class", "kotlinx.benchmark.jvm.NoopExecutorService")
-//    ResultFormatFactory.getInstance(
-//        jmhOptions.resultFormat.get(),
-//        "file"
-//    )
-//    BenchmarkList.fromString("")
-//    CompilerHints.getCompileCommandFiles(listOf(""))
-
-  val reportFormat = when (config.resultFormat) {
-    Text -> ResultFormatType.TEXT
-    CSV  -> ResultFormatType.CSV
-    SCSV -> ResultFormatType.SCSV
-    JSON -> ResultFormatType.JSON
-//    null -> ResultFormatType.TEXT
-  }
-  val reporter = BenchmarkProgress.create(config.progressReporting ?: ProgressReporting.Stdout)
-  val output = JmhOutputFormat(reporter, config.name)
-  try {
-    val runner = jmhRunner(jmhOptions, output, demoMode)
-    runner.list()
-    val results = runner.run()
-    val resultFormat = ResultFormatFactory.getInstance(reportFormat, PrintStream(File(config.resultFilePath)))
-    resultFormat.writeOut(results)
-  } catch (e: Exception) {
-    e.printStackTrace()
-    reporter.endBenchmark(
-      suite = config.name,
-      benchmark = output.lastBenchmarkStart,
-      status = BenchmarkProgress.FinishStatus.Failure,
-      message = e.message ?: "<unknown error>",
-    )
-  }
+    config.parameters.forEach { (key, value) ->
+      param(key, *value.toTypedArray())
+    }
+  }.build()
 }
 
 private fun jmhRunner(
-  jmhOptions: OptionsBuilder,
+  jmhOptions: Options,
   output: OutputFormat,
   demoMode: Boolean,
 ): Runner =
   if (demoMode) {
-    FakeRunner(jmhOptions.build(), output)
+    println("i: Running JMH benchmark in demo mode, no actual benchmarks will be executed")
+    FakeRunner(jmhOptions, output)
   } else {
-    Runner(jmhOptions.build(), output)
+    println("i: Running JMH benchmark with options\n${jmhOptions.valuesString().prependIndent("  ")}")
+    Runner(jmhOptions, output)
   }
 
 /*
@@ -347,5 +347,41 @@ internal class FakeRunner private constructor(
         }
       )
     )
+  }
+}
+
+
+private fun Options.valuesString(): String {
+  return buildString {
+    appendLine("benchModes = $benchModes")
+    appendLine("excludes = $excludes")
+    appendLine("forkCount = $forkCount")
+    appendLine("includes = $includes")
+    appendLine("jvm = $jvm")
+    appendLine("jvmArgs = $jvmArgs")
+    appendLine("jvmArgsAppend = $jvmArgsAppend")
+    appendLine("jvmArgsPrepend = $jvmArgsPrepend")
+    appendLine("measurementBatchSize = $measurementBatchSize")
+    appendLine("measurementIterations = $measurementIterations")
+    appendLine("measurementTime = $measurementTime")
+    appendLine("operationsPerInvocation = $operationsPerInvocation")
+    appendLine("output = $output")
+    appendLine("profilers = $profilers")
+    appendLine("result = $result")
+    appendLine("resultFormat = $resultFormat")
+    appendLine("shouldDoGC = ${shouldDoGC()}")
+    appendLine("shouldFailOnError = ${shouldFailOnError()}")
+    appendLine("shouldSyncIterations = ${shouldSyncIterations()}")
+    appendLine("threadGroups = $threadGroups")
+    appendLine("threads = $threads")
+    appendLine("timeUnit = $timeUnit")
+    appendLine("timeout = $timeout")
+    appendLine("verbosity = ${verbosity()}")
+    appendLine("warmupBatchSize = $warmupBatchSize")
+    appendLine("warmupForkCount = $warmupForkCount")
+    appendLine("warmupIncludes = $warmupIncludes")
+    appendLine("warmupIterations = $warmupIterations")
+    appendLine("warmupMode = $warmupMode")
+    appendLine("warmupTime = $warmupTime")
   }
 }

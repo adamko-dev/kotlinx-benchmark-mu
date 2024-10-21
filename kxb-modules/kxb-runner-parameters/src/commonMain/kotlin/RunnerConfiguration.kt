@@ -6,6 +6,7 @@ import kotlin.time.Duration
 import kotlinx.benchmark.RunnerConfiguration.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 sealed interface RunnerConfiguration {
   val name: String
@@ -88,7 +89,7 @@ sealed interface RunnerConfiguration {
   val warmupBatchSize: Int?
 
   /** Warmup mode. */
-  val warmupMode: WarmupMode?// = null
+  val warmupMode: WarmupMode?
 
   /**
    * Which benchmarks to warmup before doing the run.
@@ -145,10 +146,66 @@ sealed interface RunnerConfiguration {
   val nativeFork: NativeFork?
 
   enum class Mode {
+
+    /**
+     * Throughput: operations per unit of time.
+     *
+     * Runs by continuously calling [@Benchmark][kotlinx.benchmark.Benchmark] methods,
+     * counting the total throughput over all worker threads.
+     *
+     * This mode is time-based, and it will run until the iteration time expires.
+     */
     Throughput,
+
+    /**
+     * Average time: average time per operation.
+     *
+     * Runs by continuously calling [@Benchmark][kotlinx.benchmark.Benchmark] methods,
+     * counting the average time to call over all worker threads.
+     *
+     * This is the inverse of [Throughput], but with different aggregation policy.
+     * This mode is time-based, and it will run until the iteration time expires.
+     */
     AverageTime,
+
+    /**
+     * Sample time: samples the time for each operation.
+     *
+     * Runs by continuously calling [@Benchmark][kotlinx.benchmark.Benchmark] methods,
+     * and randomly sampling the time needed for the call.
+     *
+     * This mode automatically adjusts the sampling frequency,
+     * but may omit some pauses which missed the sampling measurement.
+     *
+     * This mode is time-based, and it will run until the iteration time expires.
+     */
     SampleTime,
+
+    /**
+     *
+     * Single shot time: measures the time for a single operation.
+     *
+     * Runs by calling [@Benchmark][kotlinx.benchmark.Benchmark] once and measuring its time.
+     *
+     * This mode is useful to estimate the "cold" performance when you don't want to hide the
+     * warmup invocations, or if you want to see the progress from call to call,
+     * or you want to record every single sample.
+     *
+     * This mode is work-based, and will run only for a single invocation of `@Benchmark` method.
+     *
+     * Caveats for this mode include:
+     *
+     * - More warmup/measurement iterations are generally required.
+     * - Timers overhead might be significant if benchmarks are small; switch to [SampleTime] mode if
+     *   that is a problem.
+     */
     SingleShotTime,
+
+    /**
+     * Meta-mode: all the benchmark modes.
+     *
+     * This is mostly useful for internal JMH testing.
+     */
     All,
   }
 
@@ -198,7 +255,7 @@ sealed interface RunnerConfiguration {
 
   companion object {
     @OptIn(ExperimentalSerializationApi::class)
-    private val json = kotlinx.serialization.json.Json {
+    private val json = Json {
       prettyPrint = true
       prettyPrintIndent = "  "
     }

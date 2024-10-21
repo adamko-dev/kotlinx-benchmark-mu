@@ -25,12 +25,12 @@ constructor() : BaseRunBenchmarksTask() {
 //  @get:Nested
 //  abstract val javaLauncher: Property<JavaLauncher>
 
-  // TODO add jmh.ignoreLock Boolean option
-  //@get:Input
-  //abstract val ignoreJmhLock: Property<Boolean>
+  @get:Input
+  @get:Optional
+  abstract val ignoreJmhLock: Property<Boolean>
 
-  // TODO pass java launcher to JMH
   @get:Nested
+  @get:Optional
   abstract val javaLauncher: Property<JavaLauncher>
 
   @TaskAction
@@ -52,6 +52,10 @@ constructor() : BaseRunBenchmarksTask() {
 //      writeText(encodedParameters)
 //    }
 
+    val jdkExecutable = this@RunJvmBenchmarkTask.javaLauncher.orNull?.let { jdk ->
+      jdk.executablePath.asFile
+    }
+
     logger.info("[$path] runtimeClasspath: ${runtimeClasspath.asPath}")
     val workQueue =
       workers.classLoaderIsolation {
@@ -62,6 +66,8 @@ constructor() : BaseRunBenchmarksTask() {
       this.encodedBenchmarkParameters = encodedBenchmarkParameters
       this.classpath = this@RunJvmBenchmarkTask.runtimeClasspath
       this.enableDemoMode = this@RunJvmBenchmarkTask.enableDemoMode
+      this.jdkExecutable = jdkExecutable
+      this.ignoreJmhLock = this@RunJvmBenchmarkTask.ignoreJmhLock
     }
   }
 }

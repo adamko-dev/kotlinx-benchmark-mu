@@ -30,8 +30,6 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.jetbrains.kotlin.allopen.gradle.AllOpenExtension
 
@@ -42,7 +40,6 @@ constructor(
   private val objects: ObjectFactory,
   private val providers: ProviderFactory,
   private val layout: ProjectLayout,
-  private val javaToolchains: JavaToolchainService,
 ) : Plugin<Project> {
 
   override fun apply(project: Project) {
@@ -83,7 +80,7 @@ constructor(
       benchmarkRuns.configureEach {
         enabled.convention(true)
         iterations.convention(1)
-        warmups.convention(0)
+        warmupIterations.convention(0)
 //        iterationDuration.convention(10.seconds)
         mode.convention(RunnerConfiguration.Mode.Throughput)
         resultFormat.convention(RunnerConfiguration.ResultFormat.Text)
@@ -97,6 +94,7 @@ constructor(
 
         advanced.set(emptyMap<String, String>())
         advanced.convention(emptyMap<String, String>())
+        jvmBenchmarkLauncher.convention(this@apply.jvmBenchmarkLauncher)
       }
 
       enableDemoMode.convention(
@@ -291,9 +289,7 @@ constructor(
 
     project.tasks.withType<RunJvmBenchmarkTask>().configureEach {
       mainClass.convention("kotlinx.benchmark.jvm.JvmBenchmarkRunnerKt")
-
-      // TODO inherit javaLauncher from Kotlin/Java plugins
-      javaLauncher.convention(javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(11) })
+      ignoreJmhLock.convention(false)
     }
 
     project.tasks.withType<RunNativeBenchmarkTask>().configureEach {
@@ -325,6 +321,8 @@ constructor(
         name = buildName("benchmark", target.name, runSpec.name)
       ) {
         description = "Executes benchmark for JVM target ${target.name}"
+
+        this.javaLauncher.convention(runSpec.jvmBenchmarkLauncher)
 
         runtimeClasspath.from(target.jarTask)
         runtimeClasspath.from(target.runtimeClasspath)

@@ -4,6 +4,15 @@ import org.openjdk.jmh.annotations.*
 import java.util.concurrent.*
 import kotlin.math.cos
 import kotlin.math.sqrt
+import kotlinx.benchmark.Scope
+import kotlinx.benchmark.State
+import kotlinx.benchmark.Setup
+import kotlinx.benchmark.Benchmark
+import kotlinx.benchmark.BenchmarkMode
+import kotlinx.benchmark.Mode
+import kotlinx.benchmark.OutputTimeUnit
+import kotlinx.benchmark.Warmup
+import kotlinx.benchmark.Measurement
 
 const val WARMUP_ITERATIONS = 20
 
@@ -14,20 +23,20 @@ const val WARMUP_ITERATIONS = 20
 @Warmup(iterations = WARMUP_ITERATIONS, time = 1, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.SECONDS)
 class JvmTestBenchmark {
-    private var data = 0.0
+  private var data = 0.0
 
-    @Setup
-    fun setUp() {
-        data = 3.0
-    }
+  @Setup
+  fun setUp() {
+    data = 3.0
+  }
 
-    @Benchmark
-    fun sqrtBenchmark(): Double {
-        return sqrt(data)
-    }
+  @Benchmark
+  fun sqrtBenchmark(): Double {
+    return sqrt(data)
+  }
 
-    @Benchmark
-    fun cosBenchmark(): Double {
-        return cos(data)
-    }
+  @Benchmark
+  fun cosBenchmark(): Double {
+    return cos(data)
+  }
 }

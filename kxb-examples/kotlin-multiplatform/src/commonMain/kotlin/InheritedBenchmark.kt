@@ -30,7 +30,7 @@ abstract class BaseBenchmark {
 }
 
 @State(Scope.Benchmark)
-@Measurement(iterations = 10)
+@Measurement(iterations = 4)
 class InheritedBenchmark : BaseBenchmark() {
     @Setup
     fun inheritedSetup() {

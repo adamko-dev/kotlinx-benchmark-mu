@@ -4,6 +4,7 @@ import kotlinx.benchmark.RunnerConfiguration
 import kotlinx.benchmark.internal.KotlinxBenchmarkRuntimeInternalApi
 import kotlinx.benchmark.jvm.runJvmBenchmark
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
@@ -15,16 +16,19 @@ internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker
   internal interface Parameters : WorkParameters {
     val encodedBenchmarkParameters: Property<String>
     val classpath: ConfigurableFileCollection
+    val ignoreJmhLock: Property<Boolean>
     val enableDemoMode: Property<Boolean>
+    val jdkExecutable: RegularFileProperty
   }
 
   @OptIn(KotlinxBenchmarkRuntimeInternalApi::class)
   override fun execute() {
     val isDemoMode = parameters.enableDemoMode.getOrElse(false)
+    val ignoreJmhLock = parameters.ignoreJmhLock.getOrElse(false)
 
     val encodedBenchmarkParameters = parameters.encodedBenchmarkParameters.get()
 
-    if (isDemoMode) {
+    if (isDemoMode || ignoreJmhLock) {
       System.setProperty("jmh.ignoreLock", "true")
     }
 
@@ -34,6 +38,7 @@ internal abstract class RunJvmBenchmarkWorker : WorkAction<RunJvmBenchmarkWorker
     runJvmBenchmark(
       config = RunnerConfiguration.decodeFromBase64Json(encodedBenchmarkParameters),
       demoMode = isDemoMode,
+      jdkExecutable = parameters.jdkExecutable.orNull?.asFile,
     )
   }
 

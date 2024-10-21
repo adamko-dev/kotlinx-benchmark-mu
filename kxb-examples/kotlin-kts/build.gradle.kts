@@ -29,7 +29,7 @@ benchmark {
 
   benchmarkRuns {
     create("main") {
-      warmups = 0
+      warmupIterations = 0
       iterations = 3
       iterationDuration = 5.seconds
     }
