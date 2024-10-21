@@ -18,7 +18,7 @@ import org.gradle.work.DisableCachingByDefault
 abstract class RunJsNodeBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : RunBenchmarkBaseTask() {
+constructor() : BaseRunBenchmarksTask() {
 
   /** Arguments for Node. Will be passed first, before [runArguments]. */
   @get:Input

@@ -2,13 +2,10 @@ package kotlinx.benchmark.gradle.mu.tasks.generate
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import kotlinx.benchmark.gradle.mu.workers.GenerateJvmJmhSourceWorker
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.submit
 
@@ -16,22 +13,10 @@ import org.gradle.kotlin.dsl.submit
 abstract class GenerateJvmBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : BaseBenchmarkTask() {
-
-  @get:OutputDirectory
-  abstract val generatedSources: DirectoryProperty
-
-  @get:OutputDirectory
-  abstract val generatedResources: DirectoryProperty
-
-  @get:Classpath
-  abstract val inputClasses: ConfigurableFileCollection
+constructor() : BaseGenerateBenchmarkTask() {
 
   @get:Classpath
   abstract val inputCompileClasspath: ConfigurableFileCollection
-
-  @get:Classpath
-  abstract val runtimeClasspath: ConfigurableFileCollection
 
   @TaskAction
   protected fun generate() {

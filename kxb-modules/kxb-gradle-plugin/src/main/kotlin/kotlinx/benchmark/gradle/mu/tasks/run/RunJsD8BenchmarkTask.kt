@@ -2,11 +2,9 @@ package kotlinx.benchmark.gradle.mu.tasks.run
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 import org.gradle.work.DisableCachingByDefault
@@ -18,7 +16,7 @@ import org.gradle.work.DisableCachingByDefault
 abstract class RunJsD8BenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : RunBenchmarkBaseTask() {
+constructor() : BaseRunBenchmarksTask() {
 
   /** Arguments for D8. Will be passed first, before [runArguments]. */
   @get:Input

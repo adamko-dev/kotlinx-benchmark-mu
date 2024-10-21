@@ -2,40 +2,24 @@ package kotlinx.benchmark.gradle.mu.tasks.generate
 
 import javax.inject.Inject
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.tasks.BaseBenchmarkTask
 import kotlinx.benchmark.gradle.mu.workers.GenerateNativeSourceWorker
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.submit
 
 @CacheableTask
 abstract class GenerateNativeBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : BaseBenchmarkTask() {
-
-  @get:OutputDirectory
-  abstract val generatedSources: DirectoryProperty
-
-  @get:OutputDirectory
-  abstract val generatedResources: DirectoryProperty
+constructor() : BaseGenerateBenchmarkTask() {
 
   @get:Input
   abstract val title: Property<String>
 
   @get:Input
   abstract val targetName: Property<String>
-
-  @get:Classpath
-  abstract val inputClasses: ConfigurableFileCollection
-
-  @get:Classpath
-  abstract val inputDependencies: ConfigurableFileCollection
-
-  @get:Classpath
-  abstract val runtimeClasspath: ConfigurableFileCollection
 
   @TaskAction
   protected fun generate() {

@@ -15,10 +15,7 @@ import kotlinx.benchmark.gradle.mu.internal.adapters.KxbKotlinAdapter
 import kotlinx.benchmark.gradle.mu.internal.fetchKotlinJsNodeModulesDir
 import kotlinx.benchmark.gradle.mu.internal.utils.buildName
 import kotlinx.benchmark.gradle.mu.internal.utils.toBoolean
-import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJsBenchmarkTask
-import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateJvmBenchmarkTask
-import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateNativeBenchmarkTask
-import kotlinx.benchmark.gradle.mu.tasks.generate.GenerateWasmBenchmarkTask
+import kotlinx.benchmark.gradle.mu.tasks.generate.BaseGenerateBenchmarkTask
 import kotlinx.benchmark.gradle.mu.tasks.run.*
 import kotlinx.benchmark.gradle.mu.tasks.tools.D8SetupTask
 import kotlinx.benchmark.gradle.mu.tasks.tools.NodeJsSetupTask
@@ -55,6 +52,8 @@ constructor(
 
     val kxbDependencies = KxbDependencies(project, kxbExtension)
     val kxbTasks = KxbTasks(project, kxbDependencies)
+
+    configureKxbLifecycleTasks(project, kxbTasks)
 
     project.pluginManager.apply(KxbKotlinAdapter::class)
     project.pluginManager.apply(KxbJavaAdapter::class)
@@ -212,6 +211,24 @@ constructor(
     }
   }
 
+  private fun configureKxbLifecycleTasks(
+    project: Project,
+    kxbTasks: KxbTasks,
+  ) {
+    kxbTasks.assembleBenchmarks.configure {
+      dependsOn(project.tasks.withType<BaseGenerateBenchmarkTask>())
+    }
+    kxbTasks.benchmarks.configure {
+      dependsOn(project.tasks.withType<BaseRunBenchmarksTask>())
+      // Trick IntelliJ into thinking this is a test task,
+      // so we can log test data via stdout encoded with IJ XML.
+      extensions.extraProperties.set(
+        "idea.internal.test",
+        providers.systemProperty("idea.active").getOrElse("false").toBoolean(),
+      )
+    }
+  }
+
   /**
    * Configure the Kotlin all-open plugin, so
    * [@State][org.openjdk.jmh.annotations.State]
@@ -232,25 +249,7 @@ constructor(
     project: Project,
     kxbDependencies: KxbDependencies,
   ) {
-    project.tasks.withType<GenerateJvmBenchmarkTask>().configureEach {
-      runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
-      generatedResources.convention(temporaryDir.resolve("generated-resources"))
-      generatedSources.convention(temporaryDir.resolve("generated-sources"))
-    }
-
-    project.tasks.withType<GenerateJsBenchmarkTask>().configureEach {
-      runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
-      generatedResources.convention(temporaryDir.resolve("generated-resources"))
-      generatedSources.convention(temporaryDir.resolve("generated-sources"))
-    }
-
-    project.tasks.withType<GenerateWasmBenchmarkTask>().configureEach {
-      runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
-      generatedResources.convention(temporaryDir.resolve("generated-resources"))
-      generatedSources.convention(temporaryDir.resolve("generated-sources"))
-    }
-
-    project.tasks.withType<GenerateNativeBenchmarkTask>().configureEach {
+    project.tasks.withType<BaseGenerateBenchmarkTask>().configureEach {
       runtimeClasspath.from(kxbDependencies.kxbGeneratorResolver)
       generatedResources.convention(temporaryDir.resolve("generated-resources"))
       generatedSources.convention(temporaryDir.resolve("generated-sources"))
@@ -260,13 +259,13 @@ constructor(
   /**
    * Configure all tasks used to run benchmarks.
    *
-   * @see RunBenchmarkBaseTask
+   * @see BaseRunBenchmarksTask
    */
   private fun configureRunBenchmarkTasks(
     project: Project,
     kxbExtension: BenchmarkExtension,
   ) {
-    project.tasks.withType<RunBenchmarkBaseTask>().configureEach {
+    project.tasks.withType<BaseRunBenchmarksTask>().configureEach {
       enableDemoMode.convention(kxbExtension.enableDemoMode)
       ideaActive.convention(providers.systemProperty("idea.active").toBoolean())
 

@@ -1,10 +1,7 @@
 package kotlinx.benchmark.gradle.mu.tasks.run
 
 import javax.inject.Inject
-import kotlinx.benchmark.RunnerConfiguration.ProgressReporting
 import kotlinx.benchmark.gradle.internal.KotlinxBenchmarkPluginInternalApi
-import kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec
-import kotlinx.benchmark.gradle.mu.config.BenchmarkRunSpec.Companion.buildRunnerConfig
 import kotlinx.benchmark.gradle.mu.workers.RunJvmBenchmarkWorker
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.provider.Property
@@ -17,7 +14,7 @@ import org.gradle.kotlin.dsl.submit
 abstract class RunJvmBenchmarkTask
 @KotlinxBenchmarkPluginInternalApi
 @Inject
-constructor() : RunBenchmarkBaseTask() {
+constructor() : BaseRunBenchmarksTask() {
 
   @get:Classpath
   abstract val runtimeClasspath: ConfigurableFileCollection

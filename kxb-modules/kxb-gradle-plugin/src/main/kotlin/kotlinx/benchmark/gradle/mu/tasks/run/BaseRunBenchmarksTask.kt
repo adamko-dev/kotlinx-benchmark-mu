@@ -14,7 +14,7 @@ import org.gradle.work.DisableCachingByDefault
 
 
 @DisableCachingByDefault(because = "wip")
-abstract class RunBenchmarkBaseTask
+abstract class BaseRunBenchmarksTask
 @KotlinxBenchmarkPluginInternalApi
 protected constructor() : BaseBenchmarkTask() {
 
