@@ -1,11 +1,10 @@
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.benchmark.gradle.mu.config.BenchmarkTarget
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation.Companion.MAIN_COMPILATION_NAME
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
-
-//import kotlinx.benchmark.gradle.JsBenchmarksExecutor
 
 plugins {
   kotlin("multiplatform") version "2.0.20"
@@ -13,14 +12,12 @@ plugins {
   id("dev.adamko.kotlinx-benchmark")
 }
 
-// how to apply plugin to a specific source set?
-//allOpen {
-//    annotation("org.openjdk.jmh.annotations.State")
-//}
-
 kotlin {
   jvm {
-//        compilations.create('benchmark') { associateWith(compilations.main) }
+    val mainCompilation = compilations.named(MAIN_COMPILATION_NAME)
+    compilations.create("benchmark") {
+      associateWith(mainCompilation.get())
+    }
   }
   js {
     nodejs()

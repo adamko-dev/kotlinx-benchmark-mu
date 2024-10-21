@@ -6,6 +6,7 @@ import kotlin.math.cos
 import kotlin.math.sqrt
 
 const val WARMUP_ITERATIONS = 20
+
 @State(Scope.Benchmark)
 @Fork(1)
 @BenchmarkMode(Mode.AverageTime)
